@@ -35,7 +35,7 @@ SHA as append-only history.
 | T3 | GameManager with score, HP and level | committed | 774d7a5 |
 | T4 | ConveyorBeltComponent | committed | 5aa4eb7 |
 | T5 | FoodItemComponent | committed | e970d10 |
-| T6 | ItemSpawnerComponent | todo | - |
+| T6 | ItemSpawnerComponent | committed | 04042c8 |
 | T7 | Item sprites and SFX registration | todo | - |
 | T8 | GameHud overlay | todo | - |
 | T9 | World and screen wiring | todo | - |

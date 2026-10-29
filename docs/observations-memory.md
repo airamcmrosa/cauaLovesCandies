@@ -27,6 +27,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
 | `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
+| `OBS-025` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawner creates a new `FoodItemComponent` per spawn (no pooling); restart does not reset `_elapsed` |
+| `OBS-026` | INFO | TEST_COVERAGE | `lib/game/components/item_spawner_component.dart` | Open | No test for the not-spawning-when-not-playing path; `GameState` only has `playing` today |
 
 ---
 
@@ -171,3 +173,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `ConveyorBeltComponent` defines `baseSpeed = 0.25` (z/s), `halfWidthBottom = 330` and `stripeCount = 10`. The belt stripes are rebuilt every frame without Dart allocations, and the 720x1280 render is only verifiable once wired (T9).
 * **Risk/Impact:** Duplicated constants if `FoodItemComponent` (T5) re-declares speed; visual unverified until T9.
 * **Resolution Trigger:** TASK-003 T5 reuses `baseSpeed` (or moves it to `phase_config.dart`); visual check at the T9 checkpoint.
+
+### `OBS-025`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `audit / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The task asks for pooling or recycling, but the spawner creates a new `FoodItemComponent` about every 1.4 s (items remove themselves). It uses `parent?.add` and does not reset `_elapsed` on restart. `spawnIntervalSeconds = 1.4` was chosen by the implementer, not taken from the docs; arrival spacing belongs to TASK-011.
+* **Risk/Impact:** Low allocation rate, acceptable; a restart can inherit a stale timer if the spawner is reused.
+* **Resolution Trigger:** TASK-003 T9 mounts it on an already mounted parent and recreates or resets it on restart; revisit pooling only if profiling shows GC hitches.
+
+### `OBS-026`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `test authoring / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The "does not spawn when state is not playing" test was not written because `GameState` only has `playing`.
+* **Risk/Impact:** The paused/over spawning guard is uncovered until more states exist.
+* **Resolution Trigger:** TASK-004, TASK-005 or TASK-006 adds `GameState` values; add the test then.
