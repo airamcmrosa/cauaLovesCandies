@@ -25,6 +25,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
 | `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
+| `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition weights (30/40/30) are a placeholder |
 
 ---
 
@@ -149,3 +150,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The architecture gives no pixel values for the projection; `yBottom=1180`, `yHorizon=400` and `x=360` (spawn and mouth) are placeholders chosen in the 720x1280 viewport.
 * **Risk/Impact:** Items may not line up with the belt trapezoid or the mouth until the geometry is fixed.
 * **Resolution Trigger:** TASK-003 T4 (belt geometry) or T9 (manual run): retune the constants in `Projection`.
+
+### `OBS-014`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `lib/game/managers/phase_config.dart`
+* **Source:** `audit / TASK-003 T2`
+* **Status:** Open
+* **Finding:** Phase 3 composition (30/40/30 sweets/fruits/hazards) is a placeholder from the PM Decisions, not a tuned value.
+* **Risk/Impact:** The final celebration challenge may feel too easy or too hard.
+* **Resolution Trigger:** TASK-004 (phase progression) tunes the table, or the manual run in TASK-003 T9.
