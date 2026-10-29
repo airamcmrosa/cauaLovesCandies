@@ -2,7 +2,7 @@
 id: TASK-016
 story: -
 title: Show a friendly full-screen error with a reload button on any uncaught failure
-status: em progresso # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: []
 ---
@@ -27,7 +27,7 @@ If anything throws in the app (Flutter framework, async/platform errors, the Fla
 ## Atomic Sub-tasks
 - [x] T1 - Add the `ErrorScreen` widget and the reload abstraction (web and fallback, conditional import). _Verify:_ the widget shows the message and a reload button; tapping it calls the injected reload function.
 - [x] T2 - Add the error reporter and wire the global hooks in `lib/main.dart` so any uncaught error replaces the app UI with `ErrorScreen`. _Verify:_ throwing from a widget build, from an async callback and from a Flame component shows the error screen once; no error loop.
-- [ ] T3 - Self-audit: English-only code, no PII in logs, analyze and format clean. _Verify:_ `flutter analyze` and `dart format --set-exit-if-changed lib` exit 0.
+- [x] T3 - Self-audit: English-only code, no PII in logs, analyze and format clean. _Verify:_ `flutter analyze` and `dart format --set-exit-if-changed lib` exit 0.
 
 ## Definition of Done
 - Any uncaught failure shows the error screen with a working reload button (web).

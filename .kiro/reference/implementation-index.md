@@ -53,4 +53,4 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | ErrorScreen and reload abstraction | committed | 0d55a17 |
 | T2 | Error reporter and global hooks in main.dart | committed | 6d3a715 |
-| T3 | Self-audit pass | todo | - |
+| T3 | Self-audit pass | committed | c755519 |

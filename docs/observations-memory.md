@@ -27,6 +27,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
 | `OBS-032` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | Error messages are logged verbatim (local only); no fallback if `ErrorScreen` itself throws |
+| `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
+| `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 
 ---
 
@@ -171,3 +173,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `ErrorReporter` logs the error message verbatim (local console only, no PII in this app) and has no fallback if `ErrorScreen` itself throws; later errors are ignored, so there is no loop.
 * **Risk/Impact:** A failure inside the error screen would leave a broken UI without reload guidance.
 * **Resolution Trigger:** TASK-016 T3 self-audit or a later hardening pass; add a minimal `Text`-only fallback if needed.
+
+### `OBS-041`
+* **Severity:** WARNING
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `buildErrorWidget` does not consult `hasError`; if `ErrorScreen.build` itself threw, the builder could loop. The try/catch around the const `ErrorScreen` constructor is dead code because a const constructor cannot throw.
+* **Risk/Impact:** Low: `ErrorScreen` is a simple stateless widget.
+* **Resolution Trigger:** Next touch of `error_reporter.dart`: guard on `hasError` and drop the dead try/catch.
+
+### `OBS-042`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `ErrorFallback` (text only) has no reload button and no `DefaultTextStyle`, and is practically unreachable.
+* **Risk/Impact:** None in normal operation.
+* **Resolution Trigger:** Same pass as OBS-041.
