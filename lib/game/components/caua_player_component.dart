@@ -15,8 +15,9 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   }) : _mouthController = mouthController;
 
   /// Expected file names inside the game's images cache.
-  static const String closedSpriteName = 'caua_mouth_closed.webp';
-  static const String openSpriteName = 'caua_mouth_open.webp';
+  static const String closedSpriteName =
+      'caua/caua_mouth_closed_eyes_open.webp';
+  static const String openSpriteName = 'caua/caua_mouth_open_eyes_open.webp';
 
   final MouthController _mouthController;
 
