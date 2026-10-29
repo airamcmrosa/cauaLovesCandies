@@ -16,3 +16,12 @@ relevant row in the same task-scoped commit that lands a task (ADR-023 Decisions
 SHA as append-only history.
 
 ---
+## TASK-002 - Single-tap mouth control (US02)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | MouthState enum and MouthController | committed | PENDING |
+| T2 | Open/closed Caua sprites (.webp) | todo | - |
+| T3 | CauaPlayerComponent | todo | - |
+| T4 | CauaCandiesGame with tap input | todo | - |
+| T5 | Route/entry for manual verification | todo | - |
