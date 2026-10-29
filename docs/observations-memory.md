@@ -29,6 +29,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
 | `OBS-025` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawner creates a new `FoodItemComponent` per spawn (no pooling); restart does not reset `_elapsed` |
 | `OBS-026` | INFO | TEST_COVERAGE | `lib/game/components/item_spawner_component.dart` | Open | No test for the not-spawning-when-not-playing path; `GameState` only has `playing` today |
+| `OBS-030` | INFO | MAINTAINABILITY | `lib/game/item_sprites.dart` | Open | `itemSpriteAssetList` is a manual copy of `itemSpriteAssets`; 16 item types share 9 sprites (banana looks like the grape) |
+| `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Open | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` |
 
 ---
 
@@ -193,3 +195,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The "does not spawn when state is not playing" test was not written because `GameState` only has `playing`.
 * **Risk/Impact:** The paused/over spawning guard is uncovered until more states exist.
 * **Resolution Trigger:** TASK-004, TASK-005 or TASK-006 adds `GameState` values; add the test then.
+
+### `OBS-030`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/item_sprites.dart`
+* **Source:** `audit / TASK-003 T7`
+* **Status:** Open
+* **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
+* **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
+* **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
+
+### `OBS-031`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `test authoring / TASK-003 T7`
+* **Status:** Open
+* **Finding:** The mute handling inside `AudioController.playSfx` is not exercised by `test/audio/sounds_test.dart`.
+* **Risk/Impact:** A regression could play SFX while muted.
+* **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
