@@ -139,11 +139,17 @@ class AudioController {
     final currentPlayer = _sfxPlayers[_currentSfxPlayer];
     unawaited(
       currentPlayer
-          .play(AssetSource('sfx/$filename'), volume: soundTypeToVolume(type))
+          .play(
+            AssetSource(sfxAssetPath(type, filename)),
+            volume: soundTypeToVolume(type),
+          )
           .then<void>(
-            (_) => _log.info('SFX started: sfx/$filename'),
-            onError: (Object e, StackTrace st) =>
-                _log.warning('Could not play SFX sfx/$filename', e, st),
+            (_) => _log.info('SFX started: ${sfxAssetPath(type, filename)}'),
+            onError: (Object e, StackTrace st) => _log.warning(
+              'Could not play SFX ${sfxAssetPath(type, filename)}',
+              e,
+              st,
+            ),
           ),
     );
     _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
@@ -262,8 +268,11 @@ class AudioController {
     try {
       await AudioCache.instance.loadAll(
         SfxType.values
-            .expand(soundTypeToFilename)
-            .map((path) => 'sfx/$path')
+            .expand(
+              (type) => soundTypeToFilename(
+                type,
+              ).map((filename) => sfxAssetPath(type, filename)),
+            )
             .toList(),
       );
     } catch (e, st) {

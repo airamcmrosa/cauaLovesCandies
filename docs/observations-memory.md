@@ -38,6 +38,18 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-035` | INFO | UX_KIDS | `lib/ui/title_logo.dart` | Open | Logo is about 25% narrower at 360 px width to clear the candy lanes; clearance is only 3.6 px at 320 px |
 | `OBS-036` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | Futures of pause, stop and dispose are not awaited or handled; a platform failure would be an unhandled async error |
 | `OBS-037` | INFO | MAINTAINABILITY | `lib/ui/bobbing_avatar.dart` | Open | `CurvedAnimation` in `BobbingAvatar` is never disposed |
+| `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
+| `OBS-025` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawner creates a new `FoodItemComponent` per spawn (no pooling); restart does not reset `_elapsed` |
+| `OBS-026` | INFO | TEST_COVERAGE | `lib/game/components/item_spawner_component.dart` | Open | No test for the not-spawning-when-not-playing path; `GameState` only has `playing` today |
+| `OBS-030` | INFO | MAINTAINABILITY | `lib/game/item_sprites.dart` | Open | `itemSpriteAssetList` is a manual copy of `itemSpriteAssets`; 16 item types share 9 sprites (banana looks like the grape) |
+| `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Open | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` |
+| `OBS-039` | WARNING | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Game screen layout, sky vs belt harmony and ingest tween are unchecked on real phones; the original tiny-view root cause was never reproduced, only mitigated |
+| `OBS-040` | INFO | MAINTAINABILITY | `lib/game/components/food_item_component.dart` | Open | One-frame position jump at the decision (y 522 to 515); the item stays 0.15 s in the tree during the tween; not asserted in tests |
+| `OBS-043` | WARNING | UX_KIDS | `lib/audio/sounds.dart` | Open | `hmm` and `eurk` play at volume 1.0 versus 0.4 for other SFX (about 8 dB jump) and `hmm` plays on every good item |
+| `OBS-032` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | Error messages are logged verbatim (local only); no fallback if `ErrorScreen` itself throws |
+| `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
+| `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
+| `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 
 ---
 
@@ -296,3 +308,120 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The `CurvedAnimation` created by `BobbingAvatar` is not disposed with its controller.
 * **Risk/Impact:** Negligible leak for one avatar instance.
 * **Resolution Trigger:** Next touch of `bobbing_avatar.dart`.
+### `OBS-021`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/conveyor_belt_component.dart`
+* **Source:** `audit / TASK-003 T4`
+* **Status:** Open
+* **Finding:** `ConveyorBeltComponent` defines `baseSpeed = 0.25` (z/s), `halfWidthBottom = 330` and `stripeCount = 10`. The belt stripes are rebuilt every frame without Dart allocations, and the 720x1280 render is only verifiable once wired (T9).
+* **Risk/Impact:** Duplicated constants if `FoodItemComponent` (T5) re-declares speed; visual unverified until T9.
+* **Resolution Trigger:** TASK-003 T5 reuses `baseSpeed` (or moves it to `phase_config.dart`); visual check at the T9 checkpoint.
+
+### `OBS-025`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `audit / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The task asks for pooling or recycling, but the spawner creates a new `FoodItemComponent` about every 1.4 s (items remove themselves). It uses `parent?.add` and does not reset `_elapsed` on restart. `spawnIntervalSeconds = 1.4` was chosen by the implementer, not taken from the docs; arrival spacing belongs to TASK-011.
+* **Risk/Impact:** Low allocation rate, acceptable; a restart can inherit a stale timer if the spawner is reused.
+* **Resolution Trigger:** TASK-003 T9 mounts it on an already mounted parent and recreates or resets it on restart; revisit pooling only if profiling shows GC hitches.
+
+### `OBS-026`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `test authoring / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The "does not spawn when state is not playing" test was not written because `GameState` only has `playing`.
+* **Risk/Impact:** The paused/over spawning guard is uncovered until more states exist.
+* **Resolution Trigger:** TASK-004, TASK-005 or TASK-006 adds `GameState` values; add the test then.
+
+### `OBS-030`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/item_sprites.dart`
+* **Source:** `audit / TASK-003 T7`
+* **Status:** Open
+* **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
+* **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
+* **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
+
+### `OBS-031`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `test authoring / TASK-003 T7`
+* **Status:** Open
+* **Finding:** The mute handling inside `AudioController.playSfx` is not exercised by `test/audio/sounds_test.dart`.
+* **Risk/Impact:** A regression could play SFX while muted.
+* **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
+
+### `OBS-039`
+* **Severity:** WARNING
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-003 T9`
+* **Status:** Open
+* **Finding:** The 9:16 container size, the sky versus belt harmony, the head versus HUD clearance and the ingest tween were only checked on desktop Chrome. The original "game view under 1/100 of the screen" report was never reproduced; an explicit centered 9:16 container with a 360x640 minimum mitigates it.
+* **Risk/Impact:** A phone could still render the game too small or misaligned (iOS Safari URL bar resize, landscape).
+* **Resolution Trigger:** Real-device check on iOS Safari and Android Chrome (portrait, landscape, narrow window) before release; fix with a corrective task if it fails.
+
+### `OBS-040`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/food_item_component.dart`
+* **Source:** `audit / TASK-003 T9`
+* **Status:** Open
+* **Finding:** At the decision the item keeps its previous pose (y about 522) and jumps to y 515 on the next update; it stays 0.15 s in the component tree while the ingest tween runs. The jump is not asserted in tests.
+* **Risk/Impact:** Sub-pixel visual jump, no visible defect reported.
+* **Resolution Trigger:** Next touch of `FoodItemComponent`.
+
+### `OBS-043`
+* **Severity:** WARNING
+* **Category:** UX_KIDS
+* **Target:** `lib/audio/sounds.dart`
+* **Source:** `audit / TASK-003 T10`
+* **Status:** Open
+* **Finding:** The product-owner clips `hmm.mp3` and `eurk.mp3` play at volume 1.0 while the other SFX use 0.4, a jump of about 8 dB, and `hmm` plays on every positive item.
+* **Risk/Impact:** Possible startling or fatiguing loudness for children; the real clip level was not checked by ear.
+* **Resolution Trigger:** Product owner listens in the browser; consider 0.6 to 0.7 for `hmm`.
+### `OBS-032`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T2`
+* **Status:** Open
+* **Finding:** `ErrorReporter` logs the error message verbatim (local console only, no PII in this app) and has no fallback if `ErrorScreen` itself throws; later errors are ignored, so there is no loop.
+* **Risk/Impact:** A failure inside the error screen would leave a broken UI without reload guidance.
+* **Resolution Trigger:** TASK-016 T3 self-audit or a later hardening pass; add a minimal `Text`-only fallback if needed.
+
+### `OBS-041`
+* **Severity:** WARNING
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `buildErrorWidget` does not consult `hasError`; if `ErrorScreen.build` itself threw, the builder could loop. The try/catch around the const `ErrorScreen` constructor is dead code because a const constructor cannot throw.
+* **Risk/Impact:** Low: `ErrorScreen` is a simple stateless widget.
+* **Resolution Trigger:** Next touch of `error_reporter.dart`: guard on `hasError` and drop the dead try/catch.
+
+### `OBS-042`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `ErrorFallback` (text only) has no reload button and no `DefaultTextStyle`, and is practically unreachable.
+* **Risk/Impact:** None in normal operation.
+* **Resolution Trigger:** Same pass as OBS-041.
+### `OBS-038`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/images/caua/caua_chew_eyes_open.webp`, `caua_mouth_closed_eyes_half.webp`, `caua_mouth_open_eyes_open.webp`
+* **Source:** `audit / TASK-017 T2`
+* **Status:** Open
+* **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
+* **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
+* **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.

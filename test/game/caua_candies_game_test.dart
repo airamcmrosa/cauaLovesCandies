@@ -2,7 +2,9 @@ import 'dart:ui' as ui;
 
 import 'package:caua_loves_candies/game/caua_candies_game.dart';
 import 'package:caua_loves_candies/game/components/caua_player_component.dart';
+import 'package:caua_loves_candies/game/item_sprites.dart';
 import 'package:caua_loves_candies/game/managers/mouth_controller.dart';
+import 'package:caua_loves_candies/game/projection.dart';
 import 'package:caua_loves_candies/game/managers/mouth_state.dart';
 import 'package:flame/components.dart';
 import 'package:flame/camera.dart';
@@ -34,6 +36,9 @@ void main() {
     final game = CauaCandiesGame(mouthController: controller);
     game.images.add(CauaPlayerComponent.closedSpriteName, baseImage.clone());
     game.images.add(CauaPlayerComponent.openSpriteName, baseImage.clone());
+    for (final name in itemSpriteAssetList) {
+      game.images.add(name, baseImage.clone());
+    }
     return game;
   }
 
@@ -51,7 +56,7 @@ void main() {
     void gameTest(String name, Future<void> Function(CauaCandiesGame) body) =>
         testWithGame<CauaCandiesGame>(name, buildGame, body);
 
-    gameTest('adds a closed, centered 480x480 player to the world after load', (
+    gameTest('adds a closed, centered 240x240 player to the world after load', (
       game,
     ) async {
       await game.ready();
@@ -59,9 +64,12 @@ void main() {
       expect(players, hasLength(1));
       final player = players.single;
       expect(player.position.x, closeTo(360, 1e-9));
-      expect(player.position.y, closeTo(800, 1e-9));
-      expect(player.size.x, closeTo(480, 1e-9));
-      expect(player.size.y, closeTo(480, 1e-9));
+      expect(player.position.y, closeTo(Projection.playerCenterY, 1e-9));
+      expect(player.position.y, closeTo(408, 1e-9));
+      expect(player.size.x, closeTo(Projection.playerSize, 1e-9));
+      expect(player.size.y, closeTo(240, 1e-9));
+      expect(player.priority, CauaCandiesGame.playerPriority);
+      expect(player.priority, -20);
       expect(player.anchor, Anchor.center);
       expect(game.mouthController.state.value, MouthState.closed);
     });

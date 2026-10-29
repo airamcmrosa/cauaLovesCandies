@@ -12,7 +12,7 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | TASK-001 | US01 | Build the animated title screen with JOGAR button, BGM unlock and asset preload | em progresso | - | [TASK-001](./TASK-001-title-screen.md) |
 | TASK-002 | US02 | Implement single-tap mouth open/close control | completa | - | [TASK-002](./TASK-002-tap-mouth-control.md) |
-| TASK-003 | US03 | Build conveyor belt with scored food items and HUD | em progresso | TASK-002 | [TASK-003](./TASK-003-conveyor-scoring.md) |
+| TASK-003 | US03 | Build conveyor belt with scored food items and HUD | completa | TASK-002 | [TASK-003](./TASK-003-conveyor-scoring.md) |
 | TASK-004 | US04 | Implement 3-phase progression with rising speed and phase banner | aceita | TASK-003 | [TASK-004](./TASK-004-phase-progression.md) |
 | TASK-005 | US05 | Build victory celebration and friendly game-over screens with instant restart | aceita | TASK-003, TASK-004, TASK-010 | [TASK-005](./TASK-005-victory-screen.md) |
 | TASK-006 | US06 | Add hands-on tutorial overlay at first play | aceita | TASK-002, TASK-003 | [TASK-006](./TASK-006-tutorial-overlay.md) |
@@ -25,3 +25,5 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-013 | - | Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura) | completa | - | [TASK-013](./TASK-013-ux-palette-corrections.md) |
 | TASK-014 | - | Remove Endless Runner template residue and keep only the reusable skeleton | completa | - | [TASK-014](./TASK-014-remove-endless-runner-residue.md) |
 | TASK-015 | US02 | Point the game and its tests at the delivered Cauã sprites to fix the broken test suite | completa | - | [TASK-015](./TASK-015-caua-sprite-wiring.md) |
+| TASK-016 | - | Show a friendly full-screen error with a reload button on any uncaught failure | completa | - | [TASK-016](./TASK-016-global-error-screen.md) |
+| TASK-017 | - | Normalize the Cauã frames to one size, position and skin tone (post-processing only) | completa | - | [TASK-017](./TASK-017-caua-sprite-normalization.md) |
