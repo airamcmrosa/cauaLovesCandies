@@ -34,6 +34,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-022` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `dispose()` leaves settings listeners and the `onPlayerComplete` subscription attached |
 | `OBS-023` | INFO | UX_KIDS | `lib/audio/audio_controller.dart` | Open | Mobile browsers usually reject the first `play()`; retry only works if T4/T5 call `unlockAndStartMusic()` on first tap |
 | `OBS-024` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | SFX `play()` and music `pause()` are not awaited or caught; `playSfx` doc comment is inverted |
+| `OBS-027` | INFO | MAINTAINABILITY | `lib/ui/title_loading_indicator.dart` | Open | Idle, Loading and Done branches are dead code after the spinner-first change |
+| `OBS-028` | INFO | UX_KIDS | `lib/ui/title_screen.dart` | Open | Failed state has no message and a null `onRetry` leaves no way out; 48 px settings spacer may overflow below about 330 px height |
+| `OBS-029` | INFO | UX_KIDS | `lib/ui/play_button.dart` | Open | White on #E5609D is about 3.4:1 contrast, passes only the large-text criterion |
 
 ---
 
@@ -248,3 +251,33 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** SFX `play()` and music `pause()` are not awaited or caught, and the `playSfx` documentation comment text is inverted.
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
+
+### `OBS-027`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/ui/title_loading_indicator.dart`
+* **Source:** `audit / TASK-001 T4`
+* **Status:** Open
+* **Finding:** After the title screen became spinner-first, the Idle, Loading and Done branches of `TitleLoadingIndicator` are unreachable.
+* **Risk/Impact:** Dead code that may mislead readers.
+* **Resolution Trigger:** TASK-001 T6 self-audit: reduce the widget to the Failed state.
+
+### `OBS-028`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/title_screen.dart`
+* **Source:** `audit / TASK-001 T4`
+* **Status:** Open
+* **Finding:** The Failed state shows no message and a null `onRetry` leaves the user without a way out. The 48 px settings spacer is reserved even without settings and can overflow below about 330 px viewport height (landscape).
+* **Risk/Impact:** A stuck screen on a failed preload; layout overflow in landscape.
+* **Resolution Trigger:** TASK-001 T5 passes `onRetry`; the 9:16 portrait layout makes the overflow unlikely.
+
+### `OBS-029`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/play_button.dart`
+* **Source:** `audit / TASK-001 T4`
+* **Status:** Open
+* **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
+* **Risk/Impact:** Acceptable for the large label; weaker for small text.
+* **Resolution Trigger:** Palette review if smaller text is placed on that pink.

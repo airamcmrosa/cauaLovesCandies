@@ -23,7 +23,7 @@ SHA as append-only history.
 | T1 | Product assets and single BGM track | committed | 60f7139 |
 | T2 | AssetPreloader | committed | 2f4ac89 |
 | T3 | AudioController unlock and manifests | committed | bf097de |
-| T4 | TitleScreen and sub-widgets | todo | - |
+| T4 | TitleScreen and sub-widgets | committed | 25c3ab0 |
 | T5 | Router wiring | todo | - |
 | T6 | Self-audit pass | todo | - |
 
