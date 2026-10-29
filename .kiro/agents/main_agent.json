@@ -1,0 +1,79 @@
+{
+  "name": "main_agent",
+  "description": "Main Loop agent for the Cauã Love Candies Flutter + Flame game. Sole coordinator: the only agent allowed to commit and push to Git and to do project bookkeeping (user story status, implementation progress index, docs/observations-memory.md) per AGENTS.md. Auto-approves read/write/search within the repo.",
+  "tools": [
+    "read",
+    "write",
+    "shell",
+    "grep",
+    "glob",
+    "code"
+  ],
+  "allowedTools": [
+    "read",
+    "write",
+    "grep",
+    "glob",
+    "code"
+  ],
+  "toolsSettings": {
+    "write": {
+      "allowedPaths": [
+        "./**"
+      ],
+      "deniedPaths": [
+        "./.env",
+        "./**/.env",
+        "./**/*.pem",
+        "./**/credentials"
+      ]
+    },
+    "shell": {
+      "autoAllowReadonly": true,
+      "allowedCommands": [
+        "mkdir",
+        "mkdir -p .*",
+        "mv .*",
+        "cp .*",
+        "touch .*",
+        "ls",
+        "ls .*",
+        "cat .*",
+        "find .*",
+        "grep .*",
+        "echo .*",
+        "flutter pub get",
+        "flutter analyze.*",
+        "flutter --version",
+        "flutter doctor.*",
+        "dart --version",
+        "dart analyze.*",
+        "dart format.*",
+        "git add .*",
+        "git status",
+        "git status .*",
+        "git diff",
+        "git diff .*",
+        "git log",
+        "git log .*",
+        "git commit.*",
+        "git push.*",
+        "git worktree.*",
+        "git branch.*",
+        "git switch.*",
+        "git pull.*",
+        "kiro-cli chat --agent .* --no-interactive.*"
+      ],
+      "deniedCommands": [
+        "rm -rf .*",
+        ".*git reset --hard.*",
+        ".*git push --force.*",
+        ".*git commit --no-verify.*",
+        "sudo .*"
+      ]
+    }
+  },
+  "resources": [
+    "skill://.kiro/skills/*/SKILL.md"
+  ]
+}
