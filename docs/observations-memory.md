@@ -39,6 +39,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-029` | INFO | UX_KIDS | `lib/ui/play_button.dart` | Open | White on #E5609D is about 3.4:1 contrast, passes only the large-text criterion |
 | `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing |
 | `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_handleSongFinished` ignores `audioOn` and dispose state |
+| `OBS-035` | INFO | UX_KIDS | `lib/ui/title_logo.dart` | Open | Logo is about 25% narrower at 360 px width to clear the candy lanes; clearance is only 3.6 px at 320 px |
 
 ---
 
@@ -303,3 +304,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `_handleSongFinished` does not check `audioOn` or the disposed state before starting the next track.
 * **Risk/Impact:** A finished track could restart while muted or after dispose.
 * **Resolution Trigger:** TASK-001 T6 self-audit.
+
+### `OBS-035`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/title_logo.dart`, `lib/ui/falling_candies.dart`
+* **Source:** `audit / TASK-001 T7`
+* **Status:** Open
+* **Finding:** To keep the logo clear of the falling-candy lanes it was narrowed by about 25% at 360 px width (about 234x98 px at rest); the measured clearance is 6.0 px at 360, 9.1 px at 412 and 3.6 px at 320.
+* **Risk/Impact:** A smaller logo and a tight margin on very narrow phones. The product owner approved the screen at 360x640 and 412x915.
+* **Resolution Trigger:** Real-device check on a 320 px wide phone, or a layout change to the candy lanes.
