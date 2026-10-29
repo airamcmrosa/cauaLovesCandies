@@ -54,3 +54,11 @@ SHA as append-only history.
 | T1 | ErrorScreen and reload abstraction | committed | 0d55a17 |
 | T2 | Error reporter and global hooks in main.dart | committed | 6d3a715 |
 | T3 | Self-audit pass | committed | c755519 |
+
+## TASK-017 - Caua frame normalization
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Measure the 13 frames | committed | 3d61618 |
+| T2 | Normalize the three outlier frames | committed | 3d61618 |
+| T3 | Invariants test | committed | 3d61618 |
