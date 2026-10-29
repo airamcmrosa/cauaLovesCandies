@@ -32,3 +32,10 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | Audit lib, assets, tests and docs for template residue | committed | 52a87ee |
 | T2 | Delete residue and fix references | committed | 52a87ee |
+
+## TASK-015 - Caua sprite wiring
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Player component loads the delivered open/closed sprites | committed | fdfa0d7 |
+| T2 | Stale sprite test updated to assets/images/caua | committed | fdfa0d7 |
