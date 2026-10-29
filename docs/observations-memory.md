@@ -26,6 +26,14 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
+| `OBS-025` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawner creates a new `FoodItemComponent` per spawn (no pooling); restart does not reset `_elapsed` |
+| `OBS-026` | INFO | TEST_COVERAGE | `lib/game/components/item_spawner_component.dart` | Open | No test for the not-spawning-when-not-playing path; `GameState` only has `playing` today |
+| `OBS-030` | INFO | MAINTAINABILITY | `lib/game/item_sprites.dart` | Open | `itemSpriteAssetList` is a manual copy of `itemSpriteAssets`; 16 item types share 9 sprites (banana looks like the grape) |
+| `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Open | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` |
+| `OBS-039` | WARNING | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Game screen layout, sky vs belt harmony and ingest tween are unchecked on real phones; the original tiny-view root cause was never reproduced, only mitigated |
+| `OBS-040` | INFO | MAINTAINABILITY | `lib/game/components/food_item_component.dart` | Open | One-frame position jump at the decision (y 522 to 515); the item stays 0.15 s in the tree during the tween; not asserted in tests |
+| `OBS-043` | WARNING | UX_KIDS | `lib/audio/sounds.dart` | Open | `hmm` and `eurk` play at volume 1.0 versus 0.4 for other SFX (about 8 dB jump) and `hmm` plays on every good item |
 | `OBS-032` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | Error messages are logged verbatim (local only); no fallback if `ErrorScreen` itself throws |
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
@@ -165,6 +173,85 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
 
+### `OBS-021`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/conveyor_belt_component.dart`
+* **Source:** `audit / TASK-003 T4`
+* **Status:** Open
+* **Finding:** `ConveyorBeltComponent` defines `baseSpeed = 0.25` (z/s), `halfWidthBottom = 330` and `stripeCount = 10`. The belt stripes are rebuilt every frame without Dart allocations, and the 720x1280 render is only verifiable once wired (T9).
+* **Risk/Impact:** Duplicated constants if `FoodItemComponent` (T5) re-declares speed; visual unverified until T9.
+* **Resolution Trigger:** TASK-003 T5 reuses `baseSpeed` (or moves it to `phase_config.dart`); visual check at the T9 checkpoint.
+
+### `OBS-025`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `audit / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The task asks for pooling or recycling, but the spawner creates a new `FoodItemComponent` about every 1.4 s (items remove themselves). It uses `parent?.add` and does not reset `_elapsed` on restart. `spawnIntervalSeconds = 1.4` was chosen by the implementer, not taken from the docs; arrival spacing belongs to TASK-011.
+* **Risk/Impact:** Low allocation rate, acceptable; a restart can inherit a stale timer if the spawner is reused.
+* **Resolution Trigger:** TASK-003 T9 mounts it on an already mounted parent and recreates or resets it on restart; revisit pooling only if profiling shows GC hitches.
+
+### `OBS-026`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `test authoring / TASK-003 T6`
+* **Status:** Open
+* **Finding:** The "does not spawn when state is not playing" test was not written because `GameState` only has `playing`.
+* **Risk/Impact:** The paused/over spawning guard is uncovered until more states exist.
+* **Resolution Trigger:** TASK-004, TASK-005 or TASK-006 adds `GameState` values; add the test then.
+
+### `OBS-030`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/item_sprites.dart`
+* **Source:** `audit / TASK-003 T7`
+* **Status:** Open
+* **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
+* **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
+* **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
+
+### `OBS-031`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `test authoring / TASK-003 T7`
+* **Status:** Open
+* **Finding:** The mute handling inside `AudioController.playSfx` is not exercised by `test/audio/sounds_test.dart`.
+* **Risk/Impact:** A regression could play SFX while muted.
+* **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
+
+### `OBS-039`
+* **Severity:** WARNING
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-003 T9`
+* **Status:** Open
+* **Finding:** The 9:16 container size, the sky versus belt harmony, the head versus HUD clearance and the ingest tween were only checked on desktop Chrome. The original "game view under 1/100 of the screen" report was never reproduced; an explicit centered 9:16 container with a 360x640 minimum mitigates it.
+* **Risk/Impact:** A phone could still render the game too small or misaligned (iOS Safari URL bar resize, landscape).
+* **Resolution Trigger:** Real-device check on iOS Safari and Android Chrome (portrait, landscape, narrow window) before release; fix with a corrective task if it fails.
+
+### `OBS-040`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/food_item_component.dart`
+* **Source:** `audit / TASK-003 T9`
+* **Status:** Open
+* **Finding:** At the decision the item keeps its previous pose (y about 522) and jumps to y 515 on the next update; it stays 0.15 s in the component tree while the ingest tween runs. The jump is not asserted in tests.
+* **Risk/Impact:** Sub-pixel visual jump, no visible defect reported.
+* **Resolution Trigger:** Next touch of `FoodItemComponent`.
+
+### `OBS-043`
+* **Severity:** WARNING
+* **Category:** UX_KIDS
+* **Target:** `lib/audio/sounds.dart`
+* **Source:** `audit / TASK-003 T10`
+* **Status:** Open
+* **Finding:** The product-owner clips `hmm.mp3` and `eurk.mp3` play at volume 1.0 while the other SFX use 0.4, a jump of about 8 dB, and `hmm` plays on every positive item.
+* **Risk/Impact:** Possible startling or fatiguing loudness for children; the real clip level was not checked by ear.
+* **Resolution Trigger:** Product owner listens in the browser; consider 0.6 to 0.7 for `hmm`.
 ### `OBS-032`
 * **Severity:** INFO
 * **Category:** ERROR_HANDLING
