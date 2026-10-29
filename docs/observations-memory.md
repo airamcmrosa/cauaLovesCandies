@@ -26,6 +26,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
 
 ---
 
@@ -160,3 +161,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `level` and `state` are plain fields; only `score` and `hp` are `ValueNotifier`s.
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
+
+### `OBS-021`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/conveyor_belt_component.dart`
+* **Source:** `audit / TASK-003 T4`
+* **Status:** Open
+* **Finding:** `ConveyorBeltComponent` defines `baseSpeed = 0.25` (z/s), `halfWidthBottom = 330` and `stripeCount = 10`. The belt stripes are rebuilt every frame without Dart allocations, and the 720x1280 render is only verifiable once wired (T9).
+* **Risk/Impact:** Duplicated constants if `FoodItemComponent` (T5) re-declares speed; visual unverified until T9.
+* **Resolution Trigger:** TASK-003 T5 reuses `baseSpeed` (or moves it to `phase_config.dart`); visual check at the T9 checkpoint.

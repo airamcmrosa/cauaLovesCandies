@@ -26,6 +26,20 @@ SHA as append-only history.
 | T4 | CauaCandiesGame with tap input | committed | ed43ea3 |
 | T5 | Route/entry for manual verification | committed | be7f350 |
 
+## TASK-003 - Conveyor belt, scoring and HUD (US03)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Pure projection and ingest/deflect decision | committed | 8d1d414 |
+| T2 | ItemType catalog and PhaseConfig table | committed | c430e25 |
+| T3 | GameManager with score, HP and level | committed | 774d7a5 |
+| T4 | ConveyorBeltComponent | committed | 5aa4eb7 |
+| T5 | FoodItemComponent | todo | - |
+| T6 | ItemSpawnerComponent | todo | - |
+| T7 | Item sprites and SFX registration | todo | - |
+| T8 | GameHud overlay | todo | - |
+| T9 | World and screen wiring | todo | - |
+
 ## TASK-014 - Remove Endless Runner template residue
 
 | Task | Summary | State | Commit SHA |
