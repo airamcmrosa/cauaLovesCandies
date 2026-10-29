@@ -33,6 +33,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Open | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` |
 | `OBS-039` | WARNING | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Game screen layout, sky vs belt harmony and ingest tween are unchecked on real phones; the original tiny-view root cause was never reproduced, only mitigated |
 | `OBS-040` | INFO | MAINTAINABILITY | `lib/game/components/food_item_component.dart` | Open | One-frame position jump at the decision (y 522 to 515); the item stays 0.15 s in the tree during the tween; not asserted in tests |
+| `OBS-043` | WARNING | UX_KIDS | `lib/audio/sounds.dart` | Open | `hmm` and `eurk` play at volume 1.0 versus 0.4 for other SFX (about 8 dB jump) and `hmm` plays on every good item |
 
 ---
 
@@ -237,3 +238,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** At the decision the item keeps its previous pose (y about 522) and jumps to y 515 on the next update; it stays 0.15 s in the component tree while the ingest tween runs. The jump is not asserted in tests.
 * **Risk/Impact:** Sub-pixel visual jump, no visible defect reported.
 * **Resolution Trigger:** Next touch of `FoodItemComponent`.
+
+### `OBS-043`
+* **Severity:** WARNING
+* **Category:** UX_KIDS
+* **Target:** `lib/audio/sounds.dart`
+* **Source:** `audit / TASK-003 T10`
+* **Status:** Open
+* **Finding:** The product-owner clips `hmm.mp3` and `eurk.mp3` play at volume 1.0 while the other SFX use 0.4, a jump of about 8 dB, and `hmm` plays on every positive item.
+* **Risk/Impact:** Possible startling or fatiguing loudness for children; the real clip level was not checked by ear.
+* **Resolution Trigger:** Product owner listens in the browser; consider 0.6 to 0.7 for `hmm`.

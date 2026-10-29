@@ -39,7 +39,7 @@ SHA as append-only history.
 | T7 | Item sprites and SFX registration | committed | e7e22da |
 | T8 | GameHud overlay | committed | f2625df |
 | T9 | World and screen wiring | committed | 05edb96 |
-| T10 | Reaction sounds eurk and hmm | todo | - |
+| T10 | Reaction sounds eurk and hmm | committed | cc78420 |
 
 ## TASK-014 - Remove Endless Runner template residue
 
