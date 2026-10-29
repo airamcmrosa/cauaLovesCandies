@@ -1,6 +1,7 @@
 List<String> soundTypeToFilename(SfxType type) => switch (type) {
   SfxType.damage => const ['damage1.mp3', 'damage2.mp3'],
   SfxType.score => const ['score1.mp3', 'score2.mp3'],
+  SfxType.fruit => const ['score2.mp3'],
   SfxType.buttonTap => const [
     'click1.mp3',
     'click2.mp3',
@@ -13,6 +14,7 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
 double soundTypeToVolume(SfxType type) {
   switch (type) {
     case SfxType.score:
+    case SfxType.fruit:
     case SfxType.damage:
       return 0.4;
     case SfxType.buttonTap:
@@ -20,4 +22,4 @@ double soundTypeToVolume(SfxType type) {
   }
 }
 
-enum SfxType { score, damage, buttonTap }
+enum SfxType { score, fruit, damage, buttonTap }
