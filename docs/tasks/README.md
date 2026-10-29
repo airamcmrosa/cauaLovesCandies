@@ -24,3 +24,4 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-012 | - | Integrate the delivered Cauã sprite set (background removal, naming, missing frames, release format) | completa | - | [TASK-012](./TASK-012-caua-sprite-set-integration.md) |
 | TASK-013 | - | Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura) | aceita | - | [TASK-013](./TASK-013-ux-palette-corrections.md) |
 | TASK-014 | - | Remove Endless Runner template residue and keep only the reusable skeleton | completa | - | [TASK-014](./TASK-014-remove-endless-runner-residue.md) |
+| TASK-015 | US02 | Point the game and its tests at the delivered Cauã sprites to fix the broken test suite | em progresso | - | [TASK-015](./TASK-015-caua-sprite-wiring.md) |
