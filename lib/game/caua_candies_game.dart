@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/painting.dart' show Color;
 
 import 'components/caua_player_component.dart';
 import 'managers/mouth_controller.dart';
@@ -30,6 +31,10 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   /// Mouth state owner, exposed for later tasks (read [MouthController.state]).
   MouthController get mouthController => _mouthController;
+
+  /// Candy Pastel `bg-cream` (#FFF5E6), the base game background.
+  @override
+  Color backgroundColor() => const Color(0xFFFFF5E6);
 
   @override
   Future<void> onLoad() async {
