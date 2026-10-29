@@ -26,6 +26,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 
 ---
 
@@ -160,3 +161,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `level` and `state` are plain fields; only `score` and `hp` are `ValueNotifier`s.
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
+
+### `OBS-038`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/images/caua/caua_chew_eyes_open.webp`, `caua_mouth_closed_eyes_half.webp`, `caua_mouth_open_eyes_open.webp`
+* **Source:** `audit / TASK-017 T2`
+* **Status:** Open
+* **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
+* **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
+* **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
