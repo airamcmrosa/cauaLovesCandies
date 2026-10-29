@@ -24,6 +24,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
 | `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
+| `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
+| `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
+| `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
 
 ---
 
@@ -138,3 +141,33 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The manual-verification screen has a 56 px back button over the canvas that exits to `/` on tap.
 * **Risk/Impact:** A 6-year-old tapping near the top-left corner during play could leave the match.
 * **Resolution Trigger:** TASK-001 wiring or TASK-005 (game screen replaces the verification route): remove the button or move it behind the settings/pause flow.
+
+### `OBS-013`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `lib/game/projection.dart`
+* **Source:** `audit / TASK-003 T1`
+* **Status:** Open
+* **Finding:** The architecture gives no pixel values for the projection; `yBottom=1180`, `yHorizon=400` and `x=360` (spawn and mouth) are placeholders chosen in the 720x1280 viewport.
+* **Risk/Impact:** Items may not line up with the belt trapezoid or the mouth until the geometry is fixed.
+* **Resolution Trigger:** TASK-003 T4 (belt geometry) or T9 (manual run): retune the constants in `Projection`.
+
+### `OBS-014`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `lib/game/managers/phase_config.dart`
+* **Source:** `audit / TASK-003 T2`
+* **Status:** Open
+* **Finding:** Phase 3 composition is 25/30/45 (sweets/fruits/hazards), set by the product owner to make the final phase the hardest; not yet playtested.
+* **Risk/Impact:** The final celebration challenge may feel too easy or too hard.
+* **Resolution Trigger:** TASK-004 (phase progression) tunes the table, or the manual run in TASK-003 T9.
+
+### `OBS-015`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/managers/game_manager.dart`
+* **Source:** `audit / TASK-003 T3`
+* **Status:** Open
+* **Finding:** `level` and `state` are plain fields; only `score` and `hp` are `ValueNotifier`s.
+* **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
+* **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
