@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:caua_loves_candies/app_lifecycle/app_lifecycle.dart';
 import 'package:caua_loves_candies/audio/audio_controller.dart';
+import 'package:caua_loves_candies/audio/sounds.dart';
 import 'package:caua_loves_candies/settings/persistence/settings_persistence.dart';
 import 'package:caua_loves_candies/settings/settings.dart';
 import 'package:flutter/services.dart';
@@ -14,8 +16,19 @@ class _MemoryPersistence implements SettingsPersistence {
   bool soundsOn = true;
   String name = 'Player';
 
+  /// When set, getAudioOn waits for it (simulates a slow persisted load).
+  Completer<void>? gate;
+
+  /// When true, getAudioOn throws (simulates a failing load).
+  bool failLoad = false;
+
   @override
-  Future<bool> getAudioOn({required bool defaultValue}) async => audioOn;
+  Future<bool> getAudioOn({required bool defaultValue}) async {
+    await gate?.future;
+    if (failLoad) throw StateError('load failed');
+    return audioOn;
+  }
+
   @override
   Future<bool> getMusicOn({required bool defaultValue}) async => musicOn;
   @override
@@ -43,6 +56,7 @@ void main() {
 
   late Directory tempDir;
   late List<String> calls;
+  late List<String> sfxCalls;
   late bool failResume;
   late Map<String, MockStreamHandlerEventSink> preparedSinks;
   late AudioController controller;
@@ -68,13 +82,8 @@ void main() {
     }
   }
 
-  Future<SettingsController> makeSettings({
-    bool audio = true,
-    bool music = true,
-  }) async {
-    final store = _MemoryPersistence()
-      ..audioOn = audio
-      ..musicOn = music;
+  Future<SettingsController> makeSettings({bool audio = true}) async {
+    final store = _MemoryPersistence()..audioOn = audio;
     final s = SettingsController(store: store);
     await settle();
     return s;
@@ -95,6 +104,7 @@ void main() {
 
   setUp(() async {
     calls = [];
+    sfxCalls = [];
     preparedSinks = {};
     failResume = false;
     messenger.setMockMethodCallHandler(audioChannel, (call) async {
@@ -103,9 +113,15 @@ void main() {
         final blocked = call.method == 'resume' && failResume;
         calls.add(blocked ? 'resumeBlocked' : call.method);
       }
+      final pid = call.arguments is Map
+          ? (call.arguments as Map)['playerId'] as String?
+          : null;
+      if (pid != null && pid.startsWith('sfxPlayer')) {
+        sfxCalls.add(call.method);
+      }
       if (call.method == 'setSourceUrl') {
         Future<void>.delayed(Duration.zero, () {
-          preparedSinks['musicPlayer']?.success({
+          preparedSinks[pid ?? 'musicPlayer']?.success({
             'event': 'audio.onPrepared',
             'value': true,
           });
@@ -144,18 +160,11 @@ void main() {
   });
 
   group('start on settings attach (all platforms)', () {
-    test('tries to start music when audioOn and musicOn are true', () async {
+    test('tries to start music when audioOn is true', () async {
       settings = await makeSettings();
       await attach(settings);
       expect(count('setSourceUrl'), 1);
       expect(count('resume'), 1);
-    });
-
-    test('does not start when musicOn is false', () async {
-      settings = await makeSettings(music: false);
-      await attach(settings);
-      expect(count('setSourceUrl'), 0);
-      expect(count('resume'), 0);
     });
 
     test('does not start when audioOn is false', () async {
@@ -181,24 +190,79 @@ void main() {
     });
   });
 
+  group('attach waits for settings.loaded', () {
+    test('does not start music before the load completes', () async {
+      final store = _MemoryPersistence()..gate = Completer<void>();
+      settings = SettingsController(store: store);
+      await attach(settings);
+      expect(count('setSourceUrl'), 0);
+      expect(count('resume'), 0);
+
+      store.gate!.complete();
+      await settle();
+      expect(count('setSourceUrl'), 1);
+      expect(count('resume'), 1);
+    });
+
+    test('persisted off never plays, even with early unlock/resume', () async {
+      final store = _MemoryPersistence()
+        ..audioOn = false
+        ..gate = Completer<void>();
+      settings = SettingsController(store: store);
+      await attach(settings);
+
+      // Before load: default audioOn is still true.
+      await controller.unlockAndStartMusic();
+      lifecycle.value = AppLifecycleState.paused;
+      lifecycle.value = AppLifecycleState.resumed;
+      await settle();
+
+      store.gate!.complete();
+      await settle();
+      expect(settings.audioOn.value, isFalse);
+
+      // After load.
+      await controller.unlockAndStartMusic();
+      lifecycle.value = AppLifecycleState.paused;
+      lifecycle.value = AppLifecycleState.resumed;
+      await settle();
+
+      expect(count('setSourceUrl'), 0);
+      expect(count('resume'), 0);
+    });
+
+    test('a failing load does not raise an unhandled error', () async {
+      final store = _MemoryPersistence()..failLoad = true;
+      settings = SettingsController(store: store);
+      await expectLater(settings.loaded, throwsStateError);
+      await attach(settings);
+      await expectLater(controller.unlockAndStartMusic(), completes);
+    });
+  });
+
+  group('dispose', () {
+    test('removes the listener so toggling causes no player calls', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      controller.dispose();
+      await settle();
+      calls.clear();
+      sfxCalls.clear();
+
+      settings.toggleAudioOn();
+      settings.toggleAudioOn();
+      await settle();
+      expect(calls, isEmpty);
+      expect(sfxCalls, isEmpty);
+
+      // Fresh controller so tearDown can dispose without a double dispose.
+      controller = AudioController();
+      await settle();
+    });
+  });
+
   group('toggles', () {
-    test('musicOn off pauses and on resumes', () async {
-      settings = await makeSettings();
-      await attach(settings);
-      calls.clear();
-
-      settings.toggleMusicOn();
-      await settle();
-      expect(settings.musicOn.value, isFalse);
-      expect(count('pause'), greaterThanOrEqualTo(1));
-
-      calls.clear();
-      settings.toggleMusicOn();
-      await settle();
-      expect(count('resume'), 1);
-    });
-
-    test('audioOn off pauses and on resumes when music is on', () async {
+    test('audioOn off pauses and on resumes music', () async {
       settings = await makeSettings();
       await attach(settings);
       calls.clear();
@@ -212,23 +276,71 @@ void main() {
       await settle();
       expect(count('resume'), 1);
     });
+  });
 
-    test('audioOn on does not start music when musicOn is false', () async {
-      settings = await makeSettings(audio: false, music: false);
+  group('playSfx (OBS-031)', () {
+    test('is muted when audioOn is false', () async {
+      settings = await makeSettings(audio: false);
+      await attach(settings);
+      controller.playSfx(SfxType.score);
+      controller.playSfx(SfxType.damage);
+      controller.playSfx(SfxType.buttonTap);
+      await settle();
+      expect(
+        sfxCalls.where((c) => c == 'resume' || c == 'setSourceUrl'),
+        isEmpty,
+      );
+    });
+
+    test('is muted when no settings are attached', () async {
+      controller.playSfx(SfxType.score);
+      await settle();
+      expect(
+        sfxCalls.where((c) => c == 'resume' || c == 'setSourceUrl'),
+        isEmpty,
+      );
+    });
+
+    test('is audible when audioOn is true', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      sfxCalls.clear();
+      controller.playSfx(SfxType.score);
+      await settle();
+      expect(sfxCalls, contains('setSourceUrl'));
+      expect(sfxCalls, contains('resume'));
+    });
+
+    test('toggling audioOn off then on mutes then restores SFX', () async {
+      settings = await makeSettings();
       await attach(settings);
       settings.toggleAudioOn();
       await settle();
-      expect(count('resume'), 0);
-      expect(count('setSourceUrl'), 0);
+      sfxCalls.clear();
+      controller.playSfx(SfxType.buttonTap);
+      await settle();
+      expect(sfxCalls.where((c) => c == 'resume'), isEmpty);
+
+      settings.toggleAudioOn();
+      await settle();
+      sfxCalls.clear();
+      controller.playSfx(SfxType.buttonTap);
+      await settle();
+      expect(sfxCalls, contains('resume'));
+    });
+  });
+
+  group('settings defaults', () {
+    test('audioOn defaults to true before and after load', () async {
+      final s = SettingsController(store: _MemoryPersistence());
+      expect(s.audioOn.value, isTrue);
+      await settle();
+      expect(s.audioOn.value, isTrue);
     });
 
-    test('musicOn on does not start music while audio is off', () async {
-      settings = await makeSettings(audio: false, music: false);
-      await attach(settings);
-      settings.toggleMusicOn();
-      await settle();
-      expect(count('resume'), 0);
-      expect(count('setSourceUrl'), 0);
+    test('audioOn false is restored from persistence', () async {
+      final s = await makeSettings(audio: false);
+      expect(s.audioOn.value, isFalse);
     });
   });
 
@@ -238,17 +350,7 @@ void main() {
       expect(calls, isEmpty);
     });
 
-    test('is a no-op when music is off or audio is off', () async {
-      settings = await makeSettings(music: false);
-      await attach(settings);
-      await controller.unlockAndStartMusic();
-      expect(count('setSourceUrl'), 0);
-      expect(count('resume'), 0);
-
-      controller.dispose();
-      controller = AudioController();
-      await settle();
-      calls.clear();
+    test('is a no-op when audio is off', () async {
       final muted = await makeSettings(audio: false);
       await attach(muted);
       await controller.unlockAndStartMusic();
@@ -336,19 +438,6 @@ void main() {
       lifecycle.value = AppLifecycleState.resumed;
       await settle();
       expect(count('resume'), 1);
-    });
-
-    test('resumed does not restart music when musicOn is false', () async {
-      settings = await makeSettings();
-      await attach(settings);
-      settings.toggleMusicOn();
-      await settle();
-      lifecycle.value = AppLifecycleState.paused;
-      await settle();
-      calls.clear();
-      lifecycle.value = AppLifecycleState.resumed;
-      await settle();
-      expect(count('resume'), 0);
     });
   });
 }

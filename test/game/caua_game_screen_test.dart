@@ -67,12 +67,13 @@ void main() {
     List<String> childPaths(GoRoute route) =>
         route.routes.whereType<GoRoute>().map((r) => r.path).toList();
 
-    test('has caua route under / alongside settings', () {
+    test('has caua route under / and no settings route', () {
       final root = router.configuration.routes.whereType<GoRoute>().single;
       expect(root.path, '/');
 
       final children = childPaths(root);
-      expect(children, containsAll(<String>['caua', 'settings']));
+      expect(children, contains('caua'));
+      expect(children, isNot(contains('settings')));
     });
   });
 }

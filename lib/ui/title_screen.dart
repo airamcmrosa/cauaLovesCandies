@@ -25,14 +25,16 @@ class TitleScreen extends StatefulWidget {
     required this.onPlay,
     required this.onFirstTap,
     this.onRetry,
-    this.onSettings,
+    required this.soundOn,
+    required this.onToggleSound,
   });
 
   final ValueListenable<PreloadState> preloadState;
   final VoidCallback onPlay;
   final VoidCallback onFirstTap;
   final VoidCallback? onRetry;
-  final VoidCallback? onSettings;
+  final ValueListenable<bool> soundOn;
+  final VoidCallback onToggleSound;
 
   @override
   State<TitleScreen> createState() => _TitleScreenState();
@@ -94,6 +96,12 @@ class _TitleScreenState extends State<TitleScreen> {
               const PlayButton(onPressed: null),
               const SizedBox(height: 8),
               TitleLoadingIndicator(state: state, onRetry: widget.onRetry),
+              const SizedBox(height: 16),
+              _SoundToggle(
+                soundOn: widget.soundOn,
+                onToggle: widget.onToggleSound,
+                color: palette.ink.color,
+              ),
             ],
           ),
         ),
@@ -134,24 +142,12 @@ class _TitleScreenState extends State<TitleScreen> {
                         BobbingAvatar(size: avatarSize),
                         const SizedBox(height: 16),
                         PlayButton(onPressed: widget.onPlay),
-                        const SizedBox(height: 48),
-                        if (widget.onSettings != null)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              iconSize: 32,
-                              constraints: const BoxConstraints(
-                                minWidth: 48,
-                                minHeight: 48,
-                              ),
-                              tooltip: 'Configurações',
-                              onPressed: widget.onSettings,
-                              icon: Icon(
-                                Icons.settings,
-                                color: palette.ink.color,
-                              ),
-                            ),
-                          ),
+                        const SizedBox(height: 24),
+                        _SoundToggle(
+                          soundOn: widget.soundOn,
+                          onToggle: widget.onToggleSound,
+                          color: palette.ink.color,
+                        ),
                       ],
                     ),
                   ),
@@ -161,6 +157,41 @@ class _TitleScreenState extends State<TitleScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Single speaker toggle controlling music and SFX together.
+class _SoundToggle extends StatelessWidget {
+  const _SoundToggle({
+    required this.soundOn,
+    required this.onToggle,
+    required this.color,
+  });
+
+  final ValueListenable<bool> soundOn;
+  final VoidCallback onToggle;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: soundOn,
+      builder: (context, on, _) {
+        final label = on ? 'Som ligado' : 'Som desligado';
+        return Semantics(
+          button: true,
+          label: label,
+          excludeSemantics: true,
+          child: IconButton(
+            iconSize: 36,
+            constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
+            tooltip: label,
+            onPressed: onToggle,
+            icon: Icon(on ? Icons.volume_up : Icons.volume_off, color: color),
+          ),
+        );
+      },
     );
   }
 }

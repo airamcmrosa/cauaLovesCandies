@@ -9,20 +9,26 @@ void main() {
   late int plays;
   late int firstTaps;
   late int retries;
+  late int toggles;
+  late ValueNotifier<bool> soundOn;
 
   setUp(() {
     state = ValueNotifier<PreloadState>(const PreloadIdle());
     plays = 0;
     firstTaps = 0;
     retries = 0;
+    toggles = 0;
+    soundOn = ValueNotifier<bool>(true);
   });
 
-  tearDown(() => state.dispose());
+  tearDown(() {
+    state.dispose();
+    soundOn.dispose();
+  });
 
   Future<void> pumpScreen(
     WidgetTester tester, {
     bool withRetry = true,
-    bool withSettings = false,
     Size size = const Size(360, 640),
   }) async {
     tester.view.physicalSize = size;
@@ -35,7 +41,8 @@ void main() {
           onPlay: () => plays++,
           onFirstTap: () => firstTaps++,
           onRetry: withRetry ? () => retries++ : null,
-          onSettings: withSettings ? () {} : null,
+          soundOn: soundOn,
+          onToggleSound: () => toggles++,
         ),
       ),
     );
@@ -56,6 +63,9 @@ void main() {
         expect(jogar(), findsNothing);
         expect(find.byType(TitleLogo), findsNothing);
         expect(find.text(TitleLogo.fallbackText), findsNothing);
+        expect(find.byType(IconButton), findsNothing);
+        expect(find.byIcon(Icons.volume_up), findsNothing);
+        expect(find.byIcon(Icons.volume_off), findsNothing);
       });
     }
   });
@@ -78,18 +88,44 @@ void main() {
       expect(plays, 1);
     });
 
-    testWidgets('settings tooltip shown only when onSettings given', (
+    testWidgets('speaker toggle shows icon and tooltip for soundOn', (
       tester,
     ) async {
       state.value = const PreloadDone();
-      await pumpScreen(tester, withSettings: true);
-      expect(find.byTooltip('Configurações'), findsOneWidget);
+      await pumpScreen(tester);
+      expect(find.byTooltip('Som ligado'), findsOneWidget);
+      expect(find.byIcon(Icons.volume_up), findsOneWidget);
+      expect(find.byTooltip('Som desligado'), findsNothing);
+
+      soundOn.value = false;
+      await tester.pump();
+      expect(find.byTooltip('Som desligado'), findsOneWidget);
+      expect(find.byIcon(Icons.volume_off), findsOneWidget);
+      expect(find.byTooltip('Som ligado'), findsNothing);
     });
 
-    testWidgets('no settings control when onSettings null', (tester) async {
+    testWidgets('speaker toggle exposes button semantics label', (
+      tester,
+    ) async {
       state.value = const PreloadDone();
       await pumpScreen(tester);
-      expect(find.byTooltip('Configurações'), findsNothing);
+      final handle = tester.ensureSemantics();
+      expect(find.bySemanticsLabel('Som ligado'), findsOneWidget);
+      soundOn.value = false;
+      await tester.pump();
+      expect(find.bySemanticsLabel('Som desligado'), findsOneWidget);
+      handle.dispose();
+    });
+
+    testWidgets('tapping the speaker calls onToggleSound once, not onPlay', (
+      tester,
+    ) async {
+      state.value = const PreloadDone();
+      await pumpScreen(tester);
+      await tester.tap(find.byTooltip('Som ligado'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(toggles, 1);
+      expect(plays, 0);
     });
 
     for (final size in const [Size(360, 640), Size(412, 915)]) {
@@ -97,18 +133,46 @@ void main() {
         tester,
       ) async {
         state.value = const PreloadDone();
-        await pumpScreen(tester, size: size, withSettings: true);
+        await pumpScreen(tester, size: size);
         final button = find.ancestor(
           of: jogar(),
           matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
         );
         expect(tester.getSize(button).height, greaterThanOrEqualTo(64));
+        final toggleSize = tester.getSize(find.byType(IconButton));
+        expect(toggleSize.width, greaterThanOrEqualTo(56));
+        expect(toggleSize.height, greaterThanOrEqualTo(56));
         expect(tester.takeException(), isNull);
       });
     }
   });
 
   group('Failed', () {
+    testWidgets('speaker toggle present and calls onToggleSound', (
+      tester,
+    ) async {
+      state.value = const PreloadFailed('boom');
+      await pumpScreen(tester);
+      expect(find.byTooltip('Som ligado'), findsOneWidget);
+      final size = tester.getSize(find.byType(IconButton));
+      expect(size.width, greaterThanOrEqualTo(56));
+      expect(size.height, greaterThanOrEqualTo(56));
+      await tester.tap(find.byTooltip('Som ligado'));
+      await tester.pump();
+      expect(toggles, 1);
+      expect(plays, 0);
+    });
+
+    testWidgets('Failed layout has no overflow at small and large sizes', (
+      tester,
+    ) async {
+      state.value = const PreloadFailed('boom');
+      await pumpScreen(tester, size: const Size(360, 640));
+      expect(tester.takeException(), isNull);
+      await pumpScreen(tester, size: const Size(412, 915));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('shows retry, disabled JOGAR; retry calls onRetry', (
       tester,
     ) async {
