@@ -34,7 +34,7 @@ SHA as append-only history.
 | T2 | ItemType catalog and PhaseConfig table | committed | c430e25 |
 | T3 | GameManager with score, HP and level | committed | 774d7a5 |
 | T4 | ConveyorBeltComponent | committed | 5aa4eb7 |
-| T5 | FoodItemComponent | todo | - |
+| T5 | FoodItemComponent | committed | e970d10 |
 | T6 | ItemSpawnerComponent | todo | - |
 | T7 | Item sprites and SFX registration | todo | - |
 | T8 | GameHud overlay | todo | - |
