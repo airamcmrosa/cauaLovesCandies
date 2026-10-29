@@ -46,3 +46,11 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | Player component loads the delivered open/closed sprites | committed | fdfa0d7 |
 | T2 | Stale sprite test updated to assets/images/caua | committed | fdfa0d7 |
+
+## TASK-017 - Caua frame normalization
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Measure the 13 frames | committed | 3d61618 |
+| T2 | Normalize the three outlier frames | committed | 3d61618 |
+| T3 | Invariants test | committed | 3d61618 |
