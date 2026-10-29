@@ -60,7 +60,7 @@ Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests)
 - All user-facing code and comments are English except the banner copy, which follows the story language decision in Open Question 4.
 
 ## PM Decisions (resolved questions)
-- Speeds: use architecture values 1.0 / 1.35 / 1.65 (documented technical source). US04 text (+30% / +50%) is outdated and must be updated by the product owner; flagged to the user.
+- Speeds: use architecture values 1.0 / 1.35 / 1.65 (documented technical source). US04 was updated to match (1.35x / 1.65x).
 - Phase 3 is a normal phase with target 30; reaching it moves `GameState` to `victory` (consumed by TASK-005).
 - Score is cumulative: targets are total score 10 / 20 / 30; score never resets between phases.
 - Banner copy in Portuguese, kept in `kPhases`: "Fase 2 - Mais Rápido!", "Fase 3 - Super Rápido!". Phase 1 shows no banner. Verify the font renders accents.
