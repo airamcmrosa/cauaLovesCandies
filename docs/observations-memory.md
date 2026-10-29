@@ -21,6 +21,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
 | `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
 | `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
+| `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
+| `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
 
 ---
 
@@ -105,3 +107,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `CauaPlayerComponent` sets `sprite` in `onLoad` and again in `onMount` (resync), which duplicates the assignment.
 * **Risk/Impact:** Harmless redundancy; may confuse a later reader about which one is authoritative.
 * **Resolution Trigger:** Next touch of the component (for example TASK-003 or TASK-006): keep only the `onMount` resync.
+
+### `OBS-010`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart`
+* **Source:** `audit / TASK-002 T4`
+* **Status:** Open
+* **Finding:** `CauaCandiesGame.onRemove` disposes the `MouthController` even when the caller injected it. Flame also calls `game.onRemove` without removing children first, so the player's `removeListener` runs later or never; this is safe today only because `ValueNotifier.dispose` drops listeners.
+* **Risk/Impact:** An external owner holding the same controller (HUD in TASK-003, tests) would hit a disposed notifier.
+* **Resolution Trigger:** TASK-003 (first external reader of the controller): dispose only when the game created it, for example `_ownsController = mouthController == null`.
+
+### `OBS-011`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/game/caua_candies_game.dart`
+* **Source:** `audit / TASK-002 T4`
+* **Status:** Open
+* **Finding:** `images.loadAll` has no handling for a missing or failed asset; a failure leaves a blank screen with an unhandled exception.
+* **Risk/Impact:** Acceptable for bundled assets; matters once asset sets grow.
+* **Resolution Trigger:** TASK-001 (`AssetPreloader`, which owns load failure state) or when load failure handling is introduced.
