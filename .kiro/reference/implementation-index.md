@@ -21,7 +21,7 @@ SHA as append-only history.
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
 | T1 | Product assets and single BGM track | committed | 60f7139 |
-| T2 | AssetPreloader | todo | - |
+| T2 | AssetPreloader | committed | 2f4ac89 |
 | T3 | AudioController unlock and manifests | todo | - |
 | T4 | TitleScreen and sub-widgets | todo | - |
 | T5 | Router wiring | todo | - |

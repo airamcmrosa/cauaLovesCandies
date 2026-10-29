@@ -18,7 +18,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `.idx/`) and local folder name mismatch |
 | `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
-| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
+| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music now one 1.6 MB track); 3.5 MB payload and 3 s 4G budgets unmeasured |
 | `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
 | `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
@@ -29,6 +29,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-016` | WARNING | LICENSING | `assets/images/README.md` | Open | AI-generated art and logo have no formally documented license |
 | `OBS-017` | INFO | ASSET_BUDGET | `assets/music/tropical_fantasy.mp3` | Open | BGM is 1.65 MB of the 2.4 MB asset payload; re-encode at 64-96 kbps |
 | `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
+| `OBS-019` | WARNING | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Default `Images()` is a private cache, so preloaded sprites are not shared with the game (AC5) |
+| `OBS-020` | INFO | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Preload is sequential (slower on 4G than parallel); `dispose()` is not idempotent |
 
 ---
 
@@ -193,3 +195,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The delivered belt sprite measures body about #C8B0E8 and arrows about #7858B8, close to but not equal to the approved belt-base #BFA6EC and belt-stripe #8F72D6. The product owner chose not to regenerate sprites.
 * **Risk/Impact:** Any belt drawn in code from `Palette` could differ slightly from the sprite.
 * **Resolution Trigger:** First component that mixes the belt sprite with `Palette.beltBase`/`beltStripe` (TASK-003 follow-up or TASK-004).
+
+### `OBS-019`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/managers/asset_preloader.dart`
+* **Source:** `audit / TASK-001 T2`
+* **Status:** Open
+* **Finding:** `AssetPreloader` defaults to a private `Images()` cache instead of `Flame.images`, so sprites preloaded on the title screen are not reused by `CauaCandiesGame`.
+* **Risk/Impact:** AC5 (shared cache) is not met; assets load twice and the game start may stall.
+* **Resolution Trigger:** TASK-001 T5: inject `Flame.images` (or make it the default) when wiring the screen.
+
+### `OBS-020`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/managers/asset_preloader.dart`
+* **Source:** `audit / TASK-001 T2`
+* **Status:** Open
+* **Finding:** Images and audio load sequentially, and `dispose()` is not idempotent; an internally created `Images` is never disposed.
+* **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
+* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
