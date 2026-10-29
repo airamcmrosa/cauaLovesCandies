@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'flame_game/game_screen.dart';
+import 'game/caua_game_screen.dart';
 import 'level_selection/level_selection_screen.dart';
 import 'level_selection/levels.dart';
 import 'main_menu/main_menu_screen.dart';
@@ -39,6 +40,11 @@ final router = GoRouter(
               },
             ),
           ],
+        ),
+        GoRoute(
+          path: 'caua',
+          builder: (context, state) =>
+              const CauaGameScreen(key: Key('caua game')),
         ),
         GoRoute(
           path: 'settings',

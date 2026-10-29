@@ -23,5 +23,5 @@ SHA as append-only history.
 | T1 | MouthState enum and MouthController | committed | 9951742 |
 | T2 | Open/closed Caua sprites (.webp) | committed | 480785d |
 | T3 | CauaPlayerComponent | committed | 01076f7 |
-| T4 | CauaCandiesGame with tap input | committed | PENDING |
-| T5 | Route/entry for manual verification | todo | - |
+| T4 | CauaCandiesGame with tap input | committed | ed43ea3 |
+| T5 | Route/entry for manual verification | committed | PENDING |

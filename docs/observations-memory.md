@@ -23,6 +23,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
 | `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
+| `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
 
 ---
 
@@ -127,3 +128,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `images.loadAll` has no handling for a missing or failed asset; a failure leaves a blank screen with an unhandled exception.
 * **Risk/Impact:** Acceptable for bundled assets; matters once asset sets grow.
 * **Resolution Trigger:** TASK-001 (`AssetPreloader`, which owns load failure state) or when load failure handling is introduced.
+
+### `OBS-012`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-002 T5`
+* **Status:** Open
+* **Finding:** The manual-verification screen has a 56 px back button over the canvas that exits to `/` on tap.
+* **Risk/Impact:** A 6-year-old tapping near the top-left corner during play could leave the match.
+* **Resolution Trigger:** TASK-001 wiring or TASK-005 (game screen replaces the verification route): remove the button or move it behind the settings/pause flow.
