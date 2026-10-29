@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import '../game/managers/asset_preloader.dart';
 import '../style/palette.dart';
 import 'bobbing_avatar.dart';
+import 'falling_candies.dart';
 import 'play_button.dart';
 import 'title_loading_indicator.dart';
 import 'title_logo.dart';
@@ -109,6 +110,15 @@ class _TitleScreenState extends State<TitleScreen> {
     );
   }
 
+  /// Horizontal inset for the logo so that, scaled by [TitleLogo.maxScale],
+  /// it stays at least 4 px clear of each candy lane.
+  static double _logoInset(double screenWidth) {
+    final lane = screenWidth * FallingCandies.laneFraction;
+    final maxLogoWidth = (screenWidth - 2 * (lane + 4)) / TitleLogo.maxScale;
+    final columnWidth = math.min(480.0, screenWidth) - 48;
+    return math.max(0, (columnWidth - maxLogoWidth) / 2);
+  }
+
   Widget _buildReady(Palette palette) {
     return Stack(
       fit: StackFit.expand,
@@ -121,6 +131,7 @@ class _TitleScreenState extends State<TitleScreen> {
             return const SizedBox.shrink();
           },
         ),
+        const FallingCandies(),
         SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -138,7 +149,17 @@ class _TitleScreenState extends State<TitleScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Expanded(flex: 4, child: TitleLogo()),
+                        Expanded(
+                          flex: 4,
+                          child: Padding(
+                            // Keeps the logo's max painted extent (incl. scale
+                            // overshoot) clear of the candy lanes.
+                            padding: EdgeInsets.symmetric(
+                              horizontal: _logoInset(constraints.maxWidth),
+                            ),
+                            child: const TitleLogo(),
+                          ),
+                        ),
                         BobbingAvatar(size: avatarSize),
                         const SizedBox(height: 16),
                         PlayButton(onPressed: widget.onPlay),

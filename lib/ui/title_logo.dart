@@ -13,6 +13,12 @@ class TitleLogo extends StatefulWidget {
       'assets/images/ui/logo_caua_loves_candies.webp';
   static const String fallbackText = 'Cauã Loves Candies';
 
+  /// Intro overshoot is clamped to this scale so the logo extent is bounded.
+  static const double introPeakScale = 1.1;
+
+  /// Upper bound of the painted logo scale (intro peak x pulse peak 1.03).
+  static const double maxScale = introPeakScale * 1.03;
+
   @override
   State<TitleLogo> createState() => _TitleLogoState();
 }
@@ -29,7 +35,7 @@ class _TitleLogoState extends State<TitleLogo> with TickerProviderStateMixin {
 
   late final Animation<double> _introScale = CurvedAnimation(
     parent: _intro,
-    curve: Curves.elasticOut,
+    curve: const _CappedElasticOut(),
   );
   late final Animation<double> _pulseScale = Tween<double>(
     begin: 0.97,
@@ -74,5 +80,16 @@ class _TitleLogoState extends State<TitleLogo> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+}
+
+/// [Curves.elasticOut] with the overshoot clamped to [TitleLogo.introPeakScale].
+class _CappedElasticOut extends Curve {
+  const _CappedElasticOut();
+
+  @override
+  double transformInternal(double t) {
+    final v = Curves.elasticOut.transform(t);
+    return v > TitleLogo.introPeakScale ? TitleLogo.introPeakScale : v;
   }
 }
