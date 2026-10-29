@@ -48,9 +48,9 @@ const List<PhaseConfig> kPhases = [
     speedMultiplier: 1.35,
     weights: CategoryWeights(sweets: 50, fruits: 30, hazards: 20),
   ),
-  // Placeholder composition, weighted to bonus items; tuned in a later task.
+  // Final challenge composition, weighted toward forbidden items (45%).
   PhaseConfig(
     speedMultiplier: 1.65,
-    weights: CategoryWeights(sweets: 30, fruits: 40, hazards: 30),
+    weights: CategoryWeights(sweets: 25, fruits: 30, hazards: 45),
   ),
 ];

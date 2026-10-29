@@ -25,7 +25,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
 | `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
-| `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition weights (30/40/30) are a placeholder |
+| `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 
 ---
 
@@ -157,6 +157,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** `lib/game/managers/phase_config.dart`
 * **Source:** `audit / TASK-003 T2`
 * **Status:** Open
-* **Finding:** Phase 3 composition (30/40/30 sweets/fruits/hazards) is a placeholder from the PM Decisions, not a tuned value.
+* **Finding:** Phase 3 composition is 25/30/45 (sweets/fruits/hazards), set by the product owner to make the final phase the hardest; not yet playtested.
 * **Risk/Impact:** The final celebration challenge may feel too easy or too hard.
 * **Resolution Trigger:** TASK-004 (phase progression) tunes the table, or the manual run in TASK-003 T9.

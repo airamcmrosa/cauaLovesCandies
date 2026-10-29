@@ -24,11 +24,11 @@ void main() {
       }
     });
 
-    test('weights per phase match 70/20/10, 50/30/20, 30/40/30', () {
+    test('weights per phase match 70/20/10, 50/30/20, 25/30/45', () {
       const expected = [
         [70, 20, 10],
         [50, 30, 20],
-        [30, 40, 30],
+        [25, 30, 45],
       ];
       for (var i = 0; i < expected.length; i++) {
         final w = kPhases[i].weights;
@@ -38,6 +38,13 @@ void main() {
           reason: 'P${i + 1}',
         );
       }
+    });
+
+    test('hazards weight strictly increases across phases (10 < 20 < 45)', () {
+      final h = kPhases.map((p) => p.weights.hazards).toList();
+      expect(h, [10, 20, 45]);
+      expect(h[0], lessThan(h[1]));
+      expect(h[1], lessThan(h[2]));
     });
 
     test('each phase weights sum to 100', () {
