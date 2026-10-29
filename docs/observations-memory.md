@@ -34,6 +34,10 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-039` | WARNING | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Game screen layout, sky vs belt harmony and ingest tween are unchecked on real phones; the original tiny-view root cause was never reproduced, only mitigated |
 | `OBS-040` | INFO | MAINTAINABILITY | `lib/game/components/food_item_component.dart` | Open | One-frame position jump at the decision (y 522 to 515); the item stays 0.15 s in the tree during the tween; not asserted in tests |
 | `OBS-043` | WARNING | UX_KIDS | `lib/audio/sounds.dart` | Open | `hmm` and `eurk` play at volume 1.0 versus 0.4 for other SFX (about 8 dB jump) and `hmm` plays on every good item |
+| `OBS-032` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | Error messages are logged verbatim (local only); no fallback if `ErrorScreen` itself throws |
+| `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
+| `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
+| `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 
 ---
 
@@ -248,3 +252,41 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The product-owner clips `hmm.mp3` and `eurk.mp3` play at volume 1.0 while the other SFX use 0.4, a jump of about 8 dB, and `hmm` plays on every positive item.
 * **Risk/Impact:** Possible startling or fatiguing loudness for children; the real clip level was not checked by ear.
 * **Resolution Trigger:** Product owner listens in the browser; consider 0.6 to 0.7 for `hmm`.
+### `OBS-032`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T2`
+* **Status:** Open
+* **Finding:** `ErrorReporter` logs the error message verbatim (local console only, no PII in this app) and has no fallback if `ErrorScreen` itself throws; later errors are ignored, so there is no loop.
+* **Risk/Impact:** A failure inside the error screen would leave a broken UI without reload guidance.
+* **Resolution Trigger:** TASK-016 T3 self-audit or a later hardening pass; add a minimal `Text`-only fallback if needed.
+
+### `OBS-041`
+* **Severity:** WARNING
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `buildErrorWidget` does not consult `hasError`; if `ErrorScreen.build` itself threw, the builder could loop. The try/catch around the const `ErrorScreen` constructor is dead code because a const constructor cannot throw.
+* **Risk/Impact:** Low: `ErrorScreen` is a simple stateless widget.
+* **Resolution Trigger:** Next touch of `error_reporter.dart`: guard on `hasError` and drop the dead try/catch.
+
+### `OBS-042`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `ErrorFallback` (text only) has no reload button and no `DefaultTextStyle`, and is practically unreachable.
+* **Risk/Impact:** None in normal operation.
+* **Resolution Trigger:** Same pass as OBS-041.
+### `OBS-038`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/images/caua/caua_chew_eyes_open.webp`, `caua_mouth_closed_eyes_half.webp`, `caua_mouth_open_eyes_open.webp`
+* **Source:** `audit / TASK-017 T2`
+* **Status:** Open
+* **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
+* **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
+* **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,12 +12,16 @@ import 'player_progress/player_progress.dart';
 import 'router.dart';
 import 'settings/settings.dart';
 import 'style/palette.dart';
+import 'ui/error_reporter.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Flame.device.setLandscape();
-  await Flame.device.fullScreen();
-  runApp(const MyGame());
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    ErrorReporter.instance.install();
+    await Flame.device.setLandscape();
+    await Flame.device.fullScreen();
+    runApp(ErrorGate(reporter: ErrorReporter.instance, child: const MyGame()));
+  }, (e, s) => ErrorReporter.instance.report(e, s));
 }
 
 class MyGame extends StatelessWidget {
