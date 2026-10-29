@@ -37,6 +37,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-027` | INFO | MAINTAINABILITY | `lib/ui/title_loading_indicator.dart` | Open | Idle, Loading and Done branches are dead code after the spinner-first change |
 | `OBS-028` | INFO | UX_KIDS | `lib/ui/title_screen.dart` | Open | Failed state has no message and a null `onRetry` leaves no way out; 48 px settings spacer may overflow below about 330 px height |
 | `OBS-029` | INFO | UX_KIDS | `lib/ui/play_button.dart` | Open | White on #E5609D is about 3.4:1 contrast, passes only the large-text criterion |
+| `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing |
+| `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_handleSongFinished` ignores `audioOn` and dispose state |
 
 ---
 
@@ -281,3 +283,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
+
+### `OBS-033`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T5`
+* **Status:** Open
+* **Finding:** The `_startingMusic` guard drops a start request made while a start is in flight (a tap, or toggle off then on). A mute during an in-flight start can still end with music playing.
+* **Risk/Impact:** Rare race: music audible while the toggle shows muted, or a retry that never happens.
+* **Resolution Trigger:** TASK-001 T6 self-audit: re-check the desired state after the in-flight start completes.
+
+### `OBS-034`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T5`
+* **Status:** Open
+* **Finding:** `_handleSongFinished` does not check `audioOn` or the disposed state before starting the next track.
+* **Risk/Impact:** A finished track could restart while muted or after dispose.
+* **Resolution Trigger:** TASK-001 T6 self-audit.

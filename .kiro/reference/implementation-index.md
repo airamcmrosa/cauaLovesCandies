@@ -24,7 +24,7 @@ SHA as append-only history.
 | T2 | AssetPreloader | committed | 2f4ac89 |
 | T3 | AudioController unlock and manifests | committed | bf097de |
 | T4 | TitleScreen and sub-widgets | committed | 25c3ab0 |
-| T5 | Router wiring | todo | - |
+| T5 | Router wiring | committed | e94cfcc |
 | T6 | Self-audit pass | todo | - |
 | T7 | Falling candies on the title edges | todo | - |
 
