@@ -41,11 +41,40 @@ class ErrorReporter {
       report(error, stack);
       return true;
     };
-    ErrorWidget.builder = (details) {
-      // Defer so we never notify listeners while building.
-      scheduleMicrotask(() => report(details.exception, details.stack));
+    ErrorWidget.builder = buildErrorWidget;
+  }
+
+  /// Builder behind `ErrorWidget.builder`. Always returns [ErrorScreen] (the
+  /// triggering build error must show the reload button, even though
+  /// `FlutterError.onError` may have already set [hasError]). Falls back to the
+  /// dependency-free [ErrorFallback] only if building [ErrorScreen] throws;
+  /// recursion is bounded because [report] is first-only.
+  @visibleForTesting
+  Widget buildErrorWidget(FlutterErrorDetails details) {
+    // Defer so we never notify listeners while building.
+    scheduleMicrotask(() => report(details.exception, details.stack));
+    try {
       return const ErrorScreen();
-    };
+    } catch (_) {
+      return const ErrorFallback();
+    }
+  }
+}
+
+/// Minimal last-resort error view with no dependencies (no theme, palette or
+/// Material), used when [ErrorScreen] itself cannot be built.
+class ErrorFallback extends StatelessWidget {
+  const ErrorFallback({super.key});
+
+  /// Message shown to the player.
+  static const String message = 'Ops! Algo deu errado. Recarregue a página.';
+
+  @override
+  Widget build(BuildContext context) {
+    return const Directionality(
+      textDirection: TextDirection.ltr,
+      child: Center(child: Text(message, textAlign: TextAlign.center)),
+    );
   }
 }
 

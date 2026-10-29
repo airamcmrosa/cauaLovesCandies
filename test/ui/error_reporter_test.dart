@@ -127,14 +127,17 @@ void main() {
       );
       await tester.pump();
       await tester.pump();
+      // flutter_test verifies the hooks before tearDown runs, so restore
+      // them before any expect().
+      FlutterError.onError = originalOnError;
+      PlatformDispatcher.instance.onError = originalPlatformOnError;
+      ErrorWidget.builder = originalBuilder;
       expect(reporter.hasError.value, isTrue);
       expect(find.byType(ErrorScreen), findsOneWidget);
       expect(records, hasLength(1));
       await tester.pump(const Duration(seconds: 1));
       expect(records, hasLength(1));
       expect(find.byType(ErrorScreen), findsOneWidget);
-      // The build error was routed through the installed hook.
-      tester.takeException();
     });
 
     test('PlatformDispatcher.onError reports and returns true', () {
