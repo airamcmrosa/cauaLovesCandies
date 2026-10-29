@@ -9,6 +9,7 @@
 .idx/dev.nix
 
 .README copy.md
+.DS_Store
 
 # Flutter repo-specific
 /bin/cache/
