@@ -36,7 +36,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/bg/
+    - assets/images/caua/
+    - assets/images/game/
     - assets/images/items/
+    - assets/images/ui/
     - assets/music/
     - assets/sfx/
 
