@@ -31,6 +31,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
 | `OBS-019` | WARNING | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Default `Images()` is a private cache, so preloaded sprites are not shared with the game (AC5) |
 | `OBS-020` | INFO | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Preload is sequential (slower on 4G than parallel); `dispose()` is not idempotent |
+| `OBS-022` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `dispose()` leaves settings listeners and the `onPlayerComplete` subscription attached |
+| `OBS-023` | INFO | UX_KIDS | `lib/audio/audio_controller.dart` | Open | Mobile browsers usually reject the first `play()`; retry only works if T4/T5 call `unlockAndStartMusic()` on first tap |
+| `OBS-024` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | SFX `play()` and music `pause()` are not awaited or caught; `playSfx` doc comment is inverted |
 
 ---
 
@@ -215,3 +218,33 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** Images and audio load sequentially, and `dispose()` is not idempotent; an internally created `Images` is never disposed.
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
+
+### `OBS-022`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T3`
+* **Status:** Open
+* **Finding:** `AudioController.dispose()` leaves the settings listeners and the `onPlayerComplete` subscription attached (pre-existing from the template).
+* **Risk/Impact:** Leaks if the controller is ever disposed and recreated while settings live on.
+* **Resolution Trigger:** TASK-001 T6 self-audit (listeners disposed on screen removal).
+
+### `OBS-023`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T3`
+* **Status:** Open
+* **Finding:** The product owner chose BGM on menu entry for every platform; mobile browsers usually reject the first `play()`. The error is caught and logged, and the game runs silent until a retry.
+* **Risk/Impact:** The party link may open silent on iOS Safari and Android Chrome until the first tap.
+* **Resolution Trigger:** TASK-001 T4/T5 must call `unlockAndStartMusic()` on the first tap; test on iOS Safari and Android Chrome.
+
+### `OBS-024`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T3`
+* **Status:** Open
+* **Finding:** SFX `play()` and music `pause()` are not awaited or caught, and the `playSfx` documentation comment text is inverted.
+* **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
+* **Resolution Trigger:** Next touch of `audio_controller.dart`.
