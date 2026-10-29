@@ -32,3 +32,10 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | Audit lib, assets, tests and docs for template residue | committed | 52a87ee |
 | T2 | Delete residue and fix references | committed | 52a87ee |
+
+## TASK-013 - UX palette corrections
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Palette doc tokens, rule 4 and art tables | committed | c7be0de |
+| T2 | palette.dart getters | todo | - |
