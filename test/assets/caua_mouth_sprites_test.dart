@@ -4,11 +4,11 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const closedPath = 'assets/images/caua_mouth_closed.webp';
-  const openPath = 'assets/images/caua_mouth_open.webp';
+  const closedPath = 'assets/images/caua/caua_mouth_closed_eyes_open.webp';
+  const openPath = 'assets/images/caua/caua_mouth_open_eyes_open.webp';
   const maxBytes = 60 * 1024;
 
-  group('Caua mouth placeholder sprites', () {
+  group('Caua mouth sprites', () {
     for (final path in [closedPath, openPath]) {
       group(path, () {
         test('exists', () {
@@ -34,11 +34,11 @@ void main() {
       expect(a, isNot(equals(b)));
     });
 
-    test('pubspec.yaml declares the assets/images/ directory', () {
+    test('pubspec.yaml declares the assets/images/caua/ directory', () {
       final lines = File(
         'pubspec.yaml',
       ).readAsLinesSync().map((l) => l.trim()).toList();
-      expect(lines, contains('- assets/images/'));
+      expect(lines, contains('- assets/images/caua/'));
     });
   });
 }

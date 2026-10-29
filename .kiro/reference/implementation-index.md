@@ -39,3 +39,10 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | Palette doc tokens, rule 4 and art tables | committed | c7be0de |
 | T2 | palette.dart getters | todo | - |
+
+## TASK-015 - Caua sprite wiring
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Player component loads the delivered open/closed sprites | committed | fdfa0d7 |
+| T2 | Stale sprite test updated to assets/images/caua | committed | fdfa0d7 |
