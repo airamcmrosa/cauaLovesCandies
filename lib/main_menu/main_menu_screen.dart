@@ -25,17 +25,12 @@ class MainMenuScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/banner.png',
-                filterQuality: FilterQuality.none,
-              ),
-              _gap,
               Transform.rotate(
                 angle: -0.1,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 500),
                   child: const Text(
-                    'A Flutter game template.',
+                    'Cauã Loves Candies',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Press Start 2P',
@@ -54,7 +49,7 @@ class MainMenuScreen extends StatelessWidget {
             WobblyButton(
               onPressed: () {
                 audioController.playSfx(SfxType.buttonTap);
-                GoRouter.of(context).go('/play');
+                GoRouter.of(context).go('/caua');
               },
               child: const Text('Play'),
             ),
@@ -76,8 +71,6 @@ class MainMenuScreen extends StatelessWidget {
                 },
               ),
             ),
-            _gap,
-            const Text('Built with Flame'),
           ],
         ),
       ),

@@ -14,10 +14,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | ID | Severity | Category | Target Artifact | Status | Short Summary |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `OBS-001` | WARNING | OPERABILITY_NFR | `.github/workflows/deploy.yml` | Open | GitHub Pages deploy workflow referenced in architecture but not created |
-| `OBS-002` | INFO | MAINTAINABILITY | `lib/flame_game/endless_runner.dart` | Open | Template names (`EndlessRunner`, `EndlessWorld`) still in use |
 | `OBS-003` | INFO | MAINTAINABILITY | `.kiro/skills/new-adr/`, `.kiro/reference/` | Open | Legacy content from the previous project (ADR skill, PIT-002/003, pending observations) |
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
-| `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `README copy.md`, `.idx/`) and local folder name mismatch |
+| `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `.idx/`) and local folder name mismatch |
 | `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
 | `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
 | `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
@@ -41,16 +40,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `docs/architecture/architecture.md` section 6 describes a GitHub Actions deploy to GitHub Pages with `--base-href "/cauaLovesCandies/"`, but no `.github/workflows/` exists.
 * **Risk/Impact:** No automated static delivery; base-href is only validated by hand.
 * **Resolution Trigger:** Story or task that implements CI/CD and Pages deployment.
-
-### `OBS-002`
-* **Severity:** INFO
-* **Category:** MAINTAINABILITY
-* **Target:** `lib/flame_game/endless_runner.dart`
-* **Source:** `manual / package rename review`
-* **Status:** Open
-* **Finding:** The package was renamed to `caua_loves_candies`, but the game class `EndlessRunner`, `EndlessWorld` and the Dash/enemy template assets remain.
-* **Risk/Impact:** Template mechanics may be mistaken for product patterns by sub-agents reading `lib/**`.
-* **Resolution Trigger:** Tasks that replace the endless runner loop with the conveyor belt game.
 
 ### `OBS-003`
 * **Severity:** INFO
@@ -78,7 +67,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** repo root, `.gitignore`
 * **Source:** `manual / .gitignore review`
 * **Status:** Open
-* **Finding:** Untracked `.gitignore copy`, `README copy.md` and `.idx/`; `.gitignore` carries a stray `.README copy.md` entry; the local folder is still named `cauaLoveCandies` while the repository is `cauaLovesCandies`.
+* **Finding:** Untracked `.gitignore copy` and `.idx/`; `.gitignore` carries a stray `.README copy.md` entry; the local folder is still named `cauaLoveCandies` while the repository is `cauaLovesCandies`.
 * **Risk/Impact:** Clutter and confusion between local path and remote name.
 * **Resolution Trigger:** Owner removes the copies and renames the local folder outside the session.
 

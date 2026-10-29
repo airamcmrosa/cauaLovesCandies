@@ -67,17 +67,12 @@ void main() {
     List<String> childPaths(GoRoute route) =>
         route.routes.whereType<GoRoute>().map((r) => r.path).toList();
 
-    test('has caua route under / alongside existing routes', () {
+    test('has caua route under / alongside settings', () {
       final root = router.configuration.routes.whereType<GoRoute>().single;
       expect(root.path, '/');
 
       final children = childPaths(root);
-      expect(children, containsAll(<String>['play', 'caua', 'settings']));
-
-      final play = root.routes.whereType<GoRoute>().firstWhere(
-        (r) => r.path == 'play',
-      );
-      expect(childPaths(play), contains('session/:level'));
+      expect(children, containsAll(<String>['caua', 'settings']));
     });
   });
 }

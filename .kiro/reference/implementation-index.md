@@ -25,3 +25,10 @@ SHA as append-only history.
 | T3 | CauaPlayerComponent | committed | 01076f7 |
 | T4 | CauaCandiesGame with tap input | committed | ed43ea3 |
 | T5 | Route/entry for manual verification | committed | be7f350 |
+
+## TASK-014 - Remove Endless Runner template residue
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Audit lib, assets, tests and docs for template residue | committed | 52a87ee |
+| T2 | Delete residue and fix references | committed | 52a87ee |
