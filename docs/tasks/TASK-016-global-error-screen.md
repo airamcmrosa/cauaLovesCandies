@@ -25,7 +25,7 @@ If anything throws in the app (Flutter framework, async/platform errors, the Fla
 - Out: retry/recovery logic for specific failures (the title screen keeps its own "Tentar de novo" for a failed preload; TASK-001), remote error reporting or analytics (privacy: nothing leaves the device).
 
 ## Atomic Sub-tasks
-- [ ] T1 - Add the `ErrorScreen` widget and the reload abstraction (web and fallback, conditional import). _Verify:_ the widget shows the message and a reload button; tapping it calls the injected reload function.
+- [x] T1 - Add the `ErrorScreen` widget and the reload abstraction (web and fallback, conditional import). _Verify:_ the widget shows the message and a reload button; tapping it calls the injected reload function.
 - [ ] T2 - Add the error reporter and wire the global hooks in `lib/main.dart` so any uncaught error replaces the app UI with `ErrorScreen`. _Verify:_ throwing from a widget build, from an async callback and from a Flame component shows the error screen once; no error loop.
 - [ ] T3 - Self-audit: English-only code, no PII in logs, analyze and format clean. _Verify:_ `flutter analyze` and `dart format --set-exit-if-changed lib` exit 0.
 

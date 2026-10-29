@@ -46,3 +46,11 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | Player component loads the delivered open/closed sprites | committed | fdfa0d7 |
 | T2 | Stale sprite test updated to assets/images/caua | committed | fdfa0d7 |
+
+## TASK-016 - Global error screen
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | ErrorScreen and reload abstraction | committed | 0d55a17 |
+| T2 | Error reporter and global hooks in main.dart | todo | - |
+| T3 | Self-audit pass | todo | - |
