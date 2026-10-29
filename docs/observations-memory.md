@@ -26,6 +26,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-032` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | Error messages are logged verbatim (local only); no fallback if `ErrorScreen` itself throws |
+| `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
+| `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 
 ---
@@ -162,6 +165,35 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
 
+### `OBS-032`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T2`
+* **Status:** Open
+* **Finding:** `ErrorReporter` logs the error message verbatim (local console only, no PII in this app) and has no fallback if `ErrorScreen` itself throws; later errors are ignored, so there is no loop.
+* **Risk/Impact:** A failure inside the error screen would leave a broken UI without reload guidance.
+* **Resolution Trigger:** TASK-016 T3 self-audit or a later hardening pass; add a minimal `Text`-only fallback if needed.
+
+### `OBS-041`
+* **Severity:** WARNING
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `buildErrorWidget` does not consult `hasError`; if `ErrorScreen.build` itself threw, the builder could loop. The try/catch around the const `ErrorScreen` constructor is dead code because a const constructor cannot throw.
+* **Risk/Impact:** Low: `ErrorScreen` is a simple stateless widget.
+* **Resolution Trigger:** Next touch of `error_reporter.dart`: guard on `hasError` and drop the dead try/catch.
+
+### `OBS-042`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/error_reporter.dart`
+* **Source:** `audit / TASK-016 T3`
+* **Status:** Open
+* **Finding:** `ErrorFallback` (text only) has no reload button and no `DefaultTextStyle`, and is practically unreachable.
+* **Risk/Impact:** None in normal operation.
+* **Resolution Trigger:** Same pass as OBS-041.
 ### `OBS-038`
 * **Severity:** INFO
 * **Category:** ASSET_BUDGET
