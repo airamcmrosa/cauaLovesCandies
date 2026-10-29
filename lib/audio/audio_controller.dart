@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
@@ -71,6 +70,25 @@ class AudioController {
     for (final player in _sfxPlayers) {
       player.dispose();
     }
+  }
+
+  /// Idempotent retry hook for the first user tap.
+  ///
+  /// Music tries to start as soon as settings attach (on every platform), but
+  /// browsers may block that initial autoplay. Call this from a tap handler:
+  /// if settings allow music and it is not currently playing, it is started or
+  /// resumed. It never silences music and is safe to call repeatedly.
+  Future<void> unlockAndStartMusic() async {
+    final settings = _settings;
+    if (settings == null ||
+        !settings.audioOn.value ||
+        !settings.musicOn.value) {
+      return;
+    }
+    if (_musicPlayer.state == PlayerState.playing) {
+      return;
+    }
+    await _startOrResumeMusic();
   }
 
   /// Plays a single sound effect, defined by [type].
@@ -141,11 +159,7 @@ class AudioController {
     settingsController.soundsOn.addListener(_soundsOnHandler);
 
     if (settingsController.audioOn.value && settingsController.musicOn.value) {
-      if (kIsWeb) {
-        _log.info('On the web, music can only start after user interaction.');
-      } else {
-        _playCurrentSongInPlaylist();
-      }
+      _startOrResumeMusic();
     }
   }
 
@@ -201,9 +215,13 @@ class AudioController {
   Future<void> _playCurrentSongInPlaylist() async {
     _log.info(() => 'Playing ${_playlist.first} now.');
     try {
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
       await _musicPlayer.play(AssetSource('music/${_playlist.first.filename}'));
     } catch (e) {
-      _log.severe('Could not play song ${_playlist.first}', e);
+      _log.warning(
+        'Could not play song ${_playlist.first} (autoplay blocked?)',
+        e,
+      );
     }
   }
 
@@ -229,24 +247,24 @@ class AudioController {
     }
   }
 
-  void _startOrResumeMusic() async {
-    if (_musicPlayer.source == null) {
-      _log.info(
-        'No music source set. '
-        'Start playing the current song in playlist.',
-      );
+  Future<void> _startOrResumeMusic() async {
+    final state = _musicPlayer.state;
+    if (_musicPlayer.source == null ||
+        state == PlayerState.stopped ||
+        state == PlayerState.completed ||
+        state == PlayerState.disposed) {
+      _log.info('Starting the current song in playlist.');
       await _playCurrentSongInPlaylist();
       return;
     }
 
     _log.info('Resuming paused music.');
     try {
-      _musicPlayer.resume();
+      await _musicPlayer.resume();
     } catch (e) {
-      // Sometimes, resuming fails with an "Unexpected" error.
-      _log.severe('Error resuming music', e);
-      // Try starting the song from scratch.
-      _playCurrentSongInPlaylist();
+      // Resuming may fail (e.g. autoplay blocked); retry from scratch.
+      _log.warning('Error resuming music', e);
+      await _playCurrentSongInPlaylist();
     }
   }
 
