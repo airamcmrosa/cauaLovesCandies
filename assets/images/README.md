@@ -1,1 +1,3 @@
 Placeholder art: caua_mouth_closed.webp and caua_mouth_open.webp are temporary generated placeholders; to be replaced by final Caua art. Closed = green backdrop, open = red/orange backdrop.
+
+items/: conveyor item sprites (bad_onion, bad_soap, bad_sock, candy_cotton, candy_cupcake, candy_wrapped, fruit_grape, fruit_strawberry, lollipop) as .webp with transparent background, max 256 px on the longest side, quality ~85. AI-generated placeholder art (same status as the Caua placeholders); licensing/origin not yet formally documented. Declared separately in pubspec.yaml (assets/images/items/) because nested folders are not covered by assets/images/.
