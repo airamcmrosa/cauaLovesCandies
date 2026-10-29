@@ -2,7 +2,7 @@
 id: TASK-002
 story: US02
 title: Implement single-tap mouth open/close control
-status: aceita # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: [] # ids of wrongly completed tasks this one corrects (see README rules)
 ---
@@ -44,11 +44,11 @@ A single tap anywhere on the game canvas instantly toggles Cauã's mouth between
 
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
-- [ ] T1 - Create `MouthState` enum and `MouthController` in `lib/game/managers/` (no Flame/Flutter material imports; `ValueNotifier<MouthState>`, default `closed`, `toggle()`, `reset()`, `dispose()`). _Verify:_ `flutter analyze` clean; `toggle()` alternates closed/open and notifies listeners exactly once per call.
-- [ ] T2 - Add open/closed Cauã mouth sprites as `.webp` under `assets/images/` and register them in `pubspec.yaml`; keep each file small (combined well under the 3.5 MB budget). _Verify:_ `flutter build web --release` succeeds; assets resolve at runtime; file sizes reported.
-- [ ] T3 - Create `CauaPlayerComponent` in `lib/game/components/` that receives a `MouthController` via constructor, shows the matching sprite, swaps on `ValueNotifier` change (no per-frame polling, no allocations in `render`), and removes its listener in `onRemove`. _Verify:_ changing the controller state switches the visible sprite on the next frame; no leaked listener after removal.
-- [ ] T4 - Create the product game class `CauaCandiesGame` (FlameGame with `TapCallbacks`) in `lib/game/` with fixed 720x1280 viewport, owning the `MouthController`, adding `CauaPlayerComponent` at the horizon head position, and calling `toggle()` in `onTapDown`. Do not extend or modify `EndlessRunner`. _Verify:_ running the web build, each tap anywhere on the canvas flips open/closed on touch-down with no visible delay; double-tap yields two toggles.
-- [ ] T5 - Wire a minimal route/entry so `CauaCandiesGame` can be launched for manual verification (reuse the existing `GameWidget`/router pattern; no changes to title screen behavior). _Verify:_ game screen loads from the router, renders Cauã closed by default, and holds 60 FPS in Chrome DevTools on a throttled mobile profile.
+- [x] T1 - Create `MouthState` enum and `MouthController` in `lib/game/managers/` (no Flame/Flutter material imports; `ValueNotifier<MouthState>`, default `closed`, `toggle()`, `reset()`, `dispose()`). _Verify:_ `flutter analyze` clean; `toggle()` alternates closed/open and notifies listeners exactly once per call.
+- [x] T2 - Add open/closed Cauã mouth sprites as `.webp` under `assets/images/` and register them in `pubspec.yaml`; keep each file small (combined well under the 3.5 MB budget). _Verify:_ `flutter build web --release` succeeds; assets resolve at runtime; file sizes reported.
+- [x] T3 - Create `CauaPlayerComponent` in `lib/game/components/` that receives a `MouthController` via constructor, shows the matching sprite, swaps on `ValueNotifier` change (no per-frame polling, no allocations in `render`), and removes its listener in `onRemove`. _Verify:_ changing the controller state switches the visible sprite on the next frame; no leaked listener after removal.
+- [x] T4 - Create the product game class `CauaCandiesGame` (FlameGame with `TapCallbacks`) in `lib/game/` with fixed 720x1280 viewport, owning the `MouthController`, adding `CauaPlayerComponent` at the horizon head position, and calling `toggle()` in `onTapDown`. Do not extend or modify `EndlessRunner`. _Verify:_ running the web build, each tap anywhere on the canvas flips open/closed on touch-down with no visible delay; double-tap yields two toggles.
+- [x] T5 - Wire a minimal route/entry so `CauaCandiesGame` can be launched for manual verification (reuse the existing `GameWidget`/router pattern; no changes to title screen behavior). _Verify:_ game screen loads from the router, renders Cauã closed by default, and holds 60 FPS in Chrome DevTools on a throttled mobile profile.
 
 ## Definition of Done
 - Every story AC above is demonstrably met.

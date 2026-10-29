@@ -18,6 +18,12 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-003` | INFO | MAINTAINABILITY | `.kiro/skills/new-adr/`, `.kiro/reference/` | Open | Legacy content from the previous project (ADR skill, PIT-002/003, pending observations) |
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `README copy.md`, `.idx/`) and local folder name mismatch |
+| `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
+| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
+| `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
+| `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
+| `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
+| `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
 
 ---
 
@@ -72,3 +78,63 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** Untracked `.gitignore copy`, `README copy.md` and `.idx/`; `.gitignore` carries a stray `.README copy.md` entry; the local folder is still named `cauaLoveCandies` while the repository is `cauaLovesCandies`.
 * **Risk/Impact:** Clutter and confusion between local path and remote name.
 * **Resolution Trigger:** Owner removes the copies and renames the local folder outside the session.
+
+### `OBS-007`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/images/caua_mouth_closed.webp`, `assets/images/caua_mouth_open.webp`, `assets/images/README.md`
+* **Source:** `audit / TASK-002 T2`
+* **Status:** Open
+* **Finding:** Generated placeholder sprites are 512x512 and the README header attributes all art in the directory to CC0 (Erick Zanardo), with only a one-line placeholder exception.
+* **Risk/Impact:** Licensing note may become stale once final art lands; 512 px may exceed the on-screen size.
+* **Resolution Trigger:** Delivery of the final Caua art: update the README licensing note and downsize if the on-screen sprite is much smaller.
+
+### `OBS-008`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `build/web`, `assets/music/`
+* **Source:** `build log / TASK-002 T2`
+* **Status:** Open
+* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` 4.4 MB, `main.dart.js` 2.7 MB.
+* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; template music inflates the bundle.
+* **Resolution Trigger:** TASK-001 (preload and BGM) or a dedicated task: measure transferred bytes over throttled 4G, drop unused template assets, consider the skwasm/html renderer.
+
+### `OBS-009`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/caua_player_component.dart`
+* **Source:** `audit / TASK-002 T3`
+* **Status:** Open
+* **Finding:** `CauaPlayerComponent` sets `sprite` in `onLoad` and again in `onMount` (resync), which duplicates the assignment.
+* **Risk/Impact:** Harmless redundancy; may confuse a later reader about which one is authoritative.
+* **Resolution Trigger:** Next touch of the component (for example TASK-003 or TASK-006): keep only the `onMount` resync.
+
+### `OBS-010`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart`
+* **Source:** `audit / TASK-002 T4`
+* **Status:** Open
+* **Finding:** `CauaCandiesGame.onRemove` disposes the `MouthController` even when the caller injected it. Flame also calls `game.onRemove` without removing children first, so the player's `removeListener` runs later or never; this is safe today only because `ValueNotifier.dispose` drops listeners.
+* **Risk/Impact:** An external owner holding the same controller (HUD in TASK-003, tests) would hit a disposed notifier.
+* **Resolution Trigger:** TASK-003 (first external reader of the controller): dispose only when the game created it, for example `_ownsController = mouthController == null`.
+
+### `OBS-011`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/game/caua_candies_game.dart`
+* **Source:** `audit / TASK-002 T4`
+* **Status:** Open
+* **Finding:** `images.loadAll` has no handling for a missing or failed asset; a failure leaves a blank screen with an unhandled exception.
+* **Risk/Impact:** Acceptable for bundled assets; matters once asset sets grow.
+* **Resolution Trigger:** TASK-001 (`AssetPreloader`, which owns load failure state) or when load failure handling is introduced.
+
+### `OBS-012`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-002 T5`
+* **Status:** Open
+* **Finding:** The manual-verification screen has a 56 px back button over the canvas that exits to `/` on tap.
+* **Risk/Impact:** A 6-year-old tapping near the top-left corner during play could leave the match.
+* **Resolution Trigger:** TASK-001 wiring or TASK-005 (game screen replaces the verification route): remove the button or move it behind the settings/pause flow.
