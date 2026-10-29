@@ -2,7 +2,7 @@
 id: TASK-003
 story: US03
 title: Build conveyor belt with scored food items and HUD
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [TASK-002] # needs the mouth open/closed state for the z >= 0.95 decision
 supersedes: []
 ---
@@ -44,7 +44,7 @@ Items travel down a pseudo-3D conveyor belt toward Cauã at a constant per-phase
 
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
-- [ ] T1 - Add the pure projection module: `scale(z)`, `y(z)`, `x(z)` by linear interpolation, plus `decideOutcome(z, mouthOpen)` with the `z >= 0.95` boundary. Constants (bottom/horizon scale, y, mouth x, spawn x) are in one const place. _Verify:_ z=0 returns scale 1.00 and the bottom y; z=1 returns scale 0.25 and the horizon y; z=0.94 gives "not decided", z=0.95 gives ingest (open) or deflect (closed). No Flame imports. No allocations (returns records or writes into a reused `Vector2`).
+- [x] T1 - Add the pure projection module: `scale(z)`, `y(z)`, `x(z)` by linear interpolation, plus `decideOutcome(z, mouthOpen)` with the `z >= 0.95` boundary. Constants (bottom/horizon scale, y, mouth x, spawn x) are in one const place. _Verify:_ z=0 returns scale 1.00 and the bottom y; z=1 returns scale 0.25 and the horizon y; z=0.94 gives "not decided", z=0.95 gives ingest (open) or deflect (closed). No Flame imports. No allocations (returns records or writes into a reused `Vector2`).
 - [ ] T2 - Add `ItemType`/category definitions (7 sweets, 5 fruits, 4 hazards; unified catalog, see PM Decisions) with points and HP delta, and the const `PhaseConfig`/`kPhases` table in `lib/game/managers/phase_config.dart` (speed 1.0/1.35/1.65x, composition 70/20/10 for Phase 1, 50/30/20 for Phase 2). _Verify:_ all 9 story items present and the values match story AC2 and architecture section 4. No scattered literals elsewhere.
 - [ ] T3 - Add `GameManager` (plain Dart): `ValueNotifier<int>` score and HP (clamped 0..3), `level`, `GameState`, methods `addScore`/`loseHp`/`reset`, and a `dispose`. _Verify:_ no `flutter/material.dart` or Flame import. Sweet adds 2, fruit adds 1, hazard removes 1 HP and never goes below 0. Listeners are notified once per change.
 - [ ] T4 - Add `ConveyorBeltComponent`: trapezoidal lane from the bottom to the horizon with scrolling stripes at the current phase speed. All `Paint`/`Path` objects cached. _Verify:_ the belt renders in the 720x1280 viewport, stripes scroll at constant speed, and no per-frame allocations in `update`/`render`.

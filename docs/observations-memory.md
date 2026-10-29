@@ -24,6 +24,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
 | `OBS-012` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Back button overlay on the game screen can be hit by a child during play |
+| `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 
 ---
 
@@ -138,3 +139,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The manual-verification screen has a 56 px back button over the canvas that exits to `/` on tap.
 * **Risk/Impact:** A 6-year-old tapping near the top-left corner during play could leave the match.
 * **Resolution Trigger:** TASK-001 wiring or TASK-005 (game screen replaces the verification route): remove the button or move it behind the settings/pause flow.
+
+### `OBS-013`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `lib/game/projection.dart`
+* **Source:** `audit / TASK-003 T1`
+* **Status:** Open
+* **Finding:** The architecture gives no pixel values for the projection; `yBottom=1180`, `yHorizon=400` and `x=360` (spawn and mouth) are placeholders chosen in the 720x1280 viewport.
+* **Risk/Impact:** Items may not line up with the belt trapezoid or the mouth until the geometry is fixed.
+* **Resolution Trigger:** TASK-003 T4 (belt geometry) or T9 (manual run): retune the constants in `Projection`.
