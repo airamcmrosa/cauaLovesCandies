@@ -24,7 +24,7 @@ dependencies:
   logging: ^1.2.0
 
 dev_dependencies:
-  flame_test: ^1.16.2
+  flame_test: ^2.3.1
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
