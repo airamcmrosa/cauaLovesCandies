@@ -2,7 +2,7 @@
 id: TASK-017
 story: -
 title: Normalize the Cauã frames to one size, position and skin tone (post-processing only)
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: [] # TASK-012 stays completa; this fixes inconsistencies seen when frames are swapped on screen
 ---
