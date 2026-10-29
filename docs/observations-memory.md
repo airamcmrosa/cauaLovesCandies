@@ -20,6 +20,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `README copy.md`, `.idx/`) and local folder name mismatch |
 | `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
 | `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
+| `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
 
 ---
 
@@ -94,3 +95,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` 4.4 MB, `main.dart.js` 2.7 MB.
 * **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; template music inflates the bundle.
 * **Resolution Trigger:** TASK-001 (preload and BGM) or a dedicated task: measure transferred bytes over throttled 4G, drop unused template assets, consider the skwasm/html renderer.
+
+### `OBS-009`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/caua_player_component.dart`
+* **Source:** `audit / TASK-002 T3`
+* **Status:** Open
+* **Finding:** `CauaPlayerComponent` sets `sprite` in `onLoad` and again in `onMount` (resync), which duplicates the assignment.
+* **Risk/Impact:** Harmless redundancy; may confuse a later reader about which one is authoritative.
+* **Resolution Trigger:** Next touch of the component (for example TASK-003 or TASK-006): keep only the `onMount` resync.
