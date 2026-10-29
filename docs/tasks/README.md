@@ -22,6 +22,6 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-010 | US05 | Build reusable animated stars and confetti particle effects (victory burst and hit sparkle) | aceita | TASK-003 | [TASK-010](./TASK-010-animated-stars-confetti.md) |
 | TASK-011 | US03 | Add Cauã chewing and "eca" reactions and enforce arrival spacing that respects their duration | aceita | TASK-002, TASK-003, TASK-009 | [TASK-011](./TASK-011-caua-reactions-chewing-eca.md) |
 | TASK-012 | - | Integrate the delivered Cauã sprite set (background removal, naming, missing frames, release format) | completa | - | [TASK-012](./TASK-012-caua-sprite-set-integration.md) |
-| TASK-013 | - | Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura) | em progresso | - | [TASK-013](./TASK-013-ux-palette-corrections.md) |
+| TASK-013 | - | Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura) | completa | - | [TASK-013](./TASK-013-ux-palette-corrections.md) |
 | TASK-014 | - | Remove Endless Runner template residue and keep only the reusable skeleton | completa | - | [TASK-014](./TASK-014-remove-endless-runner-residue.md) |
 | TASK-015 | US02 | Point the game and its tests at the delivered Cauã sprites to fix the broken test suite | completa | - | [TASK-015](./TASK-015-caua-sprite-wiring.md) |

@@ -2,7 +2,7 @@
 id: TASK-013
 story: -
 title: Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura)
-status: em progresso # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: [] # TASK-007 stays completa; its doc is amended here, see TASK-008 for the same pattern
 ---
@@ -25,7 +25,7 @@ Fix the contrast and color-blindness issues found in the UX review, so grape/gum
 
 ## Atomic Sub-tasks
 - [x] T1 - Update the palette doc tokens, rule 4 and the item/art tables. _Verify:_ the doc lists the new belt hexes, check/cross colors and the serrated-aura rule.
-- [ ] T2 - Update `lib/style/palette.dart` getters (`beltBase`, `beltStripe`) and add check/cross tokens if absent, without renaming existing getters. _Verify:_ `flutter analyze` clean; doc and code hex values identical.
+- [x] T2 - Update `lib/style/palette.dart` getters (`beltBase`, `beltStripe`) and add check/cross tokens if absent, without renaming existing getters. _Verify:_ `flutter analyze` clean; doc and code hex values identical.
 
 ## Definition of Done
 - Doc and `palette.dart` hold identical hex values; existing `Palette` consumers compile unchanged.

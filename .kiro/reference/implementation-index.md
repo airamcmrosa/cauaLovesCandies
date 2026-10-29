@@ -38,7 +38,7 @@ SHA as append-only history.
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
 | T1 | Palette doc tokens, rule 4 and art tables | committed | c7be0de |
-| T2 | palette.dart getters | todo | - |
+| T2 | palette.dart getters | committed | 547b686 |
 
 ## TASK-015 - Caua sprite wiring
 
