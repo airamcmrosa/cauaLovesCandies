@@ -64,7 +64,7 @@ class _TitleScreenState extends State<TitleScreen> {
           valueListenable: widget.preloadState,
           builder: (context, state, _) => switch (state) {
             PreloadDone() => _buildReady(palette),
-            PreloadFailed() => _buildFailed(palette, state),
+            PreloadFailed() => _buildFailed(palette),
             PreloadIdle() || PreloadLoading() => Center(
               child: CircularProgressIndicator(
                 color: palette.brandBubblegumDark.color,
@@ -76,7 +76,7 @@ class _TitleScreenState extends State<TitleScreen> {
     );
   }
 
-  Widget _buildFailed(Palette palette, PreloadFailed state) {
+  Widget _buildFailed(Palette palette) {
     return SafeArea(
       child: Center(
         child: Padding(
@@ -96,7 +96,7 @@ class _TitleScreenState extends State<TitleScreen> {
               const SizedBox(height: 32),
               const PlayButton(onPressed: null),
               const SizedBox(height: 8),
-              TitleLoadingIndicator(state: state, onRetry: widget.onRetry),
+              TitleLoadingIndicator(onRetry: widget.onRetry),
               const SizedBox(height: 16),
               _SoundToggle(
                 soundOn: widget.soundOn,

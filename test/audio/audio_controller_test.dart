@@ -58,6 +58,7 @@ void main() {
   late List<String> calls;
   late List<String> sfxCalls;
   late bool failResume;
+  Completer<void>? resumeGate;
   late Map<String, MockStreamHandlerEventSink> preparedSinks;
   late AudioController controller;
   late SettingsController settings;
@@ -65,6 +66,10 @@ void main() {
 
   // Calls on the music player only (SFX players are never touched here).
   int count(String method) => calls.where((c) => c == method).length;
+
+  // Pause/resume calls only (ignores position polling and similar noise).
+  List<String> playbackCalls() =>
+      calls.where((c) => c == 'pause' || c == 'resume').toList();
 
   // Waits until no new platform call arrives for a quiet window (real async
   // file IO is involved when the asset is first copied to the cache).
@@ -107,6 +112,7 @@ void main() {
     sfxCalls = [];
     preparedSinks = {};
     failResume = false;
+    resumeGate = null;
     messenger.setMockMethodCallHandler(audioChannel, (call) async {
       if (call.arguments is Map &&
           (call.arguments as Map)['playerId'] == 'musicPlayer') {
@@ -126,6 +132,9 @@ void main() {
             'value': true,
           });
         });
+      }
+      if (call.method == 'resume' && pid == 'musicPlayer') {
+        await resumeGate?.future;
       }
       if (call.method == 'resume' && failResume) {
         throw PlatformException(code: 'blocked', message: 'autoplay blocked');
@@ -258,6 +267,147 @@ void main() {
       // Fresh controller so tearDown can dispose without a double dispose.
       controller = AudioController();
       await settle();
+    });
+  });
+
+  group('dispose hardening (OBS-022)', () {
+    test('double dispose is safe', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      controller.dispose();
+      expect(() => controller.dispose(), returnsNormally);
+      await settle();
+    });
+
+    test('no player calls after dispose', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      controller.dispose();
+      await settle();
+      calls.clear();
+      sfxCalls.clear();
+
+      settings.toggleAudioOn();
+      settings.toggleAudioOn();
+      lifecycle.value = AppLifecycleState.paused;
+      lifecycle.value = AppLifecycleState.resumed;
+      await controller.unlockAndStartMusic();
+      await settle();
+      expect(calls, isEmpty);
+      expect(sfxCalls, isEmpty);
+    });
+
+    test('dispose with an in-flight start leaves no unhandled error', () async {
+      resumeGate = Completer<void>();
+      settings = await makeSettings();
+      await attach(settings);
+      expect(count('resume'), 1);
+
+      controller.dispose();
+      resumeGate!.complete();
+      await settle();
+      // Reaching here without an uncaught async error fails nothing.
+    });
+  });
+
+  group('start during in-flight start (OBS-033)', () {
+    test('mute during in-flight start ends paused', () async {
+      resumeGate = Completer<void>();
+      settings = await makeSettings();
+      await attach(settings);
+      settings.toggleAudioOn();
+      await settle();
+      calls.clear();
+
+      resumeGate!.complete();
+      await settle();
+      expect(playbackCalls().last, 'pause');
+    });
+
+    test('mute then unmute during in-flight start ends playing', () async {
+      resumeGate = Completer<void>();
+      settings = await makeSettings();
+      await attach(settings);
+      settings.toggleAudioOn();
+      settings.toggleAudioOn();
+      await settle();
+      calls.clear();
+
+      resumeGate!.complete();
+      await settle();
+      expect(count('resume'), greaterThanOrEqualTo(1));
+      expect(playbackCalls().last, 'resume');
+    });
+
+    test('unlockAndStartMusic during in-flight start is not lost', () async {
+      resumeGate = Completer<void>();
+      settings = await makeSettings();
+      await attach(settings);
+      expect(count('resume'), 1);
+
+      final unlock = controller.unlockAndStartMusic();
+      resumeGate!.complete();
+      await unlock;
+      await settle();
+      expect(count('resume'), 2);
+    });
+
+    test('blocked play does not loop forever', () async {
+      failResume = true;
+      resumeGate = Completer<void>();
+      settings = await makeSettings();
+      await attach(settings);
+
+      final unlock = controller.unlockAndStartMusic();
+      resumeGate!.complete();
+      await unlock;
+      await settle();
+      final after = count('setSourceUrl');
+      expect(after, lessThanOrEqualTo(2));
+
+      await settle();
+      expect(count('setSourceUrl'), after);
+    });
+  });
+
+  group('song finished (OBS-034)', () {
+    void emitComplete() =>
+        preparedSinks['musicPlayer']!.success({'event': 'audio.onComplete'});
+
+    test('restarts music while audio is enabled', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      calls.clear();
+      emitComplete();
+      await settle();
+      expect(count('setSourceUrl'), 1);
+      expect(count('resume'), 1);
+    });
+
+    test('does not restart music while muted', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      settings.toggleAudioOn();
+      await settle();
+      calls.clear();
+      emitComplete();
+      await settle();
+      expect(count('setSourceUrl'), 0);
+      expect(count('resume'), 0);
+    });
+
+    test('does nothing after dispose', () async {
+      settings = await makeSettings();
+      await attach(settings);
+      final sink = preparedSinks['musicPlayer']!;
+      controller.dispose();
+      await settle();
+      calls.clear();
+      try {
+        sink.success({'event': 'audio.onComplete'});
+      } catch (_) {}
+      await settle();
+      expect(calls, isEmpty);
     });
   });
 

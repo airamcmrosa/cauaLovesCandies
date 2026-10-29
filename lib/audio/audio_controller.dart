@@ -36,6 +36,14 @@ class AudioController {
   /// Guards against concurrent [_startOrResumeMusic] runs.
   bool _startingMusic = false;
 
+  /// Set when a start is requested while one is in flight; the in-flight run
+  /// re-evaluates the desired state when it ends instead of dropping it.
+  bool _startPending = false;
+
+  bool _disposed = false;
+
+  StreamSubscription<void>? _completeSubscription;
+
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
   /// Creates an instance that plays music and sound.
@@ -55,7 +63,9 @@ class AudioController {
         (i) => AudioPlayer(playerId: 'sfxPlayer#$i'),
       ).toList(growable: false),
       _playlist = Queue.of(List<Song>.of(songs)..shuffle()) {
-    _musicPlayer.onPlayerComplete.listen(_handleSongFinished);
+    _completeSubscription = _musicPlayer.onPlayerComplete.listen(
+      _handleSongFinished,
+    );
     unawaited(_preloadSfx());
   }
 
@@ -71,10 +81,17 @@ class AudioController {
   }
 
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     _settings?.audioOn.removeListener(_audioOnHandler);
     _settings = null;
     _settingsReady = false;
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
+    _lifecycleNotifier = null;
+    unawaited(_completeSubscription?.cancel());
+    _completeSubscription = null;
     _stopAllSound();
     _musicPlayer.dispose();
     for (final player in _sfxPlayers) {
@@ -211,6 +228,10 @@ class AudioController {
   }
 
   void _handleSongFinished(void _) {
+    if (_disposed || !(_settings?.audioOn.value ?? false)) {
+      _log.info('Song finished while muted or disposed; not restarting.');
+      return;
+    }
     _log.info('Last song finished playing.');
     // Move the song that just finished playing to the end of the playlist.
     _playlist.addLast(_playlist.removeFirst());
@@ -251,12 +272,27 @@ class AudioController {
   }
 
   Future<void> _startOrResumeMusic() async {
-    if (!_settingsReady || _startingMusic) {
+    if (_disposed || !_settingsReady) {
+      return;
+    }
+    if (_startingMusic) {
+      _startPending = true;
       return;
     }
     _startingMusic = true;
     try {
-      await _doStartOrResumeMusic();
+      do {
+        _startPending = false;
+        await _doStartOrResumeMusic();
+        if (_disposed) {
+          return;
+        }
+        if (!(_settings?.audioOn.value ?? false)) {
+          // Muted while the start was in flight: never leave music playing.
+          await _musicPlayer.pause();
+          return;
+        }
+      } while (_startPending);
     } finally {
       _startingMusic = false;
     }
