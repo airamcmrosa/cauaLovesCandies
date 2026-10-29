@@ -41,11 +41,18 @@ class Palette {
   PaletteEntry get accentTangerine => const PaletteEntry(Color(0xFFFFB36B));
 
   // Gameplay.
-  PaletteEntry get beltBase => const PaletteEntry(Color(0xFFCDB8F0));
-  PaletteEntry get beltStripe => const PaletteEntry(Color(0xFFB79CFF));
+  PaletteEntry get beltBase => const PaletteEntry(Color(0xFFBFA6EC));
+  PaletteEntry get beltStripe => const PaletteEntry(Color(0xFF8F72D6));
   PaletteEntry get heart => const PaletteEntry(Color(0xFFFF5C7A));
   PaletteEntry get dangerSoft => const PaletteEntry(Color(0xFFFF7A7A));
   PaletteEntry get shadow => const PaletteEntry(Color(0xFFC9B6F2));
+
+  // Tutorial feedback symbols. The check sits on an accentMint circle and the
+  // cross (bgCream) sits on a dangerSoft circle.
+  PaletteEntry get tutorialCheck => const PaletteEntry(Color(0xFF2E9E6B));
+  PaletteEntry get tutorialCheckCircle => accentMint;
+  PaletteEntry get tutorialCross => bgCream;
+  PaletteEntry get tutorialCrossCircle => dangerSoft;
 
   // Text and outlines.
   PaletteEntry get ink => const PaletteEntry(Color(0xFF5B3A6B));
