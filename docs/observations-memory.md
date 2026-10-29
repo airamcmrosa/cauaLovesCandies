@@ -16,7 +16,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-001` | WARNING | OPERABILITY_NFR | `.github/workflows/deploy.yml` | Open | GitHub Pages deploy workflow referenced in architecture but not created |
 | `OBS-002` | INFO | MAINTAINABILITY | `lib/flame_game/endless_runner.dart` | Open | Template names (`EndlessRunner`, `EndlessWorld`) still in use |
 | `OBS-003` | INFO | MAINTAINABILITY | `.kiro/skills/new-adr/`, `.kiro/reference/` | Open | Legacy content from the previous project (ADR skill, PIT-002/003, pending observations) |
-| `OBS-004` | INFO | MAINTAINABILITY | `docs/`, `AGENTS.md` | Open | Project docs are untracked and not versioned |
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `README copy.md`, `.idx/`) and local folder name mismatch |
 
@@ -53,16 +52,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** These files still describe the previous project (ADRs, `apps/dashboard`, .NET tiers, a separate pending-observations file duplicating this registry).
 * **Risk/Impact:** Conflicting governance sources; agents may follow obsolete rules.
 * **Resolution Trigger:** Dedicated cleanup task: remove or rewrite them and keep this file as the single registry.
-
-### `OBS-004`
-* **Severity:** INFO
-* **Category:** MAINTAINABILITY
-* **Target:** `docs/`, `AGENTS.md`
-* **Source:** `manual / baseline commit`
-* **Status:** Open
-* **Finding:** Only this file and the agents/skill are versioned; the rest of `docs/` and `AGENTS.md` are untracked, though agents list them as resources.
-* **Risk/Impact:** A fresh worktree from `main` lacks the docs the flow reads.
-* **Resolution Trigger:** Commit `docs/` and `AGENTS.md` before the first `orchestrate-phase` run.
 
 ### `OBS-005`
 * **Severity:** INFO
