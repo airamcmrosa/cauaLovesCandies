@@ -61,12 +61,15 @@ Paleta permitida: #FF8FC0, #E5609D, #FFE98A, #7CC8FF, #B79CFF, #A8F0D1, #FFB36B,
 #FFF5E6, #CDEBFF, #FFD6E8, #E6D9FF. Sem preto puro, sem branco puro, sem gradientes complexos.
 Fundo transparente (ou cor sólida #FFF5E6 se transparência não for possível).
 Enquadramento centralizado, margem de 10%, 1:1.
+NÃO desenhar estrelas, brilhos, faíscas, confete nem partículas na imagem: esses efeitos são
+animados em código no jogo.
 ```
 
 ## Lista de artes e cores-guia
 | Arte | Cores-guia |
 |---|---|
-| Cauã boca fechada / aberta / feliz / "eca" | pele e cabelo da referência; boca `#FF6F91` |
+| Cauã boca fechada / aberta / feliz / "eca" / vitória | pele e cabelo da referência; boca `#FF6F91` |
+| Cauã: poses fechada, aberta, mastigando, vitória (3 frames de olhos cada) e "eca" | idem; ver "Frames do Cauã" |
 | Doces (pirulito, bala, cupcake, algodão-doce, chiclete) | `#FF8FC0` `#FFE98A` `#B79CFF` `#7CC8FF` |
 | Frutas (morango, banana, uva, laranja) | `#FF5C7A` `#FFE98A` `#B79CFF` `#FFB36B` + folhas `#A8F0D1` |
 | Itens proibidos | tons apagados + aura `#FF7A7A` |
@@ -74,7 +77,7 @@ Enquadramento centralizado, margem de 10%, 1:1.
 | Cenário (3 variações de fundo) | ver "Fases" |
 | Coração HP (cheio/vazio) | `#FF5C7A` / contorno `#5B3A6B` com miolo `#FFF5E6` |
 | Logo "Cauã Loves Candies" | `#FF8FC0` com contorno `#5B3A6B` e brilhos `#FFE98A` |
-| Confete / estrelas | `#FFE98A` `#FF8FC0` `#7CC8FF` `#A8F0D1` `#B79CFF` `#FFB36B` |
+| Confete / estrelas | **sem sprite**: animados em código (partículas Flame, TASK-010). Cores: `#FFE98A` `#FF8FC0` `#7CC8FF` `#A8F0D1` `#B79CFF` `#FFB36B` |
 
 ---
 
@@ -127,8 +130,8 @@ de 35% do rosto e ficar bem visível, pois é a área onde os itens entram.
 **3. Feliz (mastigando / acerto)**
 ```
 [Bloco de identidade] Expressão: olhos fechados em arco sorridente (^ ^), bochechas estufadas
-com blush mais forte, boca fechada em sorriso largo, pequenas estrelinhas #FFE98A ao redor
-da cabeça.
+com blush mais forte, boca fechada em sorriso largo. Sem estrelas, brilhos ou confete ao redor da cabeça (são animados
+no jogo).
 ```
 
 **4. "Eca" (item proibido / perde HP)**
@@ -141,9 +144,25 @@ para fora de lado, olhos meio fechados, sobrancelhas inclinadas. Pequena gotinha
 **5. Vitória (tela final)**
 ```
 [Bloco de identidade] Expressão: boca aberta num sorriso enorme de alegria, olhos brilhando,
-braços para cima comemorando, corpo até a cintura. Confete #FF8FC0 #FFE98A #7CC8FF #A8F0D1
-#B79CFF ao redor.
+braços para cima comemorando, corpo até a cintura. Fundo limpo: sem confete, estrelas nem
+brilhos ao redor (o confete é animado no jogo).
 ```
+
+## Frames do Cauã (conjunto entregue)
+Cada pose tem 3 frames de olhos, idênticos em tudo menos nos olhos (mesmo canvas e posição, para não
+"tremer" na troca). Recortes PNG com fundo transparente em `assets/images/caua/` (TASK-012); os
+originais `.jpeg` do Gemini são masters e saem de `assets/` antes do release.
+
+| Pose | Uso | open | half | shut |
+|---|---|---|---|---|
+| `caua_mouth_closed_eyes_*` | idle, boca fechada (pisca) | ok | **falta** | ok |
+| `caua_mouth_open_eyes_*` | boca aberta (pisca) | **falta** | ok | ok |
+| `caua_chew_eyes_*` | mastigando após comer doce/fruta (sequência, não pisca) | **falta** | ok | ok |
+| `caua_win_eyes_*` | vitória (pisca) | ok | ok | ok |
+| `caua_eca` | comeu item proibido (frame único) | ok | - | - |
+
+Piscada: aberto → semi → fechado → semi → aberto (TASK-009). Mastigação: aberto → semi → fechado,
+um frame por passo (TASK-011). Prompts dos 3 frames que faltam: `gemini-art-prompts.md`, seção 6.
 
 ## Checklist de aprovação
 - [ ] Cabelo reconhecível como o do Cauã (cachos bagunçados, não liso nem curto)
@@ -151,3 +170,5 @@ braços para cima comemorando, corpo até a cintura. Confete #FF8FC0 #FFE98A #7C
 - [ ] Boca aberta grande o bastante para o gameplay
 - [ ] Fundo transparente e legível em ~120 px de largura no celular
 - [ ] "Eca" claramente diferente da boca aberta mesmo em tamanho pequeno
+- [ ] Nenhuma pose (nem logo, fundo ou item) traz estrelas, brilhos ou confete desenhados
+- [ ] Os 3 frames de olhos de cada pose têm canvas idêntico e só os olhos mudam
