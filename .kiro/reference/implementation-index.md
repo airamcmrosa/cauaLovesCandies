@@ -20,8 +20,8 @@ SHA as append-only history.
 
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
-| T1 | MouthState enum and MouthController | committed | PENDING |
-| T2 | Open/closed Caua sprites (.webp) | todo | - |
+| T1 | MouthState enum and MouthController | committed | 9951742 |
+| T2 | Open/closed Caua sprites (.webp) | committed | PENDING |
 | T3 | CauaPlayerComponent | todo | - |
 | T4 | CauaCandiesGame with tap input | todo | - |
 | T5 | Route/entry for manual verification | todo | - |

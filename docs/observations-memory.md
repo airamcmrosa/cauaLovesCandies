@@ -18,6 +18,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-003` | INFO | MAINTAINABILITY | `.kiro/skills/new-adr/`, `.kiro/reference/` | Open | Legacy content from the previous project (ADR skill, PIT-002/003, pending observations) |
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `README copy.md`, `.idx/`) and local folder name mismatch |
+| `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
+| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
 
 ---
 
@@ -72,3 +74,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** Untracked `.gitignore copy`, `README copy.md` and `.idx/`; `.gitignore` carries a stray `.README copy.md` entry; the local folder is still named `cauaLoveCandies` while the repository is `cauaLovesCandies`.
 * **Risk/Impact:** Clutter and confusion between local path and remote name.
 * **Resolution Trigger:** Owner removes the copies and renames the local folder outside the session.
+
+### `OBS-007`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/images/caua_mouth_closed.webp`, `assets/images/caua_mouth_open.webp`, `assets/images/README.md`
+* **Source:** `audit / TASK-002 T2`
+* **Status:** Open
+* **Finding:** Generated placeholder sprites are 512x512 and the README header attributes all art in the directory to CC0 (Erick Zanardo), with only a one-line placeholder exception.
+* **Risk/Impact:** Licensing note may become stale once final art lands; 512 px may exceed the on-screen size.
+* **Resolution Trigger:** Delivery of the final Caua art: update the README licensing note and downsize if the on-screen sprite is much smaller.
+
+### `OBS-008`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `build/web`, `assets/music/`
+* **Source:** `build log / TASK-002 T2`
+* **Status:** Open
+* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` 4.4 MB, `main.dart.js` 2.7 MB.
+* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; template music inflates the bundle.
+* **Resolution Trigger:** TASK-001 (preload and BGM) or a dedicated task: measure transferred bytes over throttled 4G, drop unused template assets, consider the skwasm/html renderer.
