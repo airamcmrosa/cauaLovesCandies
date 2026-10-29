@@ -1,6 +1,6 @@
 {
   "name": "kiro_default",
-  "description": "Global default agent for the Cauã Love Candies Flutter + Flame project. Acts as the Main Loop: auto-approves read/search and non-destructive shell commands (flutter/dart read-only, git); the only agent allowed to commit and push, following AGENTS.md governance. Destructive commands stay denied.",
+  "description": "Global default agent for the Cauã Loves Candies Flutter + Flame project. Acts as the Main Loop: auto-approves read/search and non-destructive shell commands (flutter/dart read-only, git); the only agent allowed to commit and push, following AGENTS.md governance. Destructive commands stay denied.",
   "tools": [
     "read",
     "write",

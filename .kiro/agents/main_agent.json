@@ -1,6 +1,6 @@
 {
   "name": "main_agent",
-  "description": "Main Loop agent for the Cauã Love Candies Flutter + Flame game. Sole coordinator: the only agent allowed to commit and push to Git and to do project bookkeeping (user story status, implementation progress index, docs/observations-memory.md) per AGENTS.md. Auto-approves read/write/search within the repo.",
+  "description": "Main Loop agent for the Cauã Loves Candies Flutter + Flame game. Sole coordinator: the only agent allowed to commit and push to Git and to do project bookkeeping (user story status, implementation progress index, docs/observations-memory.md) per AGENTS.md. Auto-approves read/write/search within the repo.",
   "tools": [
     "read",
     "write",

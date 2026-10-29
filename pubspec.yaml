@@ -1,5 +1,5 @@
-name: endless_runner
-description: A Flame game template built with Flutter.
+name: caua_loves_candies
+description: Cauã Loves Candies, a Flutter + Flame birthday arcade game.
 
 # Prevent accidental publishing to pub.dev.
 publish_to: 'none'

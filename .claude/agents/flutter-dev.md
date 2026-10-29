@@ -1,6 +1,6 @@
 ---
 name: flutter-dev
-description: Flutter + Flame specialist for the Caua Love Candies 2D arcade game. Implements one atomic task of production Dart code (game loop, components, managers, audio, UI overlays) following the architecture doc. Does NOT write or run tests and NEVER runs git. Use for step 1 of the orchestrate-phase flow.
+description: Flutter + Flame specialist for the Cauã Loves Candies 2D arcade game. Implements one atomic task of production Dart code (game loop, components, managers, audio, UI overlays) following the architecture doc. Does NOT write or run tests and NEVER runs git. Use for step 1 of the orchestrate-phase flow.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: inherit
 ---
