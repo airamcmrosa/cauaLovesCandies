@@ -25,7 +25,7 @@ SHA as append-only history.
 | T3 | AudioController unlock and manifests | committed | bf097de |
 | T4 | TitleScreen and sub-widgets | committed | 25c3ab0 |
 | T5 | Router wiring | committed | e94cfcc |
-| T6 | Self-audit pass | todo | - |
+| T6 | Self-audit pass | committed | 7400c93 |
 | T7 | Falling candies on the title edges | committed | 2a1a9c2 |
 
 ## TASK-002 - Single-tap mouth control (US02)

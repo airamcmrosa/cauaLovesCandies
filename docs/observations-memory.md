@@ -31,15 +31,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
 | `OBS-019` | WARNING | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Default `Images()` is a private cache, so preloaded sprites are not shared with the game (AC5) |
 | `OBS-020` | INFO | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Preload is sequential (slower on 4G than parallel); `dispose()` is not idempotent |
-| `OBS-022` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `dispose()` leaves settings listeners and the `onPlayerComplete` subscription attached |
 | `OBS-023` | INFO | UX_KIDS | `lib/audio/audio_controller.dart` | Open | Mobile browsers usually reject the first `play()`; retry only works if T4/T5 call `unlockAndStartMusic()` on first tap |
 | `OBS-024` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | SFX `play()` and music `pause()` are not awaited or caught; `playSfx` doc comment is inverted |
-| `OBS-027` | INFO | MAINTAINABILITY | `lib/ui/title_loading_indicator.dart` | Open | Idle, Loading and Done branches are dead code after the spinner-first change |
 | `OBS-028` | INFO | UX_KIDS | `lib/ui/title_screen.dart` | Open | Failed state has no message and a null `onRetry` leaves no way out; 48 px settings spacer may overflow below about 330 px height |
 | `OBS-029` | INFO | UX_KIDS | `lib/ui/play_button.dart` | Open | White on #E5609D is about 3.4:1 contrast, passes only the large-text criterion |
-| `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing |
-| `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Open | `_handleSongFinished` ignores `audioOn` and dispose state |
 | `OBS-035` | INFO | UX_KIDS | `lib/ui/title_logo.dart` | Open | Logo is about 25% narrower at 360 px width to clear the candy lanes; clearance is only 3.6 px at 320 px |
+| `OBS-036` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | Futures of pause, stop and dispose are not awaited or handled; a platform failure would be an unhandled async error |
+| `OBS-037` | INFO | MAINTAINABILITY | `lib/ui/bobbing_avatar.dart` | Open | `CurvedAnimation` in `BobbingAvatar` is never disposed |
 
 ---
 
@@ -225,15 +223,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
 
-### `OBS-022`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/audio/audio_controller.dart`
-* **Source:** `audit / TASK-001 T3`
-* **Status:** Open
-* **Finding:** `AudioController.dispose()` leaves the settings listeners and the `onPlayerComplete` subscription attached (pre-existing from the template).
-* **Risk/Impact:** Leaks if the controller is ever disposed and recreated while settings live on.
-* **Resolution Trigger:** TASK-001 T6 self-audit (listeners disposed on screen removal).
 
 ### `OBS-023`
 * **Severity:** INFO
@@ -255,15 +244,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
 
-### `OBS-027`
-* **Severity:** INFO
-* **Category:** MAINTAINABILITY
-* **Target:** `lib/ui/title_loading_indicator.dart`
-* **Source:** `audit / TASK-001 T4`
-* **Status:** Open
-* **Finding:** After the title screen became spinner-first, the Idle, Loading and Done branches of `TitleLoadingIndicator` are unreachable.
-* **Risk/Impact:** Dead code that may mislead readers.
-* **Resolution Trigger:** TASK-001 T6 self-audit: reduce the widget to the Failed state.
 
 ### `OBS-028`
 * **Severity:** INFO
@@ -285,25 +265,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
 
-### `OBS-033`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/audio/audio_controller.dart`
-* **Source:** `audit / TASK-001 T5`
-* **Status:** Open
-* **Finding:** The `_startingMusic` guard drops a start request made while a start is in flight (a tap, or toggle off then on). A mute during an in-flight start can still end with music playing.
-* **Risk/Impact:** Rare race: music audible while the toggle shows muted, or a retry that never happens.
-* **Resolution Trigger:** TASK-001 T6 self-audit: re-check the desired state after the in-flight start completes.
 
-### `OBS-034`
-* **Severity:** INFO
-* **Category:** LIFECYCLE
-* **Target:** `lib/audio/audio_controller.dart`
-* **Source:** `audit / TASK-001 T5`
-* **Status:** Open
-* **Finding:** `_handleSongFinished` does not check `audioOn` or the disposed state before starting the next track.
-* **Risk/Impact:** A finished track could restart while muted or after dispose.
-* **Resolution Trigger:** TASK-001 T6 self-audit.
 
 ### `OBS-035`
 * **Severity:** INFO
@@ -314,3 +276,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** To keep the logo clear of the falling-candy lanes it was narrowed by about 25% at 360 px width (about 234x98 px at rest); the measured clearance is 6.0 px at 360, 9.1 px at 412 and 3.6 px at 320.
 * **Risk/Impact:** A smaller logo and a tight margin on very narrow phones. The product owner approved the screen at 360x640 and 412x915.
 * **Resolution Trigger:** Real-device check on a 320 px wide phone, or a layout change to the candy lanes.
+
+### `OBS-036`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T6`
+* **Status:** Open
+* **Finding:** The futures returned by `pause`, `stop` and `dispose` on the audio players are not awaited or handled.
+* **Risk/Impact:** A platform failure would surface as an unhandled async error (now routed to the global error screen by TASK-016).
+* **Resolution Trigger:** Next touch of `audio_controller.dart`.
+
+### `OBS-037`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/ui/bobbing_avatar.dart`
+* **Source:** `audit / TASK-001 T6`
+* **Status:** Open
+* **Finding:** The `CurvedAnimation` created by `BobbingAvatar` is not disposed with its controller.
+* **Risk/Impact:** Negligible leak for one avatar instance.
+* **Resolution Trigger:** Next touch of `bobbing_avatar.dart`.
