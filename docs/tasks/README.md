@@ -10,7 +10,7 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 
 | Task | Story | Title | Status | Depends on | File |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| TASK-001 | US01 | Build the animated title screen with JOGAR button, BGM unlock and asset preload | aceita | - | [TASK-001](./TASK-001-title-screen.md) |
+| TASK-001 | US01 | Build the animated title screen with JOGAR button, BGM unlock and asset preload | em progresso | - | [TASK-001](./TASK-001-title-screen.md) |
 | TASK-002 | US02 | Implement single-tap mouth open/close control | completa | - | [TASK-002](./TASK-002-tap-mouth-control.md) |
 | TASK-003 | US03 | Build conveyor belt with scored food items and HUD | em progresso | TASK-002 | [TASK-003](./TASK-003-conveyor-scoring.md) |
 | TASK-004 | US04 | Implement 3-phase progression with rising speed and phase banner | aceita | TASK-003 | [TASK-004](./TASK-004-phase-progression.md) |

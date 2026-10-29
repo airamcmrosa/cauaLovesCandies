@@ -26,6 +26,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-016` | WARNING | LICENSING | `assets/images/README.md` | Open | AI-generated art and logo have no formally documented license |
+| `OBS-017` | INFO | ASSET_BUDGET | `assets/music/tropical_fantasy.mp3` | Open | BGM is 1.65 MB of the 2.4 MB asset payload; re-encode at 64-96 kbps |
+| `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
 
 ---
 
@@ -87,8 +90,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** `build/web`, `assets/music/`
 * **Source:** `build log / TASK-002 T2`
 * **Status:** Open
-* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` 4.4 MB, `main.dart.js` 2.7 MB.
-* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; template music inflates the bundle.
+* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` was 4.4 MB (reduced to one 1.65 MB track in TASK-001 T1; assets now about 2.4 MB), `main.dart.js` 2.7 MB.
+* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; the remaining BGM is the largest asset.
 * **Resolution Trigger:** TASK-001 (preload and BGM) or a dedicated task: measure transferred bytes over throttled 4G, drop unused template assets, consider the skwasm/html renderer.
 
 ### `OBS-009`
@@ -160,3 +163,33 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `level` and `state` are plain fields; only `score` and `hp` are `ValueNotifier`s.
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
+
+### `OBS-016`
+* **Severity:** WARNING
+* **Category:** LICENSING
+* **Target:** `assets/images/README.md`
+* **Source:** `audit / TASK-001 T1`
+* **Status:** Open
+* **Finding:** Cauã sprites, items, UI icons, logo and backgrounds are AI-generated placeholders and the README states licensing and origin are not formally documented.
+* **Risk/Impact:** Unclear usage rights if the game is published beyond the private party link.
+* **Resolution Trigger:** Product owner confirms the generator terms and the README records origin and license before the Nov 4, 2026 release.
+
+### `OBS-017`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/music/tropical_fantasy.mp3`
+* **Source:** `audit / TASK-001 T1`
+* **Status:** Open
+* **Finding:** The only BGM track weighs 1.65 MB of the 2.4 MB asset payload.
+* **Risk/Impact:** Under the 3.5 MB ceiling but heavy for the sub-3s first load on 4G.
+* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008: re-encode at 64-96 kbps if the budget is tight.
+
+### `OBS-018`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `assets/images/game/belt_tile.webp`
+* **Source:** `manual / TASK-013 HIL`
+* **Status:** Open
+* **Finding:** The delivered belt sprite measures body about #C8B0E8 and arrows about #7858B8, close to but not equal to the approved belt-base #BFA6EC and belt-stripe #8F72D6. The product owner chose not to regenerate sprites.
+* **Risk/Impact:** Any belt drawn in code from `Palette` could differ slightly from the sprite.
+* **Resolution Trigger:** First component that mixes the belt sprite with `Palette.beltBase`/`beltStripe` (TASK-003 follow-up or TASK-004).

@@ -2,7 +2,7 @@
 id: TASK-001
 story: US01
 title: Build the animated title screen with JOGAR button, BGM unlock and asset preload
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: [] # ids of wrongly completed tasks this one corrects (see README rules)
 ---
@@ -47,7 +47,7 @@ When a child opens the QR link, they see a colorful, animated "Cauã Loves Candi
 
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
-- [ ] T1 - Add product assets: Cauã avatar `.webp` (and optional logo `.webp`) in `assets/images/`, one cheerful BGM `.mp3` in `assets/music/`, register in `pubspec.yaml`; document licensing in the folder CREDITS. _Verify:_ `flutter build web --release` succeeds, added payload is reported and the total bundle stays under 3.5 MB.
+- [x] T1 - Add product assets: Cauã avatar `.webp` (and optional logo `.webp`) in `assets/images/`, one cheerful BGM `.mp3` in `assets/music/`, register in `pubspec.yaml`; document licensing in the folder CREDITS. _Verify:_ `flutter build web --release` succeeds, added payload is reported and the total bundle stays under 3.5 MB.
 - [ ] T2 - Create `AssetPreloader` in `lib/game/managers/asset_preloader.dart`: constructor-injected image/audio path lists, exposes `ValueListenable<PreloadState>` (idle, loading with progress, done, failed), loads images with Flame `Images` and audio with `AudioCache`, logs with `package:logging`, no `flutter/material.dart` import. _Verify:_ state moves idle -> loading -> done on a normal run, and to failed (without crashing the app) when a path is missing.
 - [ ] T3 - Extend `AudioController` and manifests: add the product BGM to `songs.dart`, add a button-tap entry in `sounds.dart` if missing, and add a method to start BGM only after an explicit user tap (web unlock), honoring music/audio settings; no autoplay at construction. _Verify:_ opening the page in a mobile browser produces no sound until the first tap; after the tap the BGM loops; muting in settings silences it.
 - [ ] T4 - Build `TitleScreen` and sub-widgets in `lib/ui/`: animated title (AC1), animated avatar (AC2), large high-contrast JOGAR button (AC3), "tap to enable sound" affordance (AC4), loading indicator bound to `AssetPreloader` state (AC5). Use `const` constructors, `ValueListenableBuilder`, and the 9:16 responsive layout. No game logic. _Verify:_ at 360x640 and 412x915 viewports the title animates, avatar and JOGAR are fully visible, and JOGAR meets the large-target size.
@@ -61,7 +61,7 @@ Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests)
 
 ## PM Decisions (resolved questions)
 - Art: a `CustomPainter` vector placeholder is acceptable until final avatar/logo art arrives; art delivery is owned by the product owner.
-- BGM: royalty-free/CC0 cheerful track; license must be recorded in `assets/music/CREDITS.TXT`. Template tracks are not reused.
+- BGM: royalty-free/CC0 cheerful track; license must be recorded in `assets/music/CREDITS.TXT`. Amended by the product owner on 2026-10-29: one CC0 template track (`tropical_fantasy.mp3`) is reused to meet the payload budget; the other two were removed.
 - Audio unlock: the first tap anywhere on the title, including JOGAR, unlocks audio and starts BGM. No separate prompt required beyond the affordance in T4.
 - JOGAR waits for preload and shows a short loading state; it is disabled until done.
 - Settings: keep a small settings entry (mute control is useful at the party).
