@@ -67,7 +67,7 @@ Write: <artifact path>. Return: <=5 lines (status + artifact path).
 2. **Create a fresh worktree and branch from `main`:**
 
    ```sh
-   git worktree add ../cauaLoveCandies-wt/<branch> -b <branch> main
+   git worktree add ../cauaLovesCandies-wt/<branch> -b <branch> main
    ```
 
    `<branch>` = `feat/<story-slug>-phase-<n>` (or `-tasks-<a>-<b>`). If the branch
