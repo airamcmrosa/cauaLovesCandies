@@ -70,9 +70,9 @@ Este documento centraliza todas as **User Stories** do jogo *Cauã Loves Candies
 **Critérios de Aceite:**
 1. Os itens devem avançar pela esteira em velocidade constante por fase.
 2. **Classificação dos Itens e Pontuação:**
-   - **Doces (+2 pontos):** Pirulito, Rosquinha/Donut, Granulado. Efeito sonoro festivo.
-   - **Frutas (+1 ponto):** Morango, Banana, Melancia. Efeito sonoro positivo.
-   - **Itens Proibidos (Penalidade / -1 HP):** Brócolis, Sabão, Meia/Meleca. Efeito sonoro cômico ("yuck/oops").
+   - **Doces (+2 pontos):** Pirulito, Rosquinha/Donut, Granulado, Bala, Cupcake, Algodão-doce, Chiclete. Efeito sonoro festivo.
+   - **Frutas (+1 ponto):** Morango, Banana, Melancia, Uva, Laranja. Efeito sonoro positivo.
+   - **Itens Proibidos (Penalidade / -1 HP):** Brócolis, Sabão, Meia suja, Cebola. Efeito sonoro cômico ("yuck/oops").
 3. Exibir contador visual de pontuação e barra/ícones de vida (HP) no topo da tela.
 
 ---

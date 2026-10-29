@@ -20,9 +20,9 @@ Items travel down a pseudo-3D conveyor belt toward Cauã at a constant per-phase
 | Story AC | Task deliverable |
 | :--- | :--- |
 | AC1 - Items advance at constant speed per phase | `FoodItemComponent` advances `z` by `baseSpeed * phaseMultiplier * dt` (linear, no easing, frame-rate independent). Multiplier comes from a const phase config (`PhaseConfig`) read through `GameManager.level`; only the Phase 1 value (1.0x) is exercised here. |
-| AC2 - Sweets +2 (Pirulito, Donut, Granulado) with festive SFX | Item type table with 3 sweets; on ingestion `GameManager.addScore(2)`; festive SFX played via `AudioController`. |
-| AC2 - Fruits +1 (Morango, Banana, Melancia) with positive SFX | Item type table with 3 fruits; on ingestion `GameManager.addScore(1)`; positive SFX. |
-| AC2 - Forbidden items -1 HP (Brócolis, Sabão, Meia/Meleca) with comic SFX | Item type table with 3 hazards; on ingestion `GameManager.loseHp()` (min 0, max 3) plus comic "yuck/oops" SFX and the screen shake from architecture section 2. |
+| AC2 - Sweets +2 (Pirulito, Donut, Granulado, Bala, Cupcake, Algodão-doce, Chiclete) with festive SFX | Item type table with 7 sweets; on ingestion `GameManager.addScore(2)`; festive SFX played via `AudioController`. |
+| AC2 - Fruits +1 (Morango, Banana, Melancia, Uva, Laranja) with positive SFX | Item type table with 5 fruits; on ingestion `GameManager.addScore(1)`; positive SFX. |
+| AC2 - Forbidden items -1 HP (Brócolis, Sabão, Meia suja, Cebola) with comic SFX | Item type table with 4 hazards; on ingestion `GameManager.loseHp()` (min 0, max 3) plus comic "yuck/oops" SFX and the screen shake from architecture section 2. |
 | AC3 - Score counter and HP icons at the top | `GameHud` Flutter overlay in `lib/ui/` driven by `ValueListenable<int>` for score and HP (3 icons, big and high contrast). |
 | Architecture decision rule (not a story AC, required for AC2) | Pure `projectDepth(z)` function plus `decideOutcome(z, mouthOpen)`. Open mouth ingests. Closed mouth deflects laterally and despawns with no penalty. |
 
@@ -45,7 +45,7 @@ Items travel down a pseudo-3D conveyor belt toward Cauã at a constant per-phase
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
 - [ ] T1 - Add the pure projection module: `scale(z)`, `y(z)`, `x(z)` by linear interpolation, plus `decideOutcome(z, mouthOpen)` with the `z >= 0.95` boundary. Constants (bottom/horizon scale, y, mouth x, spawn x) are in one const place. _Verify:_ z=0 returns scale 1.00 and the bottom y; z=1 returns scale 0.25 and the horizon y; z=0.94 gives "not decided", z=0.95 gives ingest (open) or deflect (closed). No Flame imports. No allocations (returns records or writes into a reused `Vector2`).
-- [ ] T2 - Add `ItemType`/category definitions (3 sweets, 3 fruits, 3 hazards) with points and HP delta, and the const `PhaseConfig`/`kPhases` table in `lib/game/managers/phase_config.dart` (speed 1.0/1.35/1.65x, composition 70/20/10 for Phase 1, 50/30/20 for Phase 2). _Verify:_ all 9 story items present and the values match story AC2 and architecture section 4. No scattered literals elsewhere.
+- [ ] T2 - Add `ItemType`/category definitions (7 sweets, 5 fruits, 4 hazards; unified catalog, see PM Decisions) with points and HP delta, and the const `PhaseConfig`/`kPhases` table in `lib/game/managers/phase_config.dart` (speed 1.0/1.35/1.65x, composition 70/20/10 for Phase 1, 50/30/20 for Phase 2). _Verify:_ all 9 story items present and the values match story AC2 and architecture section 4. No scattered literals elsewhere.
 - [ ] T3 - Add `GameManager` (plain Dart): `ValueNotifier<int>` score and HP (clamped 0..3), `level`, `GameState`, methods `addScore`/`loseHp`/`reset`, and a `dispose`. _Verify:_ no `flutter/material.dart` or Flame import. Sweet adds 2, fruit adds 1, hazard removes 1 HP and never goes below 0. Listeners are notified once per change.
 - [ ] T4 - Add `ConveyorBeltComponent`: trapezoidal lane from the bottom to the horizon with scrolling stripes at the current phase speed. All `Paint`/`Path` objects cached. _Verify:_ the belt renders in the 720x1280 viewport, stripes scroll at constant speed, and no per-frame allocations in `update`/`render`.
 - [ ] T5 - Add `FoodItemComponent`: advances `z` with `dt`, applies T1 to scale, position and priority, and at `z >= 0.95` asks the decision function using the mouth state from TASK-002. The mouth state is read from the `MouthController` defined in TASK-002 (`state == MouthState.open`). Ingest reports the item type to `GameManager` and plays the SFX. Deflect moves laterally and calls `removeFromParent()` with no penalty. Items past `z > 1.0` are removed. _Verify:_ an item reaches the mouth in a constant time per speed, an open mouth changes score/HP per category, a closed mouth changes nothing and the item disappears, and no leaked components.
@@ -66,7 +66,8 @@ Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests)
 - Speeds: architecture values 1.0 / 1.35 / 1.65 are the source of truth (see TASK-004 decisions). This task owns `PhaseConfig`/`kPhases` with speed and composition only; TASK-004 extends it with target score and banner text.
 - Phase 3 composition: placeholder here (e.g. 30/40/30 sweets/fruit/hazard weighted toward bonus items); TASK-004 may tune it in the same table.
 - Art/audio: placeholders acceptable (9 sprites, 3 SFX); real art is owned by the product owner; SFX must be CC0/royalty-free with license recorded.
-- Third hazard is a sock ("Meia"); no "meleca" sprite.
+- Item catalog is the union of the US03 list and the palette/art list: sweets Pirulito, Rosquinha/Donut, Granulado, Bala, Cupcake, Algodão-doce, Chiclete; fruits Morango, Banana, Melancia, Uva, Laranja; hazards Brócolis, Sabão, Meia suja, Cebola. No "meleca" sprite. Art prompts: `docs/product/design/gemini-art-prompts.md`.
+- Arrival spacing at the mouth and the post-ingestion Cauã reactions are owned by TASK-011 (it extends the spawner after this task lands).
 - Mouth interface: consume `MouthController` from TASK-002; do not reference `CauaPlayerComponent`.
 - `GameState` is created here with `playing` only; later tasks add `victory` (TASK-004), `lost` (TASK-005), `tutorial` (TASK-006).
 - Screen shake on hazard ingestion: confirmed, per architecture section 2.

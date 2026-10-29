@@ -3,7 +3,7 @@ id: TASK-005
 story: US05
 title: Build victory celebration and friendly game-over screens with instant restart
 status: aceita # proposta | aceita | em progresso | completa
-depends_on: [TASK-003, TASK-004] # GameManager (score/HP/GameState) and phase progression emitting victory
+depends_on: [TASK-003, TASK-004, TASK-010] # GameManager (score/HP/GameState), phase progression emitting victory, and the animated confetti/stars component
 supersedes: []
 ---
 
@@ -24,7 +24,7 @@ When the player finishes Phase 3, confetti/fireworks burst, a celebration SFX pl
 ## Acceptance Criteria Mapping
 | Story AC | Task deliverable |
 | :--- | :--- |
-| AC1 - Confetti/fireworks 2D on finishing Phase 3 | `ParticleCelebrationComponent` in `lib/game/components/` built on Flame `ParticleSystemComponent`; added to the world on the victory `GameState` transition and removed when the burst ends or on restart. |
+| AC1 - Confetti/fireworks 2D on finishing Phase 3 | `ParticleCelebrationComponent` with the `victory` preset (animated confetti and stars, built in TASK-010); this task adds it to the world on the victory `GameState` transition and removes it when it ends or on restart. Confetti and stars are never baked into images. |
 | AC2 - Message "Parabéns, você ajudou o Cauã a comer todos os doces! Feliz Aniversário, Cauã!" | `VictoryOverlay` widget in `lib/ui/` showing this exact string (single const), large high-contrast text. |
 | AC3 - Celebration SFX | New `SfxType.victory` entry (filename + volume mappings in `lib/audio/sounds.dart`) plus a compressed `.mp3` in `assets/sfx/`; played once when victory starts, honoring the existing mute setting. |
 | AC4 - Big "JOGAR NOVAMENTE" button | Button in `VictoryOverlay` labeled exactly `JOGAR NOVAMENTE`, minimum 72 logical px tall and full-width within the card; callback `onPlayAgain`. |
@@ -33,7 +33,7 @@ When the player finishes Phase 3, confetti/fireworks burst, a celebration SFX pl
 
 ## Scope
 - In:
-  - `lib/game/components/particle_celebration_component.dart` (view only, no game rules).
+  - Using `lib/game/components/particle_celebration_component.dart` (built in TASK-010; view only, no game rules).
   - `lib/ui/victory_overlay.dart` and `lib/ui/game_over_overlay.dart` (presentational, `const` constructors, callbacks and props only).
   - Registering both overlays in the Flame `GameWidget` `overlayBuilderMap` and showing/hiding them from `GameState` changes via a `ValueListenable`.
   - `SfxType.victory` mapping and one compressed celebration `.mp3` in `assets/sfx/`, registered in `pubspec.yaml` if not covered by the existing folder entry; also preloaded with the other SFX.
@@ -52,7 +52,7 @@ When the player finishes Phase 3, confetti/fireworks burst, a celebration SFX pl
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
 - [ ] T1 - Add `SfxType.victory` to `lib/audio/sounds.dart` (filename list and volume switch kept exhaustive) and add a short, compressed celebration `.mp3` to `assets/sfx/` (keep under ~100 KB; record credit/license in `assets/sfx/README.md` is out of scope for code, flag it). _Verify:_ `flutter analyze` clean; asset is listed in `pubspec.yaml` coverage; audio plays once via `AudioController.playSfx(SfxType.victory)` and is skipped when SFX are muted.
-- [ ] T2 - Implement `ParticleCelebrationComponent` (confetti burst plus a few firework-style radial bursts) using Flame particles with a fixed particle count cap, cached `Paint`s, injectable `Random`, and self-removal when finished. _Verify:_ triggering it shows colorful 2D particles over the playfield at 60 FPS on a mid-range phone; no per-frame allocations in `update`/`render`; component is gone from the world after the burst ends.
+- [ ] T2 - Consume `ParticleCelebrationComponent` (`CelebrationPreset.victory`, delivered by TASK-010) instead of building it here; confirm its API fits the victory trigger and add any missing firework-style radial burst to the preset only if TASK-010 did not cover it. _Verify:_ triggering victory shows animated colorful confetti and stars over the playfield at 60 FPS on a mid-range phone; component is gone from the world after the burst ends.
 - [ ] T3 - Implement `VictoryOverlay` (`lib/ui/victory_overlay.dart`) with the exact AC2 message, a "JOGAR NOVAMENTE" button (big touch target, high contrast, child-friendly palette from `Palette`) and an `onPlayAgain` callback; no game logic. _Verify:_ widget renders the exact strings on a 9:16 viewport without overflow; button tap invokes the callback once.
 - [ ] T4 - Implement `GameOverOverlay` (`lib/ui/game_over_overlay.dart`) with title "Tente de Novo!", encouraging copy, and a big restart button using `onPlayAgain`; no blame wording, no score-shaming. _Verify:_ renders without overflow on small and large phones; button tap invokes the callback once.
 - [ ] T5 - Add `GameState.lost` and the transition in `GameManager` when HP reaches 0 (TASK-003 only clamps HP). Wire end states: listen to `GameManager`'s `GameState` notifier; on victory add `ParticleCelebrationComponent`, play `SfxType.victory` once, show `VictoryOverlay`; on HP zero show `GameOverOverlay`; pause spawner/input while an overlay is visible. Register overlays in `overlayBuilderMap`. _Verify:_ finishing Phase 3 shows confetti + message + SFX + button; losing the 3rd HP shows "Tente de Novo!"; neither fires twice.
