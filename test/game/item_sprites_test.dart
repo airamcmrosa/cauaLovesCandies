@@ -48,12 +48,20 @@ void main() {
   });
 
   group('sfxForItem', () {
+    test('7 sweets and 5 fruits -> hmm, 4 hazards -> eurk', () {
+      int count(ItemCategory c, SfxType s) => ItemType.values
+          .where((t) => t.category == c && sfxForItem(t) == s)
+          .length;
+      expect(count(ItemCategory.sweet, SfxType.hmm), 7);
+      expect(count(ItemCategory.fruit, SfxType.hmm), 5);
+      expect(count(ItemCategory.hazard, SfxType.eurk), 4);
+    });
+
     for (final type in ItemType.values) {
       test('${type.name} maps by category', () {
         final expected = switch (type.category) {
-          ItemCategory.sweet => SfxType.score,
-          ItemCategory.fruit => SfxType.fruit,
-          ItemCategory.hazard => SfxType.damage,
+          ItemCategory.sweet || ItemCategory.fruit => SfxType.hmm,
+          ItemCategory.hazard => SfxType.eurk,
         };
         expect(sfxForItem(type), expected);
       });
@@ -78,7 +86,29 @@ void main() {
     test('works without an onHazard callback', () {
       final audio = _RecordingAudio();
       ingestHook(audio)(ItemType.soap);
-      expect(audio.played, [SfxType.damage]);
+      expect(audio.played, [SfxType.eurk]);
+    });
+
+    test('plays hmm for a sweet and a fruit without firing onHazard', () {
+      final audio = _RecordingAudio();
+      var hazards = 0;
+      final hook = ingestHook(audio, onHazard: () => hazards++);
+      hook(ItemType.lollipop);
+      hook(ItemType.strawberry);
+      expect(audio.played, [SfxType.hmm, SfxType.hmm]);
+      expect(hazards, 0);
+    });
+
+    test('plays eurk and fires onHazard for every hazard', () {
+      final audio = _RecordingAudio();
+      var hazards = 0;
+      final hook = ingestHook(audio, onHazard: () => hazards++);
+      final list = ItemType.values
+          .where((t) => t.category == ItemCategory.hazard)
+          .toList();
+      list.forEach(hook);
+      expect(audio.played, List.filled(4, SfxType.eurk));
+      expect(hazards, 4);
     });
   });
 }

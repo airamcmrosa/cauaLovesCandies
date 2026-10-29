@@ -99,7 +99,7 @@ class AudioController {
 
     final currentPlayer = _sfxPlayers[_currentSfxPlayer];
     currentPlayer.play(
-      AssetSource('sfx/$filename'),
+      AssetSource(sfxAssetPath(type, filename)),
       volume: soundTypeToVolume(type),
     );
     _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
@@ -215,8 +215,11 @@ class AudioController {
     // to be more selective when preloading.
     await AudioCache.instance.loadAll(
       SfxType.values
-          .expand(soundTypeToFilename)
-          .map((path) => 'sfx/$path')
+          .expand(
+            (type) => soundTypeToFilename(
+              type,
+            ).map((filename) => sfxAssetPath(type, filename)),
+          )
           .toList(),
     );
   }

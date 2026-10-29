@@ -60,11 +60,12 @@ ItemSpriteLookup buildItemSpriteLookup(Images images) {
   return (type) => cache[type]!;
 }
 
-/// SFX role per category: festive (sweet), positive (fruit), comic (hazard).
+/// Product-owner reaction per category: "hmm" for good food (sweet, fruit),
+/// "eurk" for hazards. The score/fruit/damage SfxTypes stay defined but are
+/// no longer used on ingest.
 SfxType sfxForItem(ItemType type) => switch (type.category) {
-  ItemCategory.sweet => SfxType.score,
-  ItemCategory.fruit => SfxType.fruit,
-  ItemCategory.hazard => SfxType.damage,
+  ItemCategory.sweet || ItemCategory.fruit => SfxType.hmm,
+  ItemCategory.hazard => SfxType.eurk,
 };
 
 /// Builds a `FoodItemComponent.onIngested` hook that plays the item SFX via
