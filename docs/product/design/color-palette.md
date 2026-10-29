@@ -19,17 +19,21 @@ Direção: **Candy Pastel** — cores de bala, algodão-doce e marshmallow. Satu
 | `brand-bubblegum-dark` | `#E5609D` | Chiclete Escuro | Botão pressionado, sombra do botão |
 | `accent-lemon` | `#FFE98A` | Limão-bala | Estrelas, pontos, brilho de acerto |
 | `accent-sky` | `#7CC8FF` | Azul Pirulito | Botão secundário, detalhes |
-| `accent-grape` | `#B79CFF` | Uva | Faixas da esteira, confete |
+| `accent-grape` | `#B79CFF` | Uva | Itens (doces, frutas) e confete; não é a listra da esteira |
 | `accent-mint` | `#A8F0D1` | Menta | Feedback positivo, barra de progresso |
 | `accent-tangerine` | `#FFB36B` | Tangerina | Confete, acentos quentes |
 
 ### Gameplay
 | Token | Hex | Nome | Uso |
 |---|---|---|---|
-| `belt-base` | `#CDB8F0` | Esteira | Corpo da esteira (pálido, para os itens contrastarem) |
-| `belt-stripe` | `#B79CFF` | Esteira Listra | Listras/setas de movimento |
+| `belt-base` | `#BFA6EC` | Esteira | Corpo da esteira (pálido, para os itens contrastarem) |
+| `belt-stripe` | `#8F72D6` | Esteira Listra | Listras/setas de movimento, mais escuras que o corpo; contorno `ink` grosso nas bordas da esteira |
 | `heart` | `#FF5C7A` | Morango | Ícone de HP (coração) |
-| `danger-soft` | `#FF7A7A` | Coral Alerta | Aura/borda dos itens proibidos e perda de HP |
+| `danger-soft` | `#FF7A7A` | Coral Alerta | Aura serrilhada dos itens proibidos e perda de HP |
+| `tutorial-check` | `#2E9E6B` | Visto | Símbolo de visto (certo) do tutorial, sobre círculo `accent-mint` `#A8F0D1` |
+| `tutorial-cross` | `#FFF5E6` | Cruz | Símbolo de cruz (errado) do tutorial em `bg-cream`, sobre círculo `danger-soft` `#FF7A7A` |
+
+O significado do tutorial vem da **forma do símbolo** (visto vs. cruz), não da cor: daltônicos e crianças pequenas devem entender só pelo desenho.
 
 ### Texto e contorno
 | Token | Hex | Nome | Uso |
@@ -43,7 +47,7 @@ Contraste: `ink` sobre `bg-cream` ≈ 8:1 e sobre `bg-cotton` ≈ 6:1 (AA ok). T
 1. **Itens vs. fundo:** itens saturados sobre esteira/fundo pastel. Nunca item pastel sobre fundo pastel.
 2. **Doces (+2):** cores quentes e vibrantes — chiclete, limão, tangerina, uva.
 3. **Frutas (+1):** tons naturais um pouco mais "terrosos" que os doces (morango, laranja, banana, uva verde/menta), para a criança distinguir de doce pelo formato e pela cor.
-4. **Itens proibidos (-1 HP):** não depender só de cor (daltonismo, 6 anos). Devem ter **formato distinto + aura coral `danger-soft`** e um tom levemente mais apagado/esverdeado (ex.: brócolis, cebola, sabão, meia suja) com carinha de "eca" fofa, nada assustador.
+4. **Itens proibidos (-1 HP):** não depender só de cor (daltonismo, 6 anos). Devem ter **formato distinto + aura sólida serrilhada/ondulada em `danger-soft`** (a aura é forma, não brilho/glow) e um tom levemente mais apagado/esverdeado (ex.: brócolis, cebola, sabão, meia suja) com carinha de "eca" fofa, nada assustador. A carinha "eca" aparece **só** nos itens proibidos; doces e frutas nunca têm rosto.
 5. **Contorno:** linha grossa e arredondada em `ink` (~3–4 px a 512 px) em todos os sprites — dá coesão de adesivo/stickers e ajuda no contraste.
 6. **Sombra:** sombras em `bg-lavender` escurecido (`#C9B6F2`), nunca cinza ou preto.
 7. **Cauã:** manter pele, cabelo e roupa fiéis à referência da família; a boca interna em `#FF6F91` e língua `#FF9FB5`.
@@ -72,8 +76,8 @@ animados em código no jogo.
 | Cauã: poses fechada, aberta, mastigando, vitória (3 frames de olhos cada) e "eca" | idem; ver "Frames do Cauã" |
 | Doces (pirulito, bala, cupcake, algodão-doce, chiclete) | `#FF8FC0` `#FFE98A` `#B79CFF` `#7CC8FF` |
 | Frutas (morango, banana, uva, laranja) | `#FF5C7A` `#FFE98A` `#B79CFF` `#FFB36B` + folhas `#A8F0D1` |
-| Itens proibidos | tons apagados + aura `#FF7A7A` |
-| Esteira | `#CDB8F0` com listras `#B79CFF` |
+| Itens proibidos | tons apagados + aura serrilhada sólida `#FF7A7A` + carinha "eca" |
+| Esteira | `#BFA6EC` com listras `#8F72D6` e contorno `ink` grosso |
 | Cenário (3 variações de fundo) | ver "Fases" |
 | Coração HP (cheio/vazio) | `#FF5C7A` / contorno `#5B3A6B` com miolo `#FFF5E6` |
 | Logo "Cauã Loves Candies" | `#FF8FC0` com contorno `#5B3A6B` e brilhos `#FFE98A` |

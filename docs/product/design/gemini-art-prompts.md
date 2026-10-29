@@ -294,7 +294,7 @@ Tile horizontal sem emenda (bordas esquerda e direita idênticas, repetível) 51
 lado: corpo #BFA6EC com contorno superior e inferior grosso #5B3A6B; setas/chevrons de movimento em
 #8F72D6 (mais escuras que o corpo) espaçadas igualmente com período de 128 px (4 repetições exatas por
 tile); faixa inferior #C9B6F2 de sombra. Sem rebites irregulares, sem detalhes que quebrem o padrão
-na emenda. (Valores recomendados na análise de contraste; se não aprovados, usar #CDB8F0 e #B79CFF.)
+na emenda. (Valores aprovados na TASK-013 pela análise de contraste: #BFA6EC no corpo e #8F72D6 nas listras.)
 Negativo: estrelas, brilhos, faíscas, confete, partículas, texto, emenda visível, elementos que passem
 da borda esquerda/direita, preto puro, branco puro, gradiente complexo, uva-roxa idêntica à cor da listra.
 ```
