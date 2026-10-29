@@ -72,6 +72,10 @@ void main() {
     item.update(dtFor(0.02));
   }
 
+  /// Finishes the ingest tween (dt-driven) so the item can be removed.
+  void finishTween(FoodItemComponent item) =>
+      item.update(FoodItemComponent.ingestTweenDuration);
+
   bool removed(FoodItemComponent item) {
     game.update(0);
     return !game.children.contains(item);
@@ -160,8 +164,9 @@ void main() {
           expect(gm.score.value, expected.$1);
           expect(gm.hp.value, expected.$2);
           expect(item.outcome, ItemOutcome.ingest);
-          expect(removed(item), isTrue);
           expect(ingested, [type]);
+          finishTween(item);
+          expect(removed(item), isTrue);
         },
       );
     });
@@ -178,8 +183,102 @@ void main() {
       mouth.toggle();
       final item = await spawn(ItemType.donut);
       reach(item);
+      finishTween(item);
       game.update(0);
       expect(game.children.contains(item), isFalse);
+    });
+
+    test('item stays in the tree until the tween completes', () async {
+      mouth.toggle();
+      final item = await spawn(ItemType.donut);
+      reach(item);
+      item.update(FoodItemComponent.ingestTweenDuration * 0.5);
+      expect(removed(item), isFalse);
+    });
+  });
+
+  group('ingest tween', () {
+    test('z is frozen at the decision z during the tween', () async {
+      mouth.toggle();
+      final item = await spawn(ItemType.donut);
+      reach(item);
+      expect(item.z, Projection.decisionZ);
+      item.update(0.05);
+      item.update(0.05);
+      expect(item.z, Projection.decisionZ);
+    });
+
+    test('moves toward the mouth and shrinks to ingestEndScale', () async {
+      mouth.toggle();
+      final item = await spawn(ItemType.donut);
+      reach(item);
+      // A zero-dt tween step snaps to the tween start pose (decision z).
+      item.update(0);
+      final startY = item.position.y;
+      final startScale = item.scale.x;
+      expect(startY, closeTo(yAt(Projection.decisionZ), 1e-5));
+      expect(startScale, closeTo(scaleAt(Projection.decisionZ), 1e-5));
+
+      item.update(FoodItemComponent.ingestTweenDuration / 2);
+      expect(item.position.y, lessThan(startY));
+      expect(item.position.y, greaterThan(Projection.yMouth));
+      expect(item.scale.x, lessThan(startScale));
+      expect(item.scale.x, greaterThan(FoodItemComponent.ingestEndScale));
+      expect(
+        item.scale.x,
+        closeTo((startScale + FoodItemComponent.ingestEndScale) / 2, 1e-5),
+      );
+
+      item.update(FoodItemComponent.ingestTweenDuration / 2);
+      expect(item.position.x, closeTo(Projection.xMouth, 1e-5));
+      expect(item.position.y, closeTo(Projection.yMouth, 1e-5));
+      expect(item.scale.x, closeTo(FoodItemComponent.ingestEndScale, 1e-5));
+      expect(removed(item), isTrue);
+    });
+
+    test('item is removed after ingestTweenDuration, not before', () async {
+      mouth.toggle();
+      final item = await spawn(ItemType.donut);
+      reach(item);
+      item.update(FoodItemComponent.ingestTweenDuration - 0.01);
+      expect(removed(item), isFalse);
+      item.update(0.01 + 1e-5);
+      expect(removed(item), isTrue);
+    });
+
+    test('no double firing with further updates', () async {
+      mouth.toggle();
+      final ingested = <ItemType>[];
+      final item = await spawn(ItemType.donut, ingested: ingested);
+      reach(item);
+      expect(gm.score.value, 2);
+      for (var i = 0; i < 5; i++) {
+        item.update(0.05);
+      }
+      expect(ingested, [ItemType.donut]);
+      expect(gm.score.value, 2);
+      expect(gm.hp.value, GameManager.maxHp);
+    });
+
+    test(
+      'score and HP apply at the decision instant, before the tween',
+      () async {
+        mouth.toggle();
+        final item = await spawn(ItemType.broccoli);
+        reach(item);
+        expect(gm.hp.value, GameManager.maxHp - 1);
+        expect(item.outcome, ItemOutcome.ingest);
+      },
+    );
+
+    test('mouth state changes during the tween do not affect it', () async {
+      mouth.toggle();
+      final item = await spawn(ItemType.donut);
+      reach(item);
+      mouth.toggle();
+      item.update(0.05);
+      expect(item.outcome, ItemOutcome.ingest);
+      expect(gm.score.value, 2);
     });
   });
 
@@ -270,8 +369,10 @@ void main() {
       mouth.toggle();
       final item = await spawn(ItemType.donut);
       item.update(10);
+      expect(gm.score.value, 2);
+      finishTween(item);
       expect(removed(item), isTrue);
-      expect(item.z, greaterThan(1.0));
+      expect(item.z, Projection.decisionZ);
       game.update(0);
       expect(game.children.contains(item), isFalse);
     });

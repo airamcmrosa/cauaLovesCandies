@@ -42,6 +42,12 @@ class FoodItemComponent extends SpriteComponent {
   /// Lateral distance after which a deflected item is removed.
   static const double deflectDistance = 500.0;
 
+  /// Duration in seconds of the visual ingest tween toward the mouth.
+  static const double ingestTweenDuration = 0.15;
+
+  /// Scale reached at the end of the ingest tween (just before removal).
+  static const double ingestEndScale = 0.0;
+
   /// Priority range: nearer items (low z) draw in front.
   static const int _priorityRange = 1000;
 
@@ -62,6 +68,10 @@ class FoodItemComponent extends SpriteComponent {
 
   double _z = 0.0;
   double _lateral = 0.0;
+  double _ingestT = 0.0;
+  double _ingestStartX = 0.0;
+  double _ingestStartY = 0.0;
+  double _ingestStartScale = 0.0;
   ItemOutcome _outcome = ItemOutcome.undecided;
 
   /// Current depth in [0, 1+].
@@ -78,6 +88,10 @@ class FoodItemComponent extends SpriteComponent {
   @override
   void update(double dt) {
     super.update(dt);
+    if (_outcome == ItemOutcome.ingest) {
+      _updateIngestTween(dt);
+      return;
+    }
     final speed =
         ConveyorBeltComponent.baseSpeed * _gameManager.phase.speedMultiplier;
     // Freeze depth once deflected so the item slides the full distance.
@@ -92,7 +106,12 @@ class FoodItemComponent extends SpriteComponent {
         if (outcome == ItemOutcome.ingest) {
           _gameManager.onIngested(type);
           onIngested?.call(type);
-          removeFromParent();
+          // Freeze z at the decision z and start the visual tween from the
+          // current projected pose.
+          _z = Projection.decisionZ;
+          _ingestStartX = xAt(_z);
+          _ingestStartY = yAt(_z);
+          _ingestStartScale = scaleAt(_z);
           return;
         }
         onDeflected?.call(type);
@@ -112,6 +131,19 @@ class FoodItemComponent extends SpriteComponent {
       return;
     }
     _project();
+  }
+
+  /// Dt-driven shrink toward the mouth; fires nothing, then removes itself.
+  void _updateIngestTween(double dt) {
+    _ingestT += dt;
+    final t = (_ingestT / ingestTweenDuration).clamp(0.0, 1.0);
+    final s = _ingestStartScale + (ingestEndScale - _ingestStartScale) * t;
+    scale.setValues(s, s);
+    position.setValues(
+      _ingestStartX + (Projection.xMouth - _ingestStartX) * t,
+      _ingestStartY + (Projection.yMouth - _ingestStartY) * t,
+    );
+    if (t >= 1.0) removeFromParent();
   }
 
   void _project() {
