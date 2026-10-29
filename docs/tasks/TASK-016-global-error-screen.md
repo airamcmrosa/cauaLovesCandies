@@ -2,7 +2,7 @@
 id: TASK-016
 story: -
 title: Show a friendly full-screen error with a reload button on any uncaught failure
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: []
 ---
