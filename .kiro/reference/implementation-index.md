@@ -26,6 +26,7 @@ SHA as append-only history.
 | T4 | TitleScreen and sub-widgets | committed | 25c3ab0 |
 | T5 | Router wiring | todo | - |
 | T6 | Self-audit pass | todo | - |
+| T7 | Falling candies on the title edges | todo | - |
 
 ## TASK-002 - Single-tap mouth control (US02)
 
