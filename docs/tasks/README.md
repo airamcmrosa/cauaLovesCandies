@@ -16,3 +16,4 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-004 | US04 | Implement 3-phase progression with rising speed and phase banner | aceita | TASK-003 | [TASK-004](./TASK-004-phase-progression.md) |
 | TASK-005 | US05 | Build victory celebration and friendly game-over screens with instant restart | aceita | TASK-003, TASK-004 | [TASK-005](./TASK-005-victory-screen.md) |
 | TASK-006 | US06 | Add hands-on tutorial overlay at first play | aceita | TASK-002, TASK-003 | [TASK-006](./TASK-006-tutorial-overlay.md) |
+| TASK-007 | - | Define the Candy Pastel palette and Cauã character art direction, and apply the palette to lib/style | completa | - | [TASK-007](./TASK-007-visual-identity-palette.md) |

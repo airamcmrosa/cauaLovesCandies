@@ -16,12 +16,38 @@ import 'package:flame/palette.dart';
 /// we could allow players to customize colors, for example,
 /// or even get the colors from the network.
 class Palette {
-  PaletteEntry get seed => const PaletteEntry(Color(0xFF0050bc));
-  PaletteEntry get text => const PaletteEntry(Color(0xee352b42));
-  PaletteEntry get backgroundMain => const PaletteEntry(Color(0xffa2fff3));
-  PaletteEntry get backgroundLevelSelection =>
-      const PaletteEntry(Color(0xffffcd75));
-  PaletteEntry get backgroundPlaySession =>
-      const PaletteEntry(Color(0xffa2fff3));
-  PaletteEntry get backgroundSettings => const PaletteEntry(Color(0xffbfc8e3));
+  // Screen roles. Names are kept stable; values follow the Candy Pastel
+  // palette documented in docs/product/design/color-palette.md.
+  PaletteEntry get seed => brandBubblegum;
+  PaletteEntry get text => ink;
+  PaletteEntry get backgroundMain => bgCream;
+  PaletteEntry get backgroundLevelSelection => bgCotton;
+  PaletteEntry get backgroundPlaySession => bgSky;
+  PaletteEntry get backgroundSettings => bgLavender;
+
+  // Backgrounds and surfaces.
+  PaletteEntry get bgCream => const PaletteEntry(Color(0xFFFFF5E6));
+  PaletteEntry get bgSky => const PaletteEntry(Color(0xFFCDEBFF));
+  PaletteEntry get bgCotton => const PaletteEntry(Color(0xFFFFD6E8));
+  PaletteEntry get bgLavender => const PaletteEntry(Color(0xFFE6D9FF));
+
+  // Brand and UI accents.
+  PaletteEntry get brandBubblegum => const PaletteEntry(Color(0xFFFF8FC0));
+  PaletteEntry get brandBubblegumDark => const PaletteEntry(Color(0xFFE5609D));
+  PaletteEntry get accentLemon => const PaletteEntry(Color(0xFFFFE98A));
+  PaletteEntry get accentSky => const PaletteEntry(Color(0xFF7CC8FF));
+  PaletteEntry get accentGrape => const PaletteEntry(Color(0xFFB79CFF));
+  PaletteEntry get accentMint => const PaletteEntry(Color(0xFFA8F0D1));
+  PaletteEntry get accentTangerine => const PaletteEntry(Color(0xFFFFB36B));
+
+  // Gameplay.
+  PaletteEntry get beltBase => const PaletteEntry(Color(0xFFCDB8F0));
+  PaletteEntry get beltStripe => const PaletteEntry(Color(0xFFB79CFF));
+  PaletteEntry get heart => const PaletteEntry(Color(0xFFFF5C7A));
+  PaletteEntry get dangerSoft => const PaletteEntry(Color(0xFFFF7A7A));
+  PaletteEntry get shadow => const PaletteEntry(Color(0xFFC9B6F2));
+
+  // Text and outlines.
+  PaletteEntry get ink => const PaletteEntry(Color(0xFF5B3A6B));
+  PaletteEntry get inkSoft => const PaletteEntry(Color(0xFF8A6A9B));
 }
