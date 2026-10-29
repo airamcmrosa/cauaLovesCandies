@@ -19,6 +19,7 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 | `OBS-027` | INFO | MAINTAINABILITY | `lib/ui/title_loading_indicator.dart` | Resolved | Idle, Loading and Done branches are dead code after the spinner-first change | 7400c93 |
 | `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing | 7400c93 |
 | `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_handleSongFinished` ignores `audioOn` and dispose state | 7400c93 |
+| `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Resolved | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` | be374ee |
 
 ---
 
@@ -89,3 +90,14 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 * **Risk/Impact:** A finished track could restart while muted or after dispose.
 * **Resolution Trigger:** TASK-001 T6 self-audit.
 * **Resolved By:** 7400c93 (TASK-001 T6 self-audit)
+
+### `OBS-031`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `test authoring / TASK-003 T7`
+* **Status:** Resolved
+* **Finding:** The mute handling inside `AudioController.playSfx` is not exercised by `test/audio/sounds_test.dart`.
+* **Risk/Impact:** A regression could play SFX while muted.
+* **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
+* **Resolved By:** be374ee (TASK-001 audio tests cover muted and audible `playSfx`)
