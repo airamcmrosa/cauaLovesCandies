@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../../style/palette.dart';
 import '../managers/game_manager.dart';
-import '../managers/phase_config.dart';
 import '../projection.dart';
 
 /// Renders the trapezoidal conveyor lane from the near plane to the horizon
@@ -13,7 +12,7 @@ import '../projection.dart';
 ///
 /// Geometry is derived from [Projection] via `yAt`/`xAt`/`scaleAt`, so the
 /// stripes converge to the horizon. It owns no game rules; it only reads the
-/// phase multiplier from [GameManager.level] and [kPhases].
+/// phase multiplier from [GameManager.currentSpeedMultiplier].
 class ConveyorBeltComponent extends PositionComponent {
   ConveyorBeltComponent({
     required GameManager gameManager,
@@ -54,8 +53,7 @@ class ConveyorBeltComponent extends PositionComponent {
   double get phase => _phase;
 
   /// Current belt speed in z per second.
-  double get speed =>
-      baseSpeed * kPhases[_gameManager.level - 1].speedMultiplier;
+  double get speed => baseSpeed * _gameManager.currentSpeedMultiplier;
 
   @override
   Future<void> onLoad() async {

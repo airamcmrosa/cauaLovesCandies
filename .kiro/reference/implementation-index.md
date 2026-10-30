@@ -90,6 +90,18 @@ SHA as append-only history.
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
 
+## TASK-004 - Phase progression (US04)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | PhaseConfig targets and banner text | committed | 8ea74e9 |
+| T2 | GameManager phase notifier and advance | committed | 7726934 |
+| T3 | Speed multiplier consumed by belt and items | committed | eae18be |
+| T4 | Victory state at phase 3 target | committed | e4d9be1 |
+| T5 | PhaseBannerOverlay | committed | e1160d9 |
+| T6 | Overlay registration and restart reset | committed | 6e721ec |
+| T7 | Self-audit pass (no code change) | committed | 6e721ec |
+
 ## TASK-009 - Caua blink animation (US02)
 
 | Task | Summary | State | Commit SHA |

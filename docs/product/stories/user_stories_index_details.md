@@ -85,9 +85,9 @@ Este documento centraliza todas as **User Stories** do jogo *Cauã Loves Candies
 - **Para que** o jogo continue divertido e desafiador.
 
 **Critérios de Aceite:**
-1. **Fase 1 (Nível Fácil):** Velocidade baixa (**1.0x**). Meta: **10 pontos**.
-2. **Fase 2 (Nível Médio):** Velocidade média (**1.35x**). Meta: **20 pontos** (pontuação total acumulada).
-3. **Fase 3 (Nível Final):** Velocidade rápida (**1.65x**). Meta: **30 pontos** (pontuação total acumulada).
+1. **Fase 1 (Nível Fácil):** Velocidade inicial (**1.2x**, +20% sobre a base). Meta: **10 pontos**.
+2. **Fase 2 (Nível Médio):** Velocidade média (**1.44x**, crescimento exponencial de 1.2x por fase). Meta: **20 pontos** (pontuação total acumulada).
+3. **Fase 3 (Nível Final):** Velocidade rápida (**1.728x**). Meta: **30 pontos** (pontuação total acumulada).
 4. Exibir aviso rápido na tela (*ex: "Fase 2 - Mais Rápido!"*) ao mudar de fase sem travar o jogo.
 
 ---

@@ -8,8 +8,8 @@ void main() {
       expect(kPhases.length, 3);
     });
 
-    test('speed multipliers are 1.0, 1.35, 1.65', () {
-      const expected = [1.0, 1.35, 1.65];
+    test('speed multipliers are 1.2, 1.44, 1.728', () {
+      const expected = [1.2, 1.44, 1.728];
       for (var i = 0; i < expected.length; i++) {
         expect(kPhases[i].speedMultiplier, closeTo(expected[i], 1e-9));
       }
@@ -20,6 +20,15 @@ void main() {
         expect(
           kPhases[i].speedMultiplier,
           greaterThan(kPhases[i - 1].speedMultiplier),
+        );
+      }
+    });
+
+    test('consecutive speed ratio is 1.2', () {
+      for (var i = 1; i < kPhases.length; i++) {
+        expect(
+          kPhases[i].speedMultiplier / kPhases[i - 1].speedMultiplier,
+          closeTo(1.2, 1e-9),
         );
       }
     });
@@ -51,6 +60,30 @@ void main() {
       for (final p in kPhases) {
         expect(p.weights.total, 100);
       }
+    });
+
+    test('target scores are 10, 20, 30 and strictly increasing', () {
+      expect(kPhases.map((p) => p.targetScore).toList(), [10, 20, 30]);
+      for (var i = 1; i < kPhases.length; i++) {
+        expect(kPhases[i].targetScore, greaterThan(kPhases[i - 1].targetScore));
+      }
+    });
+
+    test('banner text is null for phase 1 and set for phases 2 and 3', () {
+      expect(kPhases[0].bannerText, isNull);
+      expect(kPhases[1].bannerText, 'Fase 2 - Mais Rápido!');
+      expect(kPhases[2].bannerText, 'Fase 3 - Super Rápido!');
+      expect(kPhases[1].bannerText, isNotEmpty);
+      expect(kPhases[2].bannerText, isNotEmpty);
+    });
+
+    test('bannerText defaults to null when omitted', () {
+      const c = PhaseConfig(
+        speedMultiplier: 1.0,
+        targetScore: 1,
+        weights: CategoryWeights(sweets: 1, fruits: 1, hazards: 1),
+      );
+      expect(c.bannerText, isNull);
     });
 
     test('CategoryWeights.of maps categories to fields', () {
