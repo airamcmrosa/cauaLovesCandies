@@ -54,6 +54,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-059` | INFO | LIFECYCLE | `lib/ui/tutorial_overlay.dart` | Open | If the widget is disposed mid-fade `onRemoved` never fires; the T6 wiring must not rely on it alone for cleanup |
 | `OBS-062` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | The tutorial overlay builder runs only on rebuilds, so a resize or rotation during the 250 ms fade cuts the fade short via `SizedBox.shrink` |
 | `OBS-063` | INFO | LIFECYCLE | `lib/game/caua_game_screen.dart` | Open | The screen State has no `dispose` for the lazily created game (predates TASK-006 T6) |
+| `OBS-066` | INFO | TEST_COVERAGE | `test/game/caua_game_screen_tutorial_tap_test.dart` | Open | "Tap handler runs once" is inferred from one mouth notification, not from a direct hook on the handler |
 
 ---
 
@@ -465,3 +466,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The screen State has no `dispose` for the lazily created game. This predates T6; T6 adds no new listeners.
 * **Risk/Impact:** Low: the game is removed with the widget tree and the manager disposes its notifiers in `onRemove`.
 * **Resolution Trigger:** Next touch of the screen State.
+
+### `OBS-066`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_game_screen_tutorial_tap_test.dart`
+* **Source:** `audit / TASK-006 T7`
+* **Status:** Open
+* **Finding:** The test infers that the game tap handler runs once from a single mouth notification rather than a direct hook on the handler.
+* **Risk/Impact:** Weaker evidence; sufficient for the current behavior.
+* **Resolution Trigger:** Next touch of the tap path: add a counting hook if needed.
