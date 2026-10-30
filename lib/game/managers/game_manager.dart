@@ -13,7 +13,7 @@ import 'phase_config.dart';
 enum GameState { playing }
 
 class GameManager {
-  GameManager();
+  GameManager({List<PhaseConfig> phases = kPhases}) : _phases = phases;
 
   /// Maximum (and starting) HP.
   static const int maxHp = 3;
@@ -21,21 +21,44 @@ class GameManager {
   /// Starting level (1-based).
   static const int initialLevel = 1;
 
+  final List<PhaseConfig> _phases;
+
   final ValueNotifier<int> score = ValueNotifier<int>(0);
   final ValueNotifier<int> hp = ValueNotifier<int>(maxHp);
 
-  /// Current level (1-based). Does not advance here.
-  int level = initialLevel;
+  /// Current phase (1-based).
+  final ValueNotifier<int> currentPhase = ValueNotifier<int>(initialLevel);
+
+  /// New phase number, notified exactly once per advance. Null (and silent)
+  /// at start and after [reset].
+  final ValueNotifier<int?> phaseChanged = ValueNotifier<int?>(null);
+
+  /// Current level (1-based); compatible view of [currentPhase].
+  int get level => currentPhase.value;
+
+  /// Compatibility setter (sets the phase without firing [phaseChanged]).
+  set level(int value) => currentPhase.value = value;
 
   GameState state = GameState.playing;
 
-  /// Config of the current level.
-  PhaseConfig get phase => kPhases[level - 1];
+  /// Config of the current phase.
+  PhaseConfig get phase => _phases[currentPhase.value - 1];
 
   /// Adds [points] to the score; non-positive values are ignored.
   void addScore(int points) {
     if (points <= 0) return;
     score.value += points;
+    advanceIfTargetReached();
+  }
+
+  /// Advances one phase at a time while the cumulative score reaches the
+  /// current phase target. Never advances past the last configured phase.
+  void advanceIfTargetReached() {
+    while (currentPhase.value < _phases.length &&
+        score.value >= _phases[currentPhase.value - 1].targetScore) {
+      currentPhase.value += 1;
+      phaseChanged.value = currentPhase.value;
+    }
   }
 
   /// Removes 1 HP, clamped at 0 (no notification when already 0).
@@ -54,11 +77,14 @@ class GameManager {
   void reset() {
     score.value = 0;
     hp.value = maxHp;
-    level = initialLevel;
+    currentPhase.value = initialLevel;
+    phaseChanged.value = null;
     state = GameState.playing;
   }
 
   void dispose() {
+    currentPhase.dispose();
+    phaseChanged.dispose();
     score.dispose();
     hp.dispose();
   }
