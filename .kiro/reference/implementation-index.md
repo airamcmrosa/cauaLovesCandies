@@ -98,4 +98,4 @@ SHA as append-only history.
 | T2 | hitSparkle preset | committed | abb791a |
 | T3 | Ingestion event and sparkle spawn | committed | 1d76414 |
 | T4 | Lifecycle and restart | committed | 2fa0d70 |
-| T5 | Handoff pass | todo | - |
+| T5 | Handoff pass (coverage confirmed, no change) | committed | 2fa0d70 |
