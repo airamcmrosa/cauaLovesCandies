@@ -51,12 +51,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-045` | INFO | MAINTAINABILITY | `lib/game/managers/blink_controller.dart` | Open | `BlinkController` imports `flutter/foundation.dart` for `ValueNotifier`, against the task's "no Flutter imports" wording; matches `MouthController` |
 | `OBS-046` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart`, `reset()` | Open | `reset()` sets `phaseChanged` to null, notifying listeners; the banner listener must ignore null and restart must clear a visible banner |
-| `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
 | `OBS-049` | INFO | ERROR_HANDLING | `lib/game/components/caua_player_component.dart` | Open | `_tryLoad` silently swallows a missing eye-state sprite; log it via `package:logging` |
 | `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
-| `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Open | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce |
 | `OBS-054` | INFO | LIFECYCLE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` resets the `BlinkController` unconditionally; calling it after the game is removed would throw (`reset` after `dispose`) |
-| `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
 | `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
 | `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
 | `OBS-058` | INFO | ERROR_HANDLING | `lib/ui/tutorial_overlay.dart` | Open | Empty `precacheImage` onError swallows load failures and the mouth images have no `errorBuilder` |
@@ -431,16 +428,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
 
-### `OBS-048`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/game/managers/game_manager.dart` (`timeScale`)
-* **Source:** `audit / TASK-006 T2`
-* **Status:** Open
-* **Finding:** `timeScale` checks only `state == tutorial`; the spawner's old `state != playing` early return is gone. Safe while `GameState` has only `tutorial` and `playing`.
-* **Risk/Impact:** A future victory or game-over state would keep spawning and moving the belt.
-* **Resolution Trigger:** TASK-005 (or TASK-004 T4, whichever adds a state first): make `timeScale` return 0 for every non-playing state.
-
 ### `OBS-058`
 * **Severity:** INFO
 * **Category:** ERROR_HANDLING
@@ -510,16 +497,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** After the product owner set speeds to 1.2 / 1.44 / 1.728, phase 1 is 20% faster in absolute terms and the spawn interval comment "Seconds between spawns at Phase 1 speed" is stale (effective gap about 1.17 s).
 * **Risk/Impact:** Shorter reaction and ingest window may be too hard for 6-year-olds in phase 1.
 * **Resolution Trigger:** Phone playtest before the TASK-004 wrap-up; fix the comment or retune `baseSpeed` or the spawn interval (product decision).
-
-### `OBS-055`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/game/components/` (belt, items), ingestion path
-* **Source:** `audit / TASK-004 T4`
-* **Status:** Open
-* **Finding:** Only `item_spawner_component.dart` checks the state. During `GameState.victory` the belt and in-flight items keep moving and ingestion can still change score and HP.
-* **Risk/Impact:** Visible motion and score changes behind the victory screen once TASK-005 shows it.
-* **Resolution Trigger:** TASK-005: freeze with a `state == playing ? 1 : 0` style gate (never a deny-list that omits victory); related to OBS-048.
 
 ### `OBS-056`
 * **Severity:** INFO
@@ -600,16 +577,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `_tryLoad` swallows a missing sprite without logging; the nearest-eye-state fallback hides the gap.
 * **Risk/Impact:** A missing or misnamed frame goes unnoticed in development.
 * **Resolution Trigger:** Next touch of the component: log the miss via `package:logging`.
-
-### `OBS-053`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/game/caua_candies_game.dart` (`update`)
-* **Source:** `audit / TASK-009 T4`
-* **Status:** Open
-* **Finding:** `blinkEnabled = (state == GameState.playing)`. TASK-009 T4 says blinking stays on in `tutorial` and `victory`. With only `playing` in `main` this is correct, but once TASK-006 (tutorial, default state) and TASK-004 T4 (victory) merge, Caua would stop blinking in those states.
-* **Risk/Impact:** Caua frozen with open eyes during the tutorial and victory screen.
-* **Resolution Trigger:** First merge of TASK-006 or TASK-004 with TASK-009: widen the predicate to exclude only non-visible states (for example game over).
 
 ### `OBS-054`
 * **Severity:** INFO

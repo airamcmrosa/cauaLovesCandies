@@ -24,6 +24,9 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 | `OBS-044` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Resolved | Render allocates one Color per particle per frame (`withValues`); use a cached alpha palette | 2fa0d70 |
 | `OBS-047` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Resolved | `hitSparkleMaxParticles` is unused; every sparkle allocates and iterates the full 80-particle pool | 2fa0d70 |
 | `OBS-051` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_sparkle_test.dart` | Resolved | Sparkle origin (xMouth, yMouth) is not asserted because `ParticleCelebrationComponent._origin` is private | 2fa0d70 |
+| `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Resolved | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running | f0add1c |
+| `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Resolved | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce | f0add1c |
+| `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Resolved | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP | f0add1c |
 
 ---
 
@@ -145,3 +148,33 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 * **Finding:** The hit sparkle origin (360, 440.4) is not asserted in tests because `_origin` is private with no getter.
 * **Risk/Impact:** A regression that moves the sparkle off the mouth would not be caught.
 * **Resolution Trigger:** TASK-010 T4: add a small public getter and assert the origin.
+
+### `OBS-048`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/managers/game_manager.dart` (`timeScale`)
+* **Source:** `audit / TASK-006 T2`
+* **Status:** Open
+* **Finding:** `timeScale` checks only `state == tutorial`; the spawner's old `state != playing` early return is gone. Safe while `GameState` has only `tutorial` and `playing`.
+* **Risk/Impact:** A future victory or game-over state would keep spawning and moving the belt.
+* **Resolution Trigger:** TASK-005 (or TASK-004 T4, whichever adds a state first): make `timeScale` return 0 for every non-playing state.
+
+### `OBS-053`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart` (`update`)
+* **Source:** `audit / TASK-009 T4`
+* **Status:** Open
+* **Finding:** `blinkEnabled = (state == GameState.playing)`. TASK-009 T4 says blinking stays on in `tutorial` and `victory`. With only `playing` in `main` this is correct, but once TASK-006 (tutorial, default state) and TASK-004 T4 (victory) merge, Caua would stop blinking in those states.
+* **Risk/Impact:** Caua frozen with open eyes during the tutorial and victory screen.
+* **Resolution Trigger:** First merge of TASK-006 or TASK-004 with TASK-009: widen the predicate to exclude only non-visible states (for example game over).
+
+### `OBS-055`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/components/` (belt, items), ingestion path
+* **Source:** `audit / TASK-004 T4`
+* **Status:** Open
+* **Finding:** Only `item_spawner_component.dart` checks the state. During `GameState.victory` the belt and in-flight items keep moving and ingestion can still change score and HP.
+* **Risk/Impact:** Visible motion and score changes behind the victory screen once TASK-005 shows it.
+* **Resolution Trigger:** TASK-005: freeze with a `state == playing ? 1 : 0` style gate (never a deny-list that omits victory); related to OBS-048.
