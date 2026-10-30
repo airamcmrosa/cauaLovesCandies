@@ -94,7 +94,7 @@ SHA as append-only history.
 
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
-| T1 | PhaseConfig targets and banner text | in_progress | - |
+| T1 | PhaseConfig targets and banner text | committed | 8ea74e9 |
 | T2 | GameManager phase notifier and advance | todo | - |
 | T3 | Speed multiplier consumed by belt and items | todo | - |
 | T4 | Victory state at phase 3 target | todo | - |
