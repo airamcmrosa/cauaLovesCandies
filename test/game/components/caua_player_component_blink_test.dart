@@ -408,11 +408,14 @@ void main() {
         g.images.fromCache(nameOf(pose, eye));
 
     testWithGame<CauaCandiesGame>(
-      'blinkEnabled follows GameState.playing',
+      'blinkEnabled stays on in the tutorial and while playing',
       makeGame,
       (game) async {
         await game.ready();
-        expect(game.gameManager.state, GameState.playing);
+        expect(game.gameManager.state, GameState.tutorial);
+        game.update(0.001);
+        expect(playerOf(game).blinkEnabled, isTrue);
+        game.gameManager.dismissTutorial();
         game.update(0.001);
         expect(playerOf(game).blinkEnabled, isTrue);
         // Eyes open before the first gap elapses, half once it does.

@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'item_type.dart';
 import 'phase_config.dart';
 
-/// High-level game state.
-enum GameState { playing, victory }
+/// High-level game state. A new session starts in `tutorial` until dismissed.
+enum GameState { tutorial, playing, victory }
 
 class GameManager {
   GameManager({List<PhaseConfig> phases = kPhases}) : _phases = phases;
@@ -43,7 +43,16 @@ class GameManager {
   /// Compatibility setter (sets the phase without firing [phaseChanged]).
   set level(int value) => currentPhase.value = value;
 
-  GameState state = GameState.playing;
+  GameState state = GameState.tutorial;
+
+  /// Time scale for belt, spawner and items: [kTutorialTimeScale] during the
+  /// tutorial, 1.0 while playing, and 0 in every other state (victory
+  /// freezes the belt and in-flight items).
+  double get timeScale => switch (state) {
+    GameState.tutorial => kTutorialTimeScale,
+    GameState.playing => 1.0,
+    GameState.victory => 0.0,
+  };
 
   /// Config of the current phase.
   PhaseConfig get phase => _phases[currentPhase.value - 1];
@@ -84,6 +93,13 @@ class GameManager {
   void onIngested(ItemType item) {
     addScore(item.points);
     if (item.hpDelta < 0) loseHp();
+  }
+
+  /// Leaves the tutorial and starts playing. Idempotent: no-op unless in
+  /// `tutorial`.
+  void dismissTutorial() {
+    if (state != GameState.tutorial) return;
+    state = GameState.playing;
   }
 
   /// Restores the initial session state.

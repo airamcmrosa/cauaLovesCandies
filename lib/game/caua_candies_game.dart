@@ -43,6 +43,11 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
          camera: CameraComponent.withFixedResolution(width: 720, height: 1280),
        );
 
+  /// Overlay keys registered by the host screen.
+  static const String hudOverlayKey = 'hud';
+  static const String phaseBannerOverlayKey = 'phaseBanner';
+  static const String tutorialOverlayKey = 'tutorial';
+
   static const double virtualWidth = 720;
   static const double virtualHeight = 1280;
 
@@ -163,6 +168,8 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   /// Resets the session: clears items, resets the manager and recreates the
   /// spawner (fresh spawn timer).
   Future<void> restart() async {
+    // Reset returns to playing: never leave a stale tutorial overlay behind.
+    overlays.remove(tutorialOverlayKey);
     _blinkController.reset();
     // Safe before onLoad: nothing to clear, onLoad builds the initial state.
     if (_shake == null) {
@@ -183,7 +190,10 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     // Blink only while playing (no allocation: plain field comparison).
-    _player?.blinkEnabled = _gameManager.state == GameState.playing;
+    // Caua is visible, and blinks, in every state that exists today (the
+    // tutorial overlay and the victory screen both show him). A future
+    // game-over state must switch blinking off here.
+    _player?.blinkEnabled = true;
     super.update(dt);
   }
 

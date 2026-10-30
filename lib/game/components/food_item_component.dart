@@ -96,7 +96,7 @@ class FoodItemComponent extends SpriteComponent {
         ConveyorBeltComponent.baseSpeed * _gameManager.currentSpeedMultiplier;
     // Freeze depth once deflected so the item slides the full distance.
     if (_outcome != ItemOutcome.deflect) {
-      _z += speed * dt;
+      _z += speed * dt * _gameManager.timeScale;
     }
 
     if (_outcome == ItemOutcome.undecided) {

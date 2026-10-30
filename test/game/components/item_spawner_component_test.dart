@@ -29,7 +29,7 @@ void main() {
   });
 
   setUp(() {
-    gm = GameManager();
+    gm = GameManager()..dismissTutorial();
     mouth = MouthController();
     game = FlameGame();
   });
@@ -193,6 +193,62 @@ void main() {
       item.update(10);
       expect(deflected, [item.type]);
       expect(ingested, isEmpty);
+    });
+  });
+
+  group('tutorial gating', () {
+    List<FoodItemComponent> items() =>
+        game.children.whereType<FoodItemComponent>().toList();
+
+    ItemSpawnerComponent make() => ItemSpawnerComponent(
+      gameManager: gm,
+      mouthController: mouth,
+      random: Random(42),
+      spriteFor: (_) => sprite,
+    );
+
+    setUp(() => gm = GameManager());
+
+    test('spawns nothing over many updates during the tutorial', () async {
+      final spawner = make();
+      await game.ensureAdd(spawner);
+      for (var i = 0; i < 200; i++) {
+        spawner.update(0.5);
+        game.update(0);
+      }
+      expect(items(), isEmpty);
+    });
+
+    test('existing items stay put and score/HP are unchanged', () async {
+      final spawner = make();
+      await game.ensureAdd(spawner);
+      final item = FoodItemComponent(
+        type: ItemType.donut,
+        gameManager: gm,
+        mouthController: mouth,
+        sprite: sprite,
+        deflectRight: true,
+      );
+      await game.ensureAdd(item);
+      for (var i = 0; i < 20; i++) {
+        game.update(0.5);
+      }
+      expect(item.z, 0.0);
+      expect(items(), [item]);
+      expect(gm.score.value, 0);
+      expect(gm.hp.value, GameManager.maxHp);
+    });
+
+    test('spawns again after dismissTutorial', () async {
+      final spawner = make();
+      await game.ensureAdd(spawner);
+      spawner.update(100);
+      game.update(0);
+      expect(items(), isEmpty);
+      gm.dismissTutorial();
+      spawner.update(ItemSpawnerComponent.spawnIntervalSeconds);
+      game.update(0);
+      expect(items(), hasLength(1));
     });
   });
 }

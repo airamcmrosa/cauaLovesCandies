@@ -53,15 +53,18 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-046` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart`, `reset()` | Open | `reset()` sets `phaseChanged` to null, notifying listeners; the banner listener must ignore null and restart must clear a visible banner |
 | `OBS-049` | INFO | ERROR_HANDLING | `lib/game/components/caua_player_component.dart` | Open | `_tryLoad` silently swallows a missing eye-state sprite; log it via `package:logging` |
 | `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
-| `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Open | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce |
 | `OBS-054` | INFO | LIFECYCLE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` resets the `BlinkController` unconditionally; calling it after the game is removed would throw (`reset` after `dispose`) |
-| `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
 | `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
 | `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
+| `OBS-058` | INFO | ERROR_HANDLING | `lib/ui/tutorial_overlay.dart` | Open | Empty `precacheImage` onError swallows load failures and the mouth images have no `errorBuilder` |
+| `OBS-059` | INFO | LIFECYCLE | `lib/ui/tutorial_overlay.dart` | Open | If the widget is disposed mid-fade `onRemoved` never fires; the T6 wiring must not rely on it alone for cleanup |
 | `OBS-060` | WARNING | OPERABILITY_NFR | `.kiro/skills/orchestrate-phase/scripts/check-green.sh` | Open | The green check parses only the `flutter test` log, so a `flutter analyze` failure still yields GREEN |
 | `OBS-061` | INFO | TEST_COVERAGE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` has no caller until TASK-005, so the reset-clears-banner path is covered only by `GameManager.reset()` tests and code reading |
+| `OBS-062` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | The tutorial overlay builder runs only on rebuilds, so a resize or rotation during the 250 ms fade cuts the fade short via `SizedBox.shrink` |
+| `OBS-063` | INFO | LIFECYCLE | `lib/game/caua_game_screen.dart` | Open | The screen State has no `dispose` for the lazily created game (predates TASK-006 T6) |
 | `OBS-064` | INFO | TEST_COVERAGE | `lib/game/managers/game_manager.dart`, `lib/ui/phase_banner_overlay.dart` | Open | A multi-threshold score jump fires `phaseChanged` once per step in one frame so the banner shows only the last text; no banner test covers a 2-then-3 jump |
 | `OBS-065` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | Comment says "Phase 1 (1.0x)" but phase 1 is now 1.2x; fix with OBS-052 |
+| `OBS-066` | INFO | TEST_COVERAGE | `test/game/caua_game_screen_tutorial_tap_test.dart` | Open | "Tap handler runs once" is inferred from one mouth notification, not from a direct hook on the handler |
 | `OBS-067` | INFO | TEST_COVERAGE | `test/audio/audio_controller_test.dart` | Open | Test "lifecycle AppLifecycleState.paused pauses music" failed once under a full-suite run and passed in isolation; timing-dependent flake (also a 30 s `setUpAll` timeout seen in caua_frames_invariants_test under load) |
 
 ---
@@ -425,6 +428,56 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
 
+### `OBS-058`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/tutorial_overlay.dart` (`didChangeDependencies`, line 118)
+* **Source:** `audit / TASK-006 T5`
+* **Status:** Open
+* **Finding:** The empty `precacheImage` onError swallows load failures, and the mouth images have no `errorBuilder`.
+* **Risk/Impact:** A missing sprite shows nothing with no signal.
+* **Resolution Trigger:** TASK-006 T8 self-audit: log via `package:logging` or add an `errorBuilder`.
+
+### `OBS-059`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/ui/tutorial_overlay.dart`
+* **Source:** `audit / TASK-006 T5`
+* **Status:** Open
+* **Finding:** `onRemoved` fires only when the fade completes; disposal mid-fade skips it.
+* **Risk/Impact:** Cleanup tied only to `onRemoved` could leak the overlay entry.
+* **Resolution Trigger:** TASK-006 T6: tie cleanup to `onDismiss` and the overlay stack, not to `onRemoved` alone.
+
+### `OBS-062`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart` (tutorial overlay builder)
+* **Source:** `audit / TASK-006 T6`
+* **Status:** Open
+* **Finding:** The builder checks the manager state only on overlay or widget rebuilds; a resize or rotation during the 250 ms fade makes it return `SizedBox.shrink` and cuts the fade short. Nothing throws or loops.
+* **Risk/Impact:** Cosmetic: a missing fade on rotation.
+* **Resolution Trigger:** TASK-006 T8 self-audit, or never if the game is locked to portrait.
+
+### `OBS-063`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-006 T6`
+* **Status:** Open
+* **Finding:** The screen State has no `dispose` for the lazily created game. This predates T6; T6 adds no new listeners.
+* **Risk/Impact:** Low: the game is removed with the widget tree and the manager disposes its notifiers in `onRemove`.
+* **Resolution Trigger:** Next touch of the screen State.
+
+### `OBS-066`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_game_screen_tutorial_tap_test.dart`
+* **Source:** `audit / TASK-006 T7`
+* **Status:** Open
+* **Finding:** The test infers that the game tap handler runs once from a single mouth notification rather than a direct hook on the handler.
+* **Risk/Impact:** Weaker evidence; sufficient for the current behavior.
+* **Resolution Trigger:** Next touch of the tap path: add a counting hook if needed.
+
 ### `OBS-046`
 * **Severity:** INFO
 * **Category:** LIFECYCLE
@@ -444,16 +497,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** After the product owner set speeds to 1.2 / 1.44 / 1.728, phase 1 is 20% faster in absolute terms and the spawn interval comment "Seconds between spawns at Phase 1 speed" is stale (effective gap about 1.17 s).
 * **Risk/Impact:** Shorter reaction and ingest window may be too hard for 6-year-olds in phase 1.
 * **Resolution Trigger:** Phone playtest before the TASK-004 wrap-up; fix the comment or retune `baseSpeed` or the spawn interval (product decision).
-
-### `OBS-055`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/game/components/` (belt, items), ingestion path
-* **Source:** `audit / TASK-004 T4`
-* **Status:** Open
-* **Finding:** Only `item_spawner_component.dart` checks the state. During `GameState.victory` the belt and in-flight items keep moving and ingestion can still change score and HP.
-* **Risk/Impact:** Visible motion and score changes behind the victory screen once TASK-005 shows it.
-* **Resolution Trigger:** TASK-005: freeze with a `state == playing ? 1 : 0` style gate (never a deny-list that omits victory); related to OBS-048.
 
 ### `OBS-056`
 * **Severity:** INFO
@@ -535,16 +578,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** A missing or misnamed frame goes unnoticed in development.
 * **Resolution Trigger:** Next touch of the component: log the miss via `package:logging`.
 
-### `OBS-053`
-* **Severity:** WARNING
-* **Category:** LIFECYCLE
-* **Target:** `lib/game/caua_candies_game.dart` (`update`)
-* **Source:** `audit / TASK-009 T4`
-* **Status:** Open
-* **Finding:** `blinkEnabled = (state == GameState.playing)`. TASK-009 T4 says blinking stays on in `tutorial` and `victory`. With only `playing` in `main` this is correct, but once TASK-006 (tutorial, default state) and TASK-004 T4 (victory) merge, Caua would stop blinking in those states.
-* **Risk/Impact:** Caua frozen with open eyes during the tutorial and victory screen.
-* **Resolution Trigger:** First merge of TASK-006 or TASK-004 with TASK-009: widen the predicate to exclude only non-visible states (for example game over).
-
 ### `OBS-054`
 * **Severity:** INFO
 * **Category:** LIFECYCLE
@@ -561,6 +594,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** `test/audio/audio_controller_test.dart`
 * **Source:** `merge verification / TASK-004 branch`
 * **Status:** Open
-* **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
+* **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. A second test in the same file, "start during in-flight start (OBS-033) blocked play does not loop forever", failed once in a full run of the merged TASK-006 branch and also passed on rerun (3 isolated, then full). No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
 * **Risk/Impact:** Occasional red full-suite run without a code defect.
 * **Resolution Trigger:** If it recurs: make the test await the lifecycle callback deterministically; consider a longer `setUpAll` timeout for the frames test.

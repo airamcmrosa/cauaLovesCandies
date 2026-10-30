@@ -14,7 +14,7 @@ void main() {
   }
 
   setUp(() {
-    gm = GameManager();
+    gm = GameManager()..dismissTutorial();
     attach();
   });
 
@@ -100,7 +100,7 @@ void main() {
             weights: kPhases.first.weights,
           ),
       ],
-    );
+    )..dismissTutorial();
     attach();
     gm.addScore(6);
     expect(gm.state, GameState.playing);

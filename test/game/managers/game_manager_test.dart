@@ -17,12 +17,34 @@ void main() {
   });
 
   group('initial state', () {
-    test('score 0, hp maxHp (3), level 1, playing', () {
+    test('score 0, hp maxHp (3), level 1, tutorial', () {
       expect(gm.score.value, 0);
       expect(gm.hp.value, GameManager.maxHp);
       expect(GameManager.maxHp, 3);
       expect(gm.level, 1);
+      expect(gm.state, GameState.tutorial);
+    });
+  });
+
+  group('dismissTutorial', () {
+    test('moves tutorial to playing', () {
+      gm.dismissTutorial();
       expect(gm.state, GameState.playing);
+    });
+
+    test('second call is a no-op', () {
+      gm.dismissTutorial();
+      gm.dismissTutorial();
+      expect(gm.state, GameState.playing);
+    });
+
+    test('does not touch score, hp or level', () {
+      gm.dismissTutorial();
+      expect(gm.score.value, 0);
+      expect(gm.hp.value, GameManager.maxHp);
+      expect(gm.level, 1);
+      expect(scoreNotes, 0);
+      expect(hpNotes, 0);
     });
   });
 
@@ -106,6 +128,14 @@ void main() {
       expect(hpNotes, 1);
     });
 
+    test('returns to playing from tutorial and after dismiss', () {
+      gm.reset();
+      expect(gm.state, GameState.playing);
+      gm.dismissTutorial();
+      gm.reset();
+      expect(gm.state, GameState.playing);
+    });
+
     test('does not notify unchanged notifiers', () {
       gm.addScore(4);
       scoreNotes = 0;
@@ -131,6 +161,36 @@ void main() {
       expect(other.dispose, returnsNormally);
       expect(() => other.score.addListener(() {}), throwsFlutterError);
       expect(() => other.hp.addListener(() {}), throwsFlutterError);
+    });
+  });
+
+  group('timeScale', () {
+    test('equals kTutorialTimeScale during the tutorial', () {
+      final m = GameManager();
+      addTearDown(m.dispose);
+      expect(m.state, GameState.tutorial);
+      expect(m.timeScale, kTutorialTimeScale);
+      expect(m.timeScale, 0.0);
+    });
+
+    test('is 1.0 once playing', () {
+      final m = GameManager()..dismissTutorial();
+      addTearDown(m.dispose);
+      expect(m.timeScale, 1.0);
+    });
+
+    test('is 1.0 after reset', () {
+      final m = GameManager()..reset();
+      addTearDown(m.dispose);
+      expect(m.timeScale, 1.0);
+    });
+
+    test('is 0 in victory so the belt and items freeze', () {
+      final m = GameManager()..dismissTutorial();
+      addTearDown(m.dispose);
+      m.addScore(kPhases.last.targetScore);
+      expect(m.state, GameState.victory);
+      expect(m.timeScale, 0.0);
     });
   });
 }

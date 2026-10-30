@@ -23,7 +23,7 @@ void main() {
   });
 
   test('item on the belt takes the new multiplier with no z jump', () async {
-    final gm = GameManager();
+    final gm = GameManager()..dismissTutorial();
     final mouth = MouthController();
     final game = FlameGame();
     addTearDown(() {

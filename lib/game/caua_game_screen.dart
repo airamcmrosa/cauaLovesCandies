@@ -7,8 +7,10 @@ import '../audio/audio_controller.dart';
 import '../style/palette.dart';
 import '../ui/game_hud.dart';
 import '../ui/phase_banner_overlay.dart';
+import '../ui/tutorial_overlay.dart';
 
 import 'caua_candies_game.dart';
+import 'managers/game_manager.dart';
 
 /// Minimal host screen for [CauaCandiesGame] (manual verification path).
 ///
@@ -56,6 +58,19 @@ class _CauaGameScreenState extends State<CauaGameScreen> {
     audio: Provider.of<AudioController?>(context, listen: false),
   );
 
+  Widget _buildTutorial(BuildContext context, CauaCandiesGame game) {
+    void remove() => game.overlays.remove(CauaCandiesGame.tutorialOverlayKey);
+    if (game.gameManager.state != GameState.tutorial) {
+      // Stale overlay (e.g. disposed mid-fade, OBS-059): drop it after build.
+      WidgetsBinding.instance.addPostFrameCallback((_) => remove());
+      return const SizedBox.shrink();
+    }
+    return TutorialOverlay(
+      onDismiss: game.gameManager.dismissTutorial,
+      onRemoved: remove,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.read<Palette?>();
@@ -95,17 +110,22 @@ class _CauaGameScreenState extends State<CauaGameScreen> {
                                 child: GameWidget<CauaCandiesGame>(
                                   game: _game,
                                   overlayBuilderMap: {
-                                    'hud': (context, game) =>
-                                        GameHud(gameManager: game.gameManager),
-                                    'phaseBanner': (context, game) =>
-                                        PhaseBannerOverlay(
+                                    CauaCandiesGame.hudOverlayKey:
+                                        (context, game) => GameHud(
+                                          gameManager: game.gameManager,
+                                        ),
+                                    CauaCandiesGame.phaseBannerOverlayKey:
+                                        (context, game) => PhaseBannerOverlay(
                                           phaseChanged:
                                               game.gameManager.phaseChanged,
                                         ),
+                                    CauaCandiesGame.tutorialOverlayKey:
+                                        _buildTutorial,
                                   },
                                   initialActiveOverlays: const [
-                                    'hud',
-                                    'phaseBanner',
+                                    CauaCandiesGame.hudOverlayKey,
+                                    CauaCandiesGame.phaseBannerOverlayKey,
+                                    CauaCandiesGame.tutorialOverlayKey,
                                   ],
                                 ),
                               ),

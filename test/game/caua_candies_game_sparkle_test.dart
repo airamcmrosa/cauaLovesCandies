@@ -85,6 +85,7 @@ void main() {
       var hazards = 0;
       var good = 0;
       final gm = game.gameManager;
+      gm.dismissTutorial();
       var lastHp = gm.hp.value;
       var lastScore = gm.score.value;
       for (var i = 0; i < 600 && gm.state == GameState.playing; i++) {

@@ -32,7 +32,7 @@ void main() {
   });
 
   setUp(() {
-    gm = GameManager();
+    gm = GameManager()..dismissTutorial();
     mouth = MouthController();
     game = FlameGame();
   });
@@ -375,6 +375,36 @@ void main() {
       expect(item.z, Projection.decisionZ);
       game.update(0);
       expect(game.children.contains(item), isFalse);
+    });
+  });
+
+  group('tutorial gating', () {
+    setUp(() => gm.state = GameState.tutorial);
+
+    test('item present during the tutorial does not advance z', () async {
+      final item = await spawn(ItemType.donut);
+      expect(gm.state, GameState.tutorial);
+      for (var i = 0; i < 50; i++) {
+        item.update(0.5);
+      }
+      expect(item.z, 0.0);
+      expect(gm.score.value, 0);
+      expect(gm.hp.value, GameManager.maxHp);
+    });
+
+    test('advances at full phase 1 speed after dismissTutorial', () async {
+      final item = await spawn(ItemType.donut);
+      item.update(1.0);
+      expect(item.z, 0.0);
+      gm.dismissTutorial();
+      item.update(0.5);
+      expect(
+        item.z,
+        closeTo(
+          ConveyorBeltComponent.baseSpeed * gm.currentSpeedMultiplier * 0.5,
+          1e-9,
+        ),
+      );
     });
   });
 }
