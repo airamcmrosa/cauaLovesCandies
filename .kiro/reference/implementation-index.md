@@ -99,5 +99,5 @@ SHA as append-only history.
 | T3 | Speed multiplier consumed by belt and items | committed | eae18be |
 | T4 | Victory state at phase 3 target | committed | e4d9be1 |
 | T5 | PhaseBannerOverlay | committed | e1160d9 |
-| T6 | Overlay registration and restart reset | todo | - |
+| T6 | Overlay registration and restart reset | in_progress | - |
 | T7 | Self-audit pass | todo | - |

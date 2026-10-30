@@ -54,6 +54,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
 | `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
 | `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
+| `OBS-060` | WARNING | OPERABILITY_NFR | `.kiro/skills/orchestrate-phase/scripts/check-green.sh` | Open | The green check parses only the `flutter test` log, so a `flutter analyze` failure still yields GREEN |
+| `OBS-061` | INFO | TEST_COVERAGE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` has no caller until TASK-005, so the reset-clears-banner path is covered only by `GameManager.reset()` tests and code reading |
 
 ---
 
@@ -470,3 +472,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The banner uses the default theme font; the accent in "Rápido" may fall back to a CDN-fetched font on web.
 * **Risk/Impact:** Missing glyph or late font load on the party phone with a weak connection.
 * **Resolution Trigger:** TASK-004 T6 HIL on the release web build; bundle a font if it fails.
+
+### `OBS-060`
+* **Severity:** WARNING
+* **Category:** OPERABILITY_NFR
+* **Target:** `.kiro/skills/orchestrate-phase/scripts/check-green.sh`
+* **Source:** `audit / TASK-004 T6`
+* **Status:** Open
+* **Finding:** The script greps the `flutter test` log for pass counts and `All tests passed!`; it does not look at the `flutter analyze` exit code, so a log with an analyze warning was reported GREEN (TASK-004 T6, caught by the runner's reported exit code).
+* **Risk/Impact:** A lint or analyzer failure can pass the deterministic gate.
+* **Resolution Trigger:** Extend the script to read the analyze section or accept the analyze exit code, in a dedicated tooling task.
+
+### `OBS-061`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/game/caua_candies_game.dart` (`restart`)
+* **Source:** `audit / TASK-004 T6`
+* **Status:** Open
+* **Finding:** `restart()` has no caller yet; the banner-hide test calls `GameManager.reset()`, which `restart()` invokes, instead of `game.restart()`.
+* **Risk/Impact:** Low until TASK-005 wires restart.
+* **Resolution Trigger:** TASK-005 wires restart: add a `game.restart()` banner test.
