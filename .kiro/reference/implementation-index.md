@@ -97,5 +97,5 @@ SHA as append-only history.
 | T1 | EyeState and BlinkController | committed | ea0793f |
 | T2 | Eye-state sprites | committed | 73aaf6a |
 | T3 | CauaPlayerComponent blink table | committed | ca97f7e |
-| T4 | blinkEnabled wiring and reset | todo | - |
+| T4 | blinkEnabled wiring and reset | in_progress | - |
 | T5 | Self-audit pass | todo | - |

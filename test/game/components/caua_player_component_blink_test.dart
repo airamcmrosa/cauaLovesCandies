@@ -6,6 +6,7 @@ import 'package:caua_loves_candies/game/components/caua_player_component.dart';
 import 'package:caua_loves_candies/game/components/caua_pose.dart';
 import 'package:caua_loves_candies/game/item_sprites.dart';
 import 'package:caua_loves_candies/game/managers/blink_controller.dart';
+import 'package:caua_loves_candies/game/managers/game_manager.dart';
 import 'package:caua_loves_candies/game/managers/mouth_controller.dart';
 import 'package:flame/game.dart';
 import 'package:flame_test/flame_test.dart';
@@ -306,6 +307,67 @@ void main() {
     });
   });
 
+  group('blinkEnabled reset (T4)', () {
+    testWithFlameGame('disabling mid-blink forces open eyes', (game) async {
+      preload(game);
+      final p = CauaPlayerComponent(
+        mouthController: mouth,
+        blinkController: blink,
+      );
+      await game.ensureAdd(p);
+      toHalf1(p);
+      toShut(p);
+      expect(
+        p.sprite!.image,
+        same(imageOf(CauaPose.mouthClosed, EyeState.shut)),
+      );
+
+      p.blinkEnabled = false;
+      expect(blink.state.value, EyeState.open);
+      expect(
+        p.sprite!.image,
+        same(imageOf(CauaPose.mouthClosed, EyeState.open)),
+      );
+    });
+
+    testWithFlameGame('no blink while disabled, even after a long time', (
+      game,
+    ) async {
+      preload(game);
+      final p = CauaPlayerComponent(
+        mouthController: mouth,
+        blinkController: blink,
+      );
+      await game.ensureAdd(p);
+      toHalf1(p);
+      p.blinkEnabled = false;
+      for (var i = 0; i < 20; i++) {
+        p.update(_gap);
+        expect(blink.state.value, EyeState.open);
+      }
+    });
+
+    testWithFlameGame('after re-enable first blink is at least 2.5 s away', (
+      game,
+    ) async {
+      preload(game);
+      final p = CauaPlayerComponent(
+        mouthController: mouth,
+        blinkController: blink,
+      );
+      await game.ensureAdd(p);
+      toHalf1(p);
+      p.blinkEnabled = false;
+      p.update(_gap * 4);
+      p.blinkEnabled = true;
+
+      p.update(_gap - 0.01);
+      expect(blink.state.value, EyeState.open);
+      p.update(0.01);
+      expect(blink.state.value, EyeState.half);
+    });
+  });
+
   group('CauaCandiesGame ownership', () {
     testWithGame<CauaCandiesGame>(
       'disposes its blink controller after removing the player',
@@ -325,5 +387,74 @@ void main() {
         expect(game.isMounted, isTrue);
       },
     );
+  });
+
+  group('CauaCandiesGame blink wiring (T4)', () {
+    CauaCandiesGame makeGame() {
+      final game = CauaCandiesGame(random: _ZeroRandom());
+      for (final name in [
+        ...CauaPlayerComponent.allSpriteNames,
+        ...itemSpriteAssetList,
+      ]) {
+        game.images.add(name, base.clone());
+      }
+      return game;
+    }
+
+    CauaPlayerComponent playerOf(CauaCandiesGame g) =>
+        g.world.children.whereType<CauaPlayerComponent>().single;
+
+    ui.Image frame(CauaCandiesGame g, CauaPose pose, EyeState eye) =>
+        g.images.fromCache(nameOf(pose, eye));
+
+    testWithGame<CauaCandiesGame>(
+      'blinkEnabled follows GameState.playing',
+      makeGame,
+      (game) async {
+        await game.ready();
+        expect(game.gameManager.state, GameState.playing);
+        game.update(0.001);
+        expect(playerOf(game).blinkEnabled, isTrue);
+        // Eyes open before the first gap elapses, half once it does.
+        expect(
+          playerOf(game).sprite!.image,
+          same(frame(game, CauaPose.mouthClosed, EyeState.open)),
+        );
+        game.update(_gap);
+        expect(
+          playerOf(game).sprite!.image,
+          same(frame(game, CauaPose.mouthClosed, EyeState.half)),
+        );
+      },
+    );
+
+    testWithGame<CauaCandiesGame>('restart resets the blink', makeGame, (
+      game,
+    ) async {
+      await game.ready();
+      game.update(_gap);
+      game.update(_step);
+      expect(
+        playerOf(game).sprite!.image,
+        same(frame(game, CauaPose.mouthClosed, EyeState.shut)),
+      );
+
+      await game.restart();
+      game.update(0);
+      expect(
+        playerOf(game).sprite!.image,
+        same(frame(game, CauaPose.mouthClosed, EyeState.open)),
+      );
+      game.update(_gap - 0.2);
+      expect(
+        playerOf(game).sprite!.image,
+        same(frame(game, CauaPose.mouthClosed, EyeState.open)),
+      );
+      game.update(0.21);
+      expect(
+        playerOf(game).sprite!.image,
+        same(frame(game, CauaPose.mouthClosed, EyeState.half)),
+      );
+    });
   });
 }

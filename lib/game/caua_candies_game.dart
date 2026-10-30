@@ -76,6 +76,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   final BlinkController _blinkController;
   final AudioController? _audio;
   final Random _random;
+  CauaPlayerComponent? _player;
   ScreenShake? _shake;
   ItemSpawnerComponent? _spawner;
 
@@ -100,16 +101,16 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
       ...itemSpriteAssetList,
     ]);
     await world.add(ConveyorBeltComponent(gameManager: _gameManager));
-    await world.add(
-      CauaPlayerComponent(
-        mouthController: _mouthController,
-        blinkController: _blinkController,
-        position: Vector2(virtualWidth / 2, playerCenterY),
-        size: Vector2.all(playerSize),
-        anchor: Anchor.center,
-        priority: playerPriority,
-      ),
+    final player = CauaPlayerComponent(
+      mouthController: _mouthController,
+      blinkController: _blinkController,
+      position: Vector2(virtualWidth / 2, playerCenterY),
+      size: Vector2.all(playerSize),
+      anchor: Anchor.center,
+      priority: playerPriority,
     );
+    _player = player;
+    await world.add(player);
     final shake = ScreenShake(camera: camera);
     _shake = shake;
     await world.add(shake);
@@ -140,6 +141,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   /// Resets the session: clears items, resets the manager and recreates the
   /// spawner (fresh spawn timer).
   Future<void> restart() async {
+    _blinkController.reset();
     // Safe before onLoad: nothing to clear, onLoad builds the initial state.
     if (_shake == null) {
       _gameManager.reset();
@@ -151,6 +153,13 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     );
     _gameManager.reset();
     await _addSpawner();
+  }
+
+  @override
+  void update(double dt) {
+    // Blink only while playing (no allocation: plain field comparison).
+    _player?.blinkEnabled = _gameManager.state == GameState.playing;
+    super.update(dt);
   }
 
   @override

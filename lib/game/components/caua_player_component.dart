@@ -44,8 +44,16 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   final MouthController _mouthController;
   final BlinkController? _blinkController;
 
-  /// Whether the blink controller is ticked. T4 wires this to the game state.
-  bool blinkEnabled = true;
+  bool _blinkEnabled = true;
+
+  /// Whether the blink controller is ticked. Disabling forces open eyes and
+  /// re-arms the gap, so re-enabling never blinks within 2.5 s.
+  bool get blinkEnabled => _blinkEnabled;
+  set blinkEnabled(bool value) {
+    if (_blinkEnabled == value) return;
+    _blinkEnabled = value;
+    if (!value && _listening) _blinkController?.reset();
+  }
 
   // Sprite table indexed by `pose.index * 3 + eye.index`, built once.
   late final List<Sprite> _table;
@@ -116,7 +124,7 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   @override
   void update(double dt) {
     super.update(dt);
-    if (_listening && blinkEnabled) _blinkController?.tick(dt);
+    if (_listening && _blinkEnabled) _blinkController?.tick(dt);
   }
 
   void _refresh() {
