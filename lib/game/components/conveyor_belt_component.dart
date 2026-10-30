@@ -73,7 +73,7 @@ class ConveyorBeltComponent extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     // Linear, frame-rate independent scroll toward the horizon.
-    _phase = (_phase + speed * dt * stripeCount) % 1.0;
+    _phase = (_phase + speed * dt * _gameManager.timeScale * stripeCount) % 1.0;
   }
 
   @override

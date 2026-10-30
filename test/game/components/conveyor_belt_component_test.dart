@@ -8,7 +8,7 @@ void main() {
   late ConveyorBeltComponent belt;
 
   setUp(() {
-    gm = GameManager();
+    gm = GameManager()..dismissTutorial();
     belt = ConveyorBeltComponent(gameManager: gm);
   });
 
@@ -103,5 +103,32 @@ void main() {
         expect(b.phase, closeTo(a.phase, 1e-9));
       });
     }
+  });
+
+  group('tutorial gating', () {
+    setUp(() => gm.state = GameState.tutorial);
+
+    test('stripe phase does not scroll while in the tutorial', () {
+      expect(gm.state, GameState.tutorial);
+      for (var i = 0; i < 100; i++) {
+        belt.update(0.1);
+      }
+      expect(belt.phase, 0.0);
+    });
+
+    test('scrolls at full phase 1 speed right after dismissTutorial', () {
+      gm.dismissTutorial();
+      belt.update(0.01);
+      expect(
+        belt.phase,
+        closeTo(
+          ConveyorBeltComponent.baseSpeed *
+              kPhases[0].speedMultiplier *
+              0.01 *
+              ConveyorBeltComponent.stripeCount,
+          1e-9,
+        ),
+      );
+    });
   });
 }

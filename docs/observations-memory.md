@@ -49,6 +49,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
+| `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
 
 ---
 
@@ -415,3 +416,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
+
+### `OBS-048`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/managers/game_manager.dart` (`timeScale`)
+* **Source:** `audit / TASK-006 T2`
+* **Status:** Open
+* **Finding:** `timeScale` checks only `state == tutorial`; the spawner's old `state != playing` early return is gone. Safe while `GameState` has only `tutorial` and `playing`.
+* **Risk/Impact:** A future victory or game-over state would keep spawning and moving the belt.
+* **Resolution Trigger:** TASK-005 (or TASK-004 T4, whichever adds a state first): make `timeScale` return 0 for every non-playing state.

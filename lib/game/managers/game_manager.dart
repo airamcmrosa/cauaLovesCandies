@@ -29,6 +29,10 @@ class GameManager {
 
   GameState state = GameState.tutorial;
 
+  /// Time scale for belt, spawner and items (paused during the tutorial).
+  double get timeScale =>
+      state == GameState.tutorial ? kTutorialTimeScale : 1.0;
+
   /// Config of the current level.
   PhaseConfig get phase => kPhases[level - 1];
 

@@ -5,6 +5,10 @@ library;
 
 import 'item_type.dart';
 
+/// Time scale applied to belt, spawner and items while the tutorial shows.
+/// 0.0 means fully paused; play resumes at 1.0 on dismissal.
+const double kTutorialTimeScale = 0.0;
+
 /// Relative spawn weights per category (not required to sum to 100).
 class CategoryWeights {
   const CategoryWeights({

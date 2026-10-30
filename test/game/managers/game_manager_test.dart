@@ -163,4 +163,26 @@ void main() {
       expect(() => other.hp.addListener(() {}), throwsFlutterError);
     });
   });
+
+  group('timeScale', () {
+    test('equals kTutorialTimeScale during the tutorial', () {
+      final m = GameManager();
+      addTearDown(m.dispose);
+      expect(m.state, GameState.tutorial);
+      expect(m.timeScale, kTutorialTimeScale);
+      expect(m.timeScale, 0.0);
+    });
+
+    test('is 1.0 once playing', () {
+      final m = GameManager()..dismissTutorial();
+      addTearDown(m.dispose);
+      expect(m.timeScale, 1.0);
+    });
+
+    test('is 1.0 after reset', () {
+      final m = GameManager()..reset();
+      addTearDown(m.dispose);
+      expect(m.timeScale, 1.0);
+    });
+  });
 }
