@@ -16,6 +16,18 @@ relevant row in the same task-scoped commit that lands a task (ADR-023 Decisions
 SHA as append-only history.
 
 ---
+## TASK-001 - Animated title screen (US01)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | Product assets and single BGM track | committed | 60f7139 |
+| T2 | AssetPreloader | committed | 2f4ac89 |
+| T3 | AudioController unlock and manifests | committed | bf097de |
+| T4 | TitleScreen and sub-widgets | committed | 25c3ab0 |
+| T5 | Router wiring | committed | e94cfcc |
+| T6 | Self-audit pass | committed | 7400c93 |
+| T7 | Falling candies on the title edges | committed | 2a1a9c2 |
+
 ## TASK-002 - Single-tap mouth control (US02)
 
 | Task | Summary | State | Commit SHA |

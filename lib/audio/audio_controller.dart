@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
@@ -30,6 +29,21 @@ class AudioController {
 
   SettingsController? _settings;
 
+  /// True once the attached settings finished loading (or failed and fell back
+  /// to defaults). Music never starts before this, so a saved "off" is honored.
+  bool _settingsReady = false;
+
+  /// Guards against concurrent [_startOrResumeMusic] runs.
+  bool _startingMusic = false;
+
+  /// Set when a start is requested while one is in flight; the in-flight run
+  /// re-evaluates the desired state when it ends instead of dropping it.
+  bool _startPending = false;
+
+  bool _disposed = false;
+
+  StreamSubscription<void>? _completeSubscription;
+
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
   /// Creates an instance that plays music and sound.
@@ -49,7 +63,9 @@ class AudioController {
         (i) => AudioPlayer(playerId: 'sfxPlayer#$i'),
       ).toList(growable: false),
       _playlist = Queue.of(List<Song>.of(songs)..shuffle()) {
-    _musicPlayer.onPlayerComplete.listen(_handleSongFinished);
+    _completeSubscription = _musicPlayer.onPlayerComplete.listen(
+      _handleSongFinished,
+    );
     unawaited(_preloadSfx());
   }
 
@@ -65,7 +81,17 @@ class AudioController {
   }
 
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _settings?.audioOn.removeListener(_audioOnHandler);
+    _settings = null;
+    _settingsReady = false;
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
+    _lifecycleNotifier = null;
+    unawaited(_completeSubscription?.cancel());
+    _completeSubscription = null;
     _stopAllSound();
     _musicPlayer.dispose();
     for (final player in _sfxPlayers) {
@@ -73,34 +99,58 @@ class AudioController {
     }
   }
 
+  /// Idempotent retry hook for the first user tap.
+  ///
+  /// Music tries to start as soon as settings attach (on every platform), but
+  /// browsers may block that initial autoplay. Call this from a tap handler:
+  /// if settings allow music and it is not currently playing, it is started or
+  /// resumed. It never silences music and is safe to call repeatedly.
+  Future<void> unlockAndStartMusic() async {
+    final settings = _settings;
+    _log.info(
+      'unlockAndStartMusic: audioOn=${settings?.audioOn.value}, '
+      'playerState=${_musicPlayer.state}',
+    );
+    if (settings == null || !settings.audioOn.value) {
+      return;
+    }
+    if (_musicPlayer.state == PlayerState.playing) {
+      return;
+    }
+    await _startOrResumeMusic();
+  }
+
   /// Plays a single sound effect, defined by [type].
   ///
-  /// The controller will ignore this call when the attached settings'
-  /// [SettingsController.audioOn] is `true` or if its
-  /// [SettingsController.soundsOn] is `false`.
+  /// The controller ignores this call when the attached settings'
+  /// [SettingsController.audioOn] is `false` (single sound flag for music
+  /// and SFX).
   void playSfx(SfxType type) {
     final audioOn = _settings?.audioOn.value ?? false;
     if (!audioOn) {
       _log.fine(() => 'Ignoring playing sound ($type) because audio is muted.');
       return;
     }
-    final soundsOn = _settings?.soundsOn.value ?? false;
-    if (!soundsOn) {
-      _log.fine(
-        () => 'Ignoring playing sound ($type) because sounds are turned off.',
-      );
-      return;
-    }
-
     _log.fine(() => 'Playing sound: $type');
     final options = soundTypeToFilename(type);
     final filename = options[_random.nextInt(options.length)];
     _log.fine(() => '- Chosen filename: $filename');
 
     final currentPlayer = _sfxPlayers[_currentSfxPlayer];
-    currentPlayer.play(
-      AssetSource(sfxAssetPath(type, filename)),
-      volume: soundTypeToVolume(type),
+    unawaited(
+      currentPlayer
+          .play(
+            AssetSource(sfxAssetPath(type, filename)),
+            volume: soundTypeToVolume(type),
+          )
+          .then<void>(
+            (_) => _log.info('SFX started: ${sfxAssetPath(type, filename)}'),
+            onError: (Object e, StackTrace st) => _log.warning(
+              'Could not play SFX ${sfxAssetPath(type, filename)}',
+              e,
+              st,
+            ),
+          ),
     );
     _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
   }
@@ -116,9 +166,8 @@ class AudioController {
   }
 
   /// Enables the [AudioController] to track changes to settings.
-  /// Namely, when any of [SettingsController.audioOn],
-  /// [SettingsController.musicOn] or [SettingsController.soundsOn] changes,
-  /// the audio controller will act accordingly.
+  /// Namely, when [SettingsController.audioOn] (the single flag controlling
+  /// music and SFX) changes, the audio controller will act accordingly.
   void _attachSettings(SettingsController settingsController) {
     if (_settings == settingsController) {
       // Already attached to this instance. Nothing to do.
@@ -129,23 +178,31 @@ class AudioController {
     final oldSettings = _settings;
     if (oldSettings != null) {
       oldSettings.audioOn.removeListener(_audioOnHandler);
-      oldSettings.musicOn.removeListener(_musicOnHandler);
-      oldSettings.soundsOn.removeListener(_soundsOnHandler);
     }
 
     _settings = settingsController;
 
     // Add handlers to the new settings controller
     settingsController.audioOn.addListener(_audioOnHandler);
-    settingsController.musicOn.addListener(_musicOnHandler);
-    settingsController.soundsOn.addListener(_soundsOnHandler);
 
-    if (settingsController.audioOn.value && settingsController.musicOn.value) {
-      if (kIsWeb) {
-        _log.info('On the web, music can only start after user interaction.');
-      } else {
-        _playCurrentSongInPlaylist();
-      }
+    // Only decide after the persisted audioOn value has been loaded, so a
+    // saved "off" never produces sound.
+    _settingsReady = false;
+    unawaited(_awaitSettingsThenStart(settingsController));
+  }
+
+  Future<void> _awaitSettingsThenStart(SettingsController settings) async {
+    try {
+      await settings.loaded;
+    } catch (e, st) {
+      _log.warning('Settings failed to load; using current defaults', e, st);
+    }
+    if (_settings != settings) {
+      return;
+    }
+    _settingsReady = true;
+    if (settings.audioOn.value) {
+      await _startOrResumeMusic();
     }
   }
 
@@ -153,9 +210,7 @@ class AudioController {
     _log.fine('audioOn changed to ${_settings!.audioOn.value}');
     if (_settings!.audioOn.value) {
       // All sound just got un-muted. Audio is on.
-      if (_settings!.musicOn.value) {
-        _startOrResumeMusic();
-      }
+      _startOrResumeMusic();
     } else {
       // All sound just got muted. Audio is off.
       _stopAllSound();
@@ -169,7 +224,7 @@ class AudioController {
       case AppLifecycleState.hidden:
         _stopAllSound();
       case AppLifecycleState.resumed:
-        if (_settings!.audioOn.value && _settings!.musicOn.value) {
+        if (_settings!.audioOn.value) {
           _startOrResumeMusic();
         }
       case AppLifecycleState.inactive:
@@ -179,6 +234,10 @@ class AudioController {
   }
 
   void _handleSongFinished(void _) {
+    if (_disposed || !(_settings?.audioOn.value ?? false)) {
+      _log.info('Song finished while muted or disposed; not restarting.');
+      return;
+    }
     _log.info('Last song finished playing.');
     // Move the song that just finished playing to the end of the playlist.
     _playlist.addLast(_playlist.removeFirst());
@@ -186,24 +245,17 @@ class AudioController {
     _playCurrentSongInPlaylist();
   }
 
-  void _musicOnHandler() {
-    if (_settings!.musicOn.value) {
-      // Music got turned on.
-      if (_settings!.audioOn.value) {
-        _startOrResumeMusic();
-      }
-    } else {
-      // Music got turned off.
-      _musicPlayer.pause();
-    }
-  }
-
   Future<void> _playCurrentSongInPlaylist() async {
-    _log.info(() => 'Playing ${_playlist.first} now.');
+    final path = 'music/${_playlist.first.filename}';
+    _log.info(
+      'Playing $path now (cache prefix: ${AudioCache.instance.prefix})',
+    );
     try {
-      await _musicPlayer.play(AssetSource('music/${_playlist.first.filename}'));
-    } catch (e) {
-      _log.severe('Could not play song ${_playlist.first}', e);
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+      await _musicPlayer.play(AssetSource(path));
+      _log.info('Music started: $path, state=${_musicPlayer.state}');
+    } catch (e, st) {
+      _log.warning('Could not play song $path (autoplay blocked?)', e, st);
     }
   }
 
@@ -213,43 +265,66 @@ class AudioController {
     // This assumes there is only a limited number of sound effects in the game.
     // If there are hundreds of long sound effect files, it's better
     // to be more selective when preloading.
-    await AudioCache.instance.loadAll(
-      SfxType.values
-          .expand(
-            (type) => soundTypeToFilename(
-              type,
-            ).map((filename) => sfxAssetPath(type, filename)),
-          )
-          .toList(),
-    );
-  }
-
-  void _soundsOnHandler() {
-    for (final player in _sfxPlayers) {
-      if (player.state == PlayerState.playing) {
-        player.stop();
-      }
+    try {
+      await AudioCache.instance.loadAll(
+        SfxType.values
+            .expand(
+              (type) => soundTypeToFilename(
+                type,
+              ).map((filename) => sfxAssetPath(type, filename)),
+            )
+            .toList(),
+      );
+    } catch (e, st) {
+      _log.warning('Could not preload sound effects', e, st);
     }
   }
 
-  void _startOrResumeMusic() async {
-    if (_musicPlayer.source == null) {
-      _log.info(
-        'No music source set. '
-        'Start playing the current song in playlist.',
-      );
+  Future<void> _startOrResumeMusic() async {
+    if (_disposed || !_settingsReady) {
+      return;
+    }
+    if (_startingMusic) {
+      _startPending = true;
+      return;
+    }
+    _startingMusic = true;
+    try {
+      do {
+        _startPending = false;
+        await _doStartOrResumeMusic();
+        if (_disposed) {
+          return;
+        }
+        if (!(_settings?.audioOn.value ?? false)) {
+          // Muted while the start was in flight: never leave music playing.
+          await _musicPlayer.pause();
+          return;
+        }
+      } while (_startPending);
+    } finally {
+      _startingMusic = false;
+    }
+  }
+
+  Future<void> _doStartOrResumeMusic() async {
+    final state = _musicPlayer.state;
+    if (_musicPlayer.source == null ||
+        state == PlayerState.stopped ||
+        state == PlayerState.completed ||
+        state == PlayerState.disposed) {
+      _log.info('Starting the current song in playlist.');
       await _playCurrentSongInPlaylist();
       return;
     }
 
     _log.info('Resuming paused music.');
     try {
-      _musicPlayer.resume();
+      await _musicPlayer.resume();
     } catch (e) {
-      // Sometimes, resuming fails with an "Unexpected" error.
-      _log.severe('Error resuming music', e);
-      // Try starting the song from scratch.
-      _playCurrentSongInPlaylist();
+      // Resuming may fail (e.g. autoplay blocked); retry from scratch.
+      _log.warning('Error resuming music', e);
+      await _playCurrentSongInPlaylist();
     }
   }
 

@@ -18,7 +18,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-005` | INFO | OPERABILITY_NFR | `.claude/agents/` | Open | Custom sub-agent types load only at session start; fallback is general-purpose |
 | `OBS-006` | INFO | MAINTAINABILITY | repo root, `.gitignore` | Open | Stray files (`.gitignore copy`, `.idx/`) and local folder name mismatch |
 | `OBS-007` | INFO | ASSET_BUDGET | `assets/images/caua_mouth_*.webp`, `assets/images/README.md` | Open | Placeholder Caua sprites are 512x512 and the README CC0 header does not cover them |
-| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music 4.4 MB); 3.5 MB payload and 3 s 4G budgets unmeasured |
+| `OBS-008` | WARNING | PERFORMANCE_NFR | `build/web`, `assets/music/` | Open | Release build is 45 MB (canvaskit 36 MB, template music now one 1.6 MB track); 3.5 MB payload and 3 s 4G budgets unmeasured |
 | `OBS-009` | INFO | MAINTAINABILITY | `lib/game/components/caua_player_component.dart` | Open | Sprite is assigned in both `onLoad` and `onMount`; one resync would suffice |
 | `OBS-010` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` | Open | Game disposes an injected `MouthController`; ownership should be tracked |
 | `OBS-011` | INFO | ERROR_HANDLING | `lib/game/caua_candies_game.dart` | Open | `images.loadAll` failure is unhandled and leaves a blank screen |
@@ -26,11 +26,22 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-013` | INFO | DESIGN | `lib/game/projection.dart` | Open | Projection pixel constants (y 1180/400, x 360) are placeholders |
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
+| `OBS-016` | WARNING | LICENSING | `assets/images/README.md` | Open | AI-generated art and logo have no formally documented license |
+| `OBS-017` | INFO | ASSET_BUDGET | `assets/music/tropical_fantasy.mp3` | Open | BGM is 1.65 MB of the 2.4 MB asset payload; re-encode at 64-96 kbps |
+| `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
+| `OBS-019` | WARNING | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Default `Images()` is a private cache, so preloaded sprites are not shared with the game (AC5) |
+| `OBS-020` | INFO | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Preload is sequential (slower on 4G than parallel); `dispose()` is not idempotent |
+| `OBS-023` | INFO | UX_KIDS | `lib/audio/audio_controller.dart` | Open | Mobile browsers usually reject the first `play()`; retry only works if T4/T5 call `unlockAndStartMusic()` on first tap |
+| `OBS-024` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | SFX `play()` and music `pause()` are not awaited or caught; `playSfx` doc comment is inverted |
+| `OBS-028` | INFO | UX_KIDS | `lib/ui/title_screen.dart` | Open | Failed state has no message and a null `onRetry` leaves no way out; 48 px settings spacer may overflow below about 330 px height |
+| `OBS-029` | INFO | UX_KIDS | `lib/ui/play_button.dart` | Open | White on #E5609D is about 3.4:1 contrast, passes only the large-text criterion |
+| `OBS-035` | INFO | UX_KIDS | `lib/ui/title_logo.dart` | Open | Logo is about 25% narrower at 360 px width to clear the candy lanes; clearance is only 3.6 px at 320 px |
+| `OBS-036` | INFO | ERROR_HANDLING | `lib/audio/audio_controller.dart` | Open | Futures of pause, stop and dispose are not awaited or handled; a platform failure would be an unhandled async error |
+| `OBS-037` | INFO | MAINTAINABILITY | `lib/ui/bobbing_avatar.dart` | Open | `CurvedAnimation` in `BobbingAvatar` is never disposed |
 | `OBS-021` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | `baseSpeed`, `halfWidthBottom`, `stripeCount` live in the component, outside `projection.dart` / `phase_config.dart` |
 | `OBS-025` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawner creates a new `FoodItemComponent` per spawn (no pooling); restart does not reset `_elapsed` |
 | `OBS-026` | INFO | TEST_COVERAGE | `lib/game/components/item_spawner_component.dart` | Open | No test for the not-spawning-when-not-playing path; `GameState` only has `playing` today |
 | `OBS-030` | INFO | MAINTAINABILITY | `lib/game/item_sprites.dart` | Open | `itemSpriteAssetList` is a manual copy of `itemSpriteAssets`; 16 item types share 9 sprites (banana looks like the grape) |
-| `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Open | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` |
 | `OBS-039` | WARNING | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | Game screen layout, sky vs belt harmony and ingest tween are unchecked on real phones; the original tiny-view root cause was never reproduced, only mitigated |
 | `OBS-040` | INFO | MAINTAINABILITY | `lib/game/components/food_item_component.dart` | Open | One-frame position jump at the decision (y 522 to 515); the item stays 0.15 s in the tree during the tween; not asserted in tests |
 | `OBS-043` | WARNING | UX_KIDS | `lib/audio/sounds.dart` | Open | `hmm` and `eurk` play at volume 1.0 versus 0.4 for other SFX (about 8 dB jump) and `hmm` plays on every good item |
@@ -99,8 +110,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** `build/web`, `assets/music/`
 * **Source:** `build log / TASK-002 T2`
 * **Status:** Open
-* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` 4.4 MB, `main.dart.js` 2.7 MB.
-* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; template music inflates the bundle.
+* **Finding:** `flutter build web --release` output is 45 MB on disk: `canvaskit` 36 MB (only one variant is fetched by the browser), template `assets/music` was 4.4 MB (reduced to one 1.65 MB track in TASK-001 T1; assets now about 2.4 MB), `main.dart.js` 2.7 MB.
+* **Risk/Impact:** Payload under 3.5 MB and first load under 3 s on 4G are not verified; the remaining BGM is the largest asset.
 * **Resolution Trigger:** TASK-001 (preload and BGM) or a dedicated task: measure transferred bytes over throttled 4G, drop unused template assets, consider the skwasm/html renderer.
 
 ### `OBS-009`
@@ -173,6 +184,129 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Banner, victory, game-over and tutorial overlays cannot react to level or state changes without polling.
 * **Resolution Trigger:** TASK-004 (level changes and banner): make `level` and `state` notifiers.
 
+### `OBS-016`
+* **Severity:** WARNING
+* **Category:** LICENSING
+* **Target:** `assets/images/README.md`
+* **Source:** `audit / TASK-001 T1`
+* **Status:** Open
+* **Finding:** Cauã sprites, items, UI icons, logo and backgrounds are AI-generated placeholders and the README states licensing and origin are not formally documented.
+* **Risk/Impact:** Unclear usage rights if the game is published beyond the private party link.
+* **Resolution Trigger:** Product owner confirms the generator terms and the README records origin and license before the Nov 4, 2026 release.
+
+### `OBS-017`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/music/tropical_fantasy.mp3`
+* **Source:** `audit / TASK-001 T1`
+* **Status:** Open
+* **Finding:** The only BGM track weighs 1.65 MB of the 2.4 MB asset payload.
+* **Risk/Impact:** Under the 3.5 MB ceiling but heavy for the sub-3s first load on 4G.
+* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008: re-encode at 64-96 kbps if the budget is tight.
+
+### `OBS-018`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `assets/images/game/belt_tile.webp`
+* **Source:** `manual / TASK-013 HIL`
+* **Status:** Open
+* **Finding:** The delivered belt sprite measures body about #C8B0E8 and arrows about #7858B8, close to but not equal to the approved belt-base #BFA6EC and belt-stripe #8F72D6. The product owner chose not to regenerate sprites.
+* **Risk/Impact:** Any belt drawn in code from `Palette` could differ slightly from the sprite.
+* **Resolution Trigger:** First component that mixes the belt sprite with `Palette.beltBase`/`beltStripe` (TASK-003 follow-up or TASK-004).
+
+### `OBS-019`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/managers/asset_preloader.dart`
+* **Source:** `audit / TASK-001 T2`
+* **Status:** Open
+* **Finding:** `AssetPreloader` defaults to a private `Images()` cache instead of `Flame.images`, so sprites preloaded on the title screen are not reused by `CauaCandiesGame`.
+* **Risk/Impact:** AC5 (shared cache) is not met; assets load twice and the game start may stall.
+* **Resolution Trigger:** TASK-001 T5: inject `Flame.images` (or make it the default) when wiring the screen.
+
+### `OBS-020`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/managers/asset_preloader.dart`
+* **Source:** `audit / TASK-001 T2`
+* **Status:** Open
+* **Finding:** Images and audio load sequentially, and `dispose()` is not idempotent; an internally created `Images` is never disposed.
+* **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
+* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
+
+
+### `OBS-023`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T3`
+* **Status:** Open
+* **Finding:** The product owner chose BGM on menu entry for every platform; mobile browsers usually reject the first `play()`. The error is caught and logged, and the game runs silent until a retry.
+* **Risk/Impact:** The party link may open silent on iOS Safari and Android Chrome until the first tap.
+* **Resolution Trigger:** TASK-001 T4/T5 must call `unlockAndStartMusic()` on the first tap; test on iOS Safari and Android Chrome.
+
+### `OBS-024`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T3`
+* **Status:** Open
+* **Finding:** SFX `play()` and music `pause()` are not awaited or caught, and the `playSfx` documentation comment text is inverted.
+* **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
+* **Resolution Trigger:** Next touch of `audio_controller.dart`.
+
+
+### `OBS-028`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/title_screen.dart`
+* **Source:** `audit / TASK-001 T4`
+* **Status:** Open
+* **Finding:** The Failed state shows no message and a null `onRetry` leaves the user without a way out. The 48 px settings spacer is reserved even without settings and can overflow below about 330 px viewport height (landscape).
+* **Risk/Impact:** A stuck screen on a failed preload; layout overflow in landscape.
+* **Resolution Trigger:** TASK-001 T5 passes `onRetry`; the 9:16 portrait layout makes the overflow unlikely.
+
+### `OBS-029`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/play_button.dart`
+* **Source:** `audit / TASK-001 T4`
+* **Status:** Open
+* **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
+* **Risk/Impact:** Acceptable for the large label; weaker for small text.
+* **Resolution Trigger:** Palette review if smaller text is placed on that pink.
+
+
+
+### `OBS-035`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/title_logo.dart`, `lib/ui/falling_candies.dart`
+* **Source:** `audit / TASK-001 T7`
+* **Status:** Open
+* **Finding:** To keep the logo clear of the falling-candy lanes it was narrowed by about 25% at 360 px width (about 234x98 px at rest); the measured clearance is 6.0 px at 360, 9.1 px at 412 and 3.6 px at 320.
+* **Risk/Impact:** A smaller logo and a tight margin on very narrow phones. The product owner approved the screen at 360x640 and 412x915.
+* **Resolution Trigger:** Real-device check on a 320 px wide phone, or a layout change to the candy lanes.
+
+### `OBS-036`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/audio/audio_controller.dart`
+* **Source:** `audit / TASK-001 T6`
+* **Status:** Open
+* **Finding:** The futures returned by `pause`, `stop` and `dispose` on the audio players are not awaited or handled.
+* **Risk/Impact:** A platform failure would surface as an unhandled async error (now routed to the global error screen by TASK-016).
+* **Resolution Trigger:** Next touch of `audio_controller.dart`.
+
+### `OBS-037`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/ui/bobbing_avatar.dart`
+* **Source:** `audit / TASK-001 T6`
+* **Status:** Open
+* **Finding:** The `CurvedAnimation` created by `BobbingAvatar` is not disposed with its controller.
+* **Risk/Impact:** Negligible leak for one avatar instance.
+* **Resolution Trigger:** Next touch of `bobbing_avatar.dart`.
 ### `OBS-021`
 * **Severity:** INFO
 * **Category:** MAINTAINABILITY
@@ -213,15 +347,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
 * **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
 
-### `OBS-031`
-* **Severity:** INFO
-* **Category:** TEST_COVERAGE
-* **Target:** `lib/audio/audio_controller.dart`
-* **Source:** `test authoring / TASK-003 T7`
-* **Status:** Open
-* **Finding:** The mute handling inside `AudioController.playSfx` is not exercised by `test/audio/sounds_test.dart`.
-* **Risk/Impact:** A regression could play SFX while muted.
-* **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
 
 ### `OBS-039`
 * **Severity:** WARNING
