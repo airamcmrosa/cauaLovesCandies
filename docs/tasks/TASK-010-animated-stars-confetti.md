@@ -44,7 +44,7 @@ Stars and confetti appear on screen as animated particles (burst, spin, fall, fa
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
 - [x] T1 - Implement the star `Path` + confetti shapes and the `victory` preset as a pooled `PositionComponent` with custom render (burst + rain, rotation, gravity, fade, cap, seedable `Random`, cached `Paint`s, self-removal). _Verify:_ triggering it shows animated multicolor confetti and stars at 60 FPS on a mid-range phone; no per-frame allocations in `update`/`render`; component is gone from the world after it ends.
 - [x] T2 - Add the `hitSparkle` preset (small star pop at a given position, reusing T1 painters). _Verify:_ eating 10 items in a row shows 10 independent sparkles, particle count stays under the cap, no frame drops, no leftover components.
-- [ ] T3 - Expose the ingestion event from the TASK-003 game code and spawn `hitSparkle` at the mouth position only for sweets and fruits (not hazards). _Verify:_ sweet and fruit show a sparkle, hazard shows none, closed-mouth deflection shows none.
+- [x] T3 - Expose the ingestion event from the TASK-003 game code and spawn `hitSparkle` at the mouth position only for sweets and fruits (not hazards). _Verify:_ sweet and fruit show a sparkle, hazard shows none, closed-mouth deflection shows none.
 - [ ] T4 - Lifecycle and restart: effects are removed on restart/`GameState` change, no listener leaks. _Verify:_ `dart format --set-exit-if-changed lib`, `flutter analyze`, `flutter build web --release` pass; repeating victory/restart 10 times keeps a stable component count.
 - [ ] T5 - Handoff list for `test-author`. _Verify:_ names seeded-`Random` determinism, particle cap per preset, self-removal, no sparkle on hazards.
 

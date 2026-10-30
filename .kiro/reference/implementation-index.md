@@ -96,6 +96,6 @@ SHA as append-only history.
 | :--- | :--- | :--- | :--- |
 | T1 | ParticleCelebrationComponent victory preset | committed | b64efe4 |
 | T2 | hitSparkle preset | committed | abb791a |
-| T3 | Ingestion event and sparkle spawn | todo | - |
+| T3 | Ingestion event and sparkle spawn | in_progress | - |
 | T4 | Lifecycle and restart | todo | - |
 | T5 | Handoff pass | todo | - |

@@ -51,6 +51,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-044` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | Render allocates one Color per particle per frame (`withValues`); use a cached alpha palette |
 | `OBS-047` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | `hitSparkleMaxParticles` is unused; every sparkle allocates and iterates the full 80-particle pool |
+| `OBS-051` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_sparkle_test.dart` | Open | Sparkle origin (xMouth, yMouth) is not asserted because `ParticleCelebrationComponent._origin` is private |
 
 ---
 
@@ -437,3 +438,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `hitSparkleMaxParticles` is unused, and each sparkle allocates and iterates the full 80-particle pool although it needs 8.
 * **Risk/Impact:** Low: one short-lived instance per sweet or fruit ingested; wasted allocation on low-end phones.
 * **Resolution Trigger:** TASK-010 T4: size the pool per preset (can be fixed together with OBS-044).
+
+### `OBS-051`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_candies_game_sparkle_test.dart`, `lib/game/components/particle_celebration_component.dart`
+* **Source:** `audit / TASK-010 T3`
+* **Status:** Open
+* **Finding:** The hit sparkle origin (360, 440.4) is not asserted in tests because `_origin` is private with no getter.
+* **Risk/Impact:** A regression that moves the sparkle off the mouth would not be caught.
+* **Resolution Trigger:** TASK-010 T4: add a small public getter and assert the origin.
