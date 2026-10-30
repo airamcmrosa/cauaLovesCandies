@@ -10,6 +10,7 @@ import 'components/caua_player_component.dart';
 import 'components/conveyor_belt_component.dart';
 import 'components/food_item_component.dart';
 import 'components/item_spawner_component.dart';
+import 'components/particle_celebration_component.dart';
 import 'item_sprites.dart';
 import 'projection.dart';
 import 'managers/game_manager.dart';
@@ -115,20 +116,41 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   Future<void> _addSpawner() async {
     final audio = _audio;
+    final FoodItemCallback baseHook = audio != null
+        ? ingestHook(audio, onHazard: _triggerShake)
+        : _hazardShakeOnly;
     final spawner = ItemSpawnerComponent(
       gameManager: _gameManager,
       mouthController: _mouthController,
       random: _random,
       spriteFor: buildItemSpriteLookup(images),
-      onIngested: audio != null
-          ? ingestHook(audio, onHazard: _triggerShake)
-          : _hazardShakeOnly,
+      onIngested: (type) {
+        baseHook(type);
+        spawnHitSparkle(type);
+      },
     );
     _spawner = spawner;
     await world.add(spawner);
   }
 
   void _triggerShake() => _shake?.trigger();
+
+  /// Draw priority of sparkles: above items (0..1000), Cauã and the belt.
+  static const int sparklePriority = 2000;
+
+  /// Spawns a [CelebrationPreset.hitSparkle] at Cauã's mouth for sweets and
+  /// fruits. Hazards spawn nothing.
+  void spawnHitSparkle(ItemType type) {
+    if (type.category == ItemCategory.hazard) return;
+    world.add(
+      ParticleCelebrationComponent(
+        preset: CelebrationPreset.hitSparkle,
+        random: _random,
+        origin: Vector2(Projection.xMouth, Projection.yMouth),
+        priority: sparklePriority,
+      ),
+    );
+  }
 
   void _hazardShakeOnly(ItemType type) {
     if (type.category == ItemCategory.hazard) _triggerShake();
@@ -144,6 +166,9 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     }
     _spawner?.removeFromParent();
     world.children.whereType<FoodItemComponent>().toList().forEach(
+      (c) => c.removeFromParent(),
+    );
+    world.children.whereType<ParticleCelebrationComponent>().toList().forEach(
       (c) => c.removeFromParent(),
     );
     _gameManager.reset();
