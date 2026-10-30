@@ -12,6 +12,7 @@ import 'components/food_item_component.dart';
 import 'components/item_spawner_component.dart';
 import 'item_sprites.dart';
 import 'projection.dart';
+import 'managers/blink_controller.dart';
 import 'managers/game_manager.dart';
 import 'managers/item_type.dart';
 import 'managers/mouth_controller.dart';
@@ -25,7 +26,7 @@ import 'screen_shake.dart';
 /// for minimal latency.
 ///
 /// Ownership: the game owns the injected [GameManager] and [MouthController]
-/// and disposes them in [onRemove]; callers must not dispose them.
+/// and the [BlinkController] it creates and disposes them in [onRemove]; callers must not dispose them.
 class CauaCandiesGame extends FlameGame with TapCallbacks {
   CauaCandiesGame({
     MouthController? mouthController,
@@ -34,6 +35,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     Random? random,
   }) : _mouthController = mouthController ?? MouthController(),
        _gameManager = gameManager ?? GameManager(),
+       _blinkController = BlinkController(random: random),
        _audio = audio,
        _random = random ?? Random(),
        super(
@@ -71,6 +73,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   final MouthController _mouthController;
   final GameManager _gameManager;
+  final BlinkController _blinkController;
   final AudioController? _audio;
   final Random _random;
   ScreenShake? _shake;
@@ -93,14 +96,14 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     camera.viewfinder.anchor = Anchor.topLeft;
     camera.viewfinder.position = Vector2.zero();
     await images.loadAll([
-      CauaPlayerComponent.closedSpriteName,
-      CauaPlayerComponent.openSpriteName,
+      ...CauaPlayerComponent.allSpriteNames,
       ...itemSpriteAssetList,
     ]);
     await world.add(ConveyorBeltComponent(gameManager: _gameManager));
     await world.add(
       CauaPlayerComponent(
         mouthController: _mouthController,
+        blinkController: _blinkController,
         position: Vector2(virtualWidth / 2, playerCenterY),
         size: Vector2.all(playerSize),
         anchor: Anchor.center,
@@ -160,5 +163,8 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     _gameManager.dispose();
     _mouthController.dispose();
     super.onRemove();
+    // Children (and their listeners) are gone after super; the game owns
+    // the blink controller and disposes it last.
+    _blinkController.dispose();
   }
 }
