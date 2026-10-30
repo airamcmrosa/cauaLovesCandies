@@ -2,7 +2,7 @@
 id: TASK-004
 story: US04
 title: Implement 3-phase progression with rising speed and phase banner
-status: em progresso # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [TASK-003] # needs GameManager, score tracking, conveyor speed and item spawner
 supersedes: []
 ---
