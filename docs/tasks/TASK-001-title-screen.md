@@ -2,7 +2,7 @@
 id: TASK-001
 story: US01
 title: Build the animated title screen with JOGAR button, BGM unlock and asset preload
-status: em progresso # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [] # task ids that must be completed first
 supersedes: [] # ids of wrongly completed tasks this one corrects (see README rules)
 ---
