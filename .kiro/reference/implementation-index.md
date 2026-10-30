@@ -94,7 +94,7 @@ SHA as append-only history.
 
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
-| T1 | ParticleCelebrationComponent victory preset | in_progress | - |
+| T1 | ParticleCelebrationComponent victory preset | committed | b64efe4 |
 | T2 | hitSparkle preset | todo | - |
 | T3 | Ingestion event and sparkle spawn | todo | - |
 | T4 | Lifecycle and restart | todo | - |
