@@ -50,6 +50,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
+| `OBS-050` | INFO | PERFORMANCE_NFR | `lib/ui/tutorial_overlay.dart` | Open | `_buildTapDemo` rebuilds the mouth `Image` and Stack every frame, and the closed-mouth sprite is not precached by the widget |
 
 ---
 
@@ -426,3 +427,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `timeScale` checks only `state == tutorial`; the spawner's old `state != playing` early return is gone. Safe while `GameState` has only `tutorial` and `playing`.
 * **Risk/Impact:** A future victory or game-over state would keep spawning and moving the belt.
 * **Resolution Trigger:** TASK-005 (or TASK-004 T4, whichever adds a state first): make `timeScale` return 0 for every non-playing state.
+
+### `OBS-050`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/ui/tutorial_overlay.dart` (`_buildTapDemo`)
+* **Source:** `audit / TASK-006 T4`
+* **Status:** Open
+* **Finding:** The mouth `Image` and Stack are rebuilt every frame (could be cached like `_hand`), and the closed-mouth sprite is not precached by the widget, so the first swap may briefly show the previous frame.
+* **Risk/Impact:** Low: small per-frame cost; the sprites are in the preload list.
+* **Resolution Trigger:** TASK-006 T5/T8, and check visually at T6.
