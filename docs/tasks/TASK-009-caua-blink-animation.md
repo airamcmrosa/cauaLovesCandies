@@ -2,7 +2,7 @@
 id: TASK-009
 story: US02
 title: Animate Cauã blinking with the open, half and closed eye sprites
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [TASK-002, TASK-003] # CauaPlayerComponent/MouthController (002) and GameState for the pause switch in T4 (003)
 supersedes: []
 ---
@@ -42,11 +42,11 @@ Cauã blinks naturally at random intervals in the idle-closed, idle-open and vic
 
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
-- [ ] T1 - Create `EyeState` and `BlinkController` in `lib/game/managers/` (dt-driven sequence open -> half -> shut -> half -> open, random 2.5-5 s gap, seedable `Random`, `reset()` returns to `open` and re-arms the gap, `dispose()`). _Verify:_ `flutter analyze` clean; with a fixed seed and simulated `dt`, the notifier emits exactly the 5-step sequence once per interval and never skips a step even on a long `dt`.
-- [ ] T2 - Add the 9 eye-state sprites under `assets/images/caua/` (`.webp`, same canvas size for all nine) and register them in `pubspec.yaml`; report each file size and the combined total. _Verify:_ `flutter build web --release` succeeds; all nine resolve at runtime; the nine images share identical dimensions; combined size stays well under the 3.5 MB budget.
-- [ ] T3 - Extend `CauaPlayerComponent` to take a `BlinkController`, build the (pose, eye) `Sprite` table once in `onLoad`, and swap on either notifier change; tick the blink controller from `update(dt)`. _Verify:_ tapping during a blink shows the new mouth state in the next frame with the current eye frame; no allocations in `update`/`render`; no leaked listener after `onRemove`.
-- [ ] T4 - Wire `blinkEnabled` and reset: blinking pauses (eyes `open`) while `GameState` is not `playing`, `tutorial` or `victory` (the `win` pose blinks on the victory screen), and `reset()` is called on restart (TASK-005 flow). _Verify:_ no blink on the game-over screen; after restart the first blink is at least 2.5 s away.
-- [ ] T5 - Self-audit and handoff list for `test-author`. _Verify:_ `dart format --set-exit-if-changed lib`, `flutter analyze`, `flutter build web --release` pass. Suggested coverage: blink sequence order, interval bounds with seeded `Random`, long-`dt` catch-up, `reset()`, sprite-table index for all 9 combinations, listener cleanup.
+- [x] T1 - Create `EyeState` and `BlinkController` in `lib/game/managers/` (dt-driven sequence open -> half -> shut -> half -> open, random 2.5-5 s gap, seedable `Random`, `reset()` returns to `open` and re-arms the gap, `dispose()`). _Verify:_ `flutter analyze` clean; with a fixed seed and simulated `dt`, the notifier emits exactly the 5-step sequence once per interval and never skips a step even on a long `dt`.
+- [x] T2 - Add the 9 eye-state sprites under `assets/images/caua/` (`.webp`, same canvas size for all nine) and register them in `pubspec.yaml`; report each file size and the combined total. _Verify:_ `flutter build web --release` succeeds; all nine resolve at runtime; the nine images share identical dimensions; combined size stays well under the 3.5 MB budget.
+- [x] T3 - Extend `CauaPlayerComponent` to take a `BlinkController`, build the (pose, eye) `Sprite` table once in `onLoad`, and swap on either notifier change; tick the blink controller from `update(dt)`. _Verify:_ tapping during a blink shows the new mouth state in the next frame with the current eye frame; no allocations in `update`/`render`; no leaked listener after `onRemove`.
+- [x] T4 - Wire `blinkEnabled` and reset: blinking pauses (eyes `open`) while `GameState` is not `playing`, `tutorial` or `victory` (the `win` pose blinks on the victory screen), and `reset()` is called on restart (TASK-005 flow). _Verify:_ no blink on the game-over screen; after restart the first blink is at least 2.5 s away.
+- [x] T5 - Self-audit and handoff list for `test-author`. _Verify:_ `dart format --set-exit-if-changed lib`, `flutter analyze`, `flutter build web --release` pass. Suggested coverage: blink sequence order, interval bounds with seeded `Random`, long-`dt` catch-up, `reset()`, sprite-table index for all 9 combinations, listener cleanup.
 
 ## Definition of Done
 - Every AC above is demonstrably met; tap latency is unchanged versus TASK-002.

@@ -49,8 +49,12 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
+| `OBS-045` | INFO | MAINTAINABILITY | `lib/game/managers/blink_controller.dart` | Open | `BlinkController` imports `flutter/foundation.dart` for `ValueNotifier`, against the task's "no Flutter imports" wording; matches `MouthController` |
 | `OBS-046` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart`, `reset()` | Open | `reset()` sets `phaseChanged` to null, notifying listeners; the banner listener must ignore null and restart must clear a visible banner |
+| `OBS-049` | INFO | ERROR_HANDLING | `lib/game/components/caua_player_component.dart` | Open | `_tryLoad` silently swallows a missing eye-state sprite; log it via `package:logging` |
 | `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
+| `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Open | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce |
+| `OBS-054` | INFO | LIFECYCLE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` resets the `BlinkController` unconditionally; calling it after the game is removed would throw (`reset` after `dispose`) |
 | `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
 | `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
 | `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
@@ -58,6 +62,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-061` | INFO | TEST_COVERAGE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` has no caller until TASK-005, so the reset-clears-banner path is covered only by `GameManager.reset()` tests and code reading |
 | `OBS-064` | INFO | TEST_COVERAGE | `lib/game/managers/game_manager.dart`, `lib/ui/phase_banner_overlay.dart` | Open | A multi-threshold score jump fires `phaseChanged` once per step in one frame so the banner shows only the last text; no banner test covers a 2-then-3 jump |
 | `OBS-065` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | Comment says "Phase 1 (1.0x)" but phase 1 is now 1.2x; fix with OBS-052 |
+| `OBS-067` | INFO | TEST_COVERAGE | `test/audio/audio_controller_test.dart` | Open | Test "lifecycle AppLifecycleState.paused pauses music" failed once under a full-suite run and passed in isolation; timing-dependent flake (also a 30 s `setUpAll` timeout seen in caua_frames_invariants_test under load) |
 
 ---
 
@@ -243,7 +248,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
 
-
 ### `OBS-023`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -264,7 +268,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
 
-
 ### `OBS-028`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -284,8 +287,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
-
-
 
 ### `OBS-035`
 * **Severity:** INFO
@@ -355,7 +356,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
 * **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
 * **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
-
 
 ### `OBS-039`
 * **Severity:** WARNING
@@ -514,3 +514,53 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** Stale comment "Phase 1 (1.0x)"; phase 1 now runs at 1.2x.
 * **Risk/Impact:** Misleading comment only.
 * **Resolution Trigger:** Fix together with OBS-052 after the phone playtest.
+
+### `OBS-045`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/managers/blink_controller.dart`
+* **Source:** `audit / TASK-009 T1`
+* **Status:** Open
+* **Finding:** The task says "no Flutter imports", but `ValueNotifier` needs `package:flutter/foundation.dart`; `mouth_controller` and `game_manager` do the same and there is no Flame import.
+* **Risk/Impact:** None; wording mismatch only.
+* **Resolution Trigger:** Amend the TASK-009 wording to "no Flame imports" or drop `ValueNotifier`.
+
+### `OBS-049`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/game/components/caua_player_component.dart` (`_tryLoad`, lines 88-94)
+* **Source:** `audit / TASK-009 T3`
+* **Status:** Open
+* **Finding:** `_tryLoad` swallows a missing sprite without logging; the nearest-eye-state fallback hides the gap.
+* **Risk/Impact:** A missing or misnamed frame goes unnoticed in development.
+* **Resolution Trigger:** Next touch of the component: log the miss via `package:logging`.
+
+### `OBS-053`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart` (`update`)
+* **Source:** `audit / TASK-009 T4`
+* **Status:** Open
+* **Finding:** `blinkEnabled = (state == GameState.playing)`. TASK-009 T4 says blinking stays on in `tutorial` and `victory`. With only `playing` in `main` this is correct, but once TASK-006 (tutorial, default state) and TASK-004 T4 (victory) merge, Caua would stop blinking in those states.
+* **Risk/Impact:** Caua frozen with open eyes during the tutorial and victory screen.
+* **Resolution Trigger:** First merge of TASK-006 or TASK-004 with TASK-009: widen the predicate to exclude only non-visible states (for example game over).
+
+### `OBS-054`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart` (`restart`)
+* **Source:** `audit / TASK-009 T4`
+* **Status:** Open
+* **Finding:** `restart()` calls `_blinkController.reset()` unconditionally; after `dispose` it would throw.
+* **Risk/Impact:** Low: restart is not called after the game is removed.
+* **Resolution Trigger:** TASK-005 restart flow: keep the call order (restart only while mounted).
+
+### `OBS-067`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/audio/audio_controller_test.dart`
+* **Source:** `merge verification / TASK-004 branch`
+* **Status:** Open
+* **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
+* **Risk/Impact:** Occasional red full-suite run without a code defect.
+* **Resolution Trigger:** If it recurs: make the test await the lifecycle callback deterministically; consider a longer `setUpAll` timeout for the frames test.

@@ -20,6 +20,9 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 | `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing | 7400c93 |
 | `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_handleSongFinished` ignores `audioOn` and dispose state | 7400c93 |
 | `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Resolved | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` | be374ee |
+| `OBS-044` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Resolved | Render allocates one Color per particle per frame (`withValues`); use a cached alpha palette | 2fa0d70 |
+| `OBS-047` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Resolved | `hitSparkleMaxParticles` is unused; every sparkle allocates and iterates the full 80-particle pool | 2fa0d70 |
+| `OBS-051` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_sparkle_test.dart` | Resolved | Sparkle origin (xMouth, yMouth) is not asserted because `ParticleCelebrationComponent._origin` is private | 2fa0d70 |
 
 ---
 
@@ -101,3 +104,33 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 * **Risk/Impact:** A regression could play SFX while muted.
 * **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
 * **Resolved By:** be374ee (TASK-001 audio tests cover muted and audible `playSfx`)
+
+### `OBS-044`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/particle_celebration_component.dart`
+* **Source:** `audit / TASK-010 T1`
+* **Status:** Open
+* **Finding:** `render` calls `Color.withValues` once per particle per frame, a small allocation against the task's "no per-frame allocations" Verify.
+* **Risk/Impact:** Low: at most 80 particles; possible GC pressure on low-end phones.
+* **Resolution Trigger:** TASK-010 T4: replace with a cached alpha palette.
+
+### `OBS-047`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/particle_celebration_component.dart`
+* **Source:** `audit / TASK-010 T2`
+* **Status:** Open
+* **Finding:** `hitSparkleMaxParticles` is unused, and each sparkle allocates and iterates the full 80-particle pool although it needs 8.
+* **Risk/Impact:** Low: one short-lived instance per sweet or fruit ingested; wasted allocation on low-end phones.
+* **Resolution Trigger:** TASK-010 T4: size the pool per preset (can be fixed together with OBS-044).
+
+### `OBS-051`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_candies_game_sparkle_test.dart`, `lib/game/components/particle_celebration_component.dart`
+* **Source:** `audit / TASK-010 T3`
+* **Status:** Open
+* **Finding:** The hit sparkle origin (360, 440.4) is not asserted in tests because `_origin` is private with no getter.
+* **Risk/Impact:** A regression that moves the sparkle off the mouth would not be caught.
+* **Resolution Trigger:** TASK-010 T4: add a small public getter and assert the origin.
