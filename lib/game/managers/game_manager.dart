@@ -44,6 +44,9 @@ class GameManager {
   /// Config of the current phase.
   PhaseConfig get phase => _phases[currentPhase.value - 1];
 
+  /// Belt speed multiplier of the active phase.
+  double get currentSpeedMultiplier => phase.speedMultiplier;
+
   /// Adds [points] to the score; non-positive values are ignored.
   void addScore(int points) {
     if (points <= 0) return;

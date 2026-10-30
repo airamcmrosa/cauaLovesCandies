@@ -35,7 +35,7 @@ class PhaseConfig {
     this.bannerText,
   });
 
-  /// Belt speed multiplier relative to Phase 1.
+  /// Belt speed multiplier relative to the base belt speed.
   final double speedMultiplier;
 
   /// Cumulative total score that completes this phase.
@@ -48,22 +48,25 @@ class PhaseConfig {
   final String? bannerText;
 }
 
+/// Geometric growth ratio of the belt speed per phase (1.2^phase).
+const double kPhaseSpeedRatio = 1.2;
+
 /// Phase table; index 0 is Phase 1.
 const List<PhaseConfig> kPhases = [
   PhaseConfig(
-    speedMultiplier: 1.0,
+    speedMultiplier: kPhaseSpeedRatio,
     targetScore: 10,
     weights: CategoryWeights(sweets: 70, fruits: 20, hazards: 10),
   ),
   PhaseConfig(
-    speedMultiplier: 1.35,
+    speedMultiplier: kPhaseSpeedRatio * kPhaseSpeedRatio,
     targetScore: 20,
     bannerText: 'Fase 2 - Mais Rápido!',
     weights: CategoryWeights(sweets: 50, fruits: 30, hazards: 20),
   ),
   // Final challenge composition, weighted toward forbidden items (45%).
   PhaseConfig(
-    speedMultiplier: 1.65,
+    speedMultiplier: kPhaseSpeedRatio * kPhaseSpeedRatio * kPhaseSpeedRatio,
     targetScore: 30,
     bannerText: 'Fase 3 - Super Rápido!',
     weights: CategoryWeights(sweets: 25, fruits: 30, hazards: 45),

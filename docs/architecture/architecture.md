@@ -106,7 +106,7 @@ CauaCandiesGame (FlameGame with TapCallbacks)
                                 ▼
    ┌─────────────────────────────────────────────────────────┐
    │                         PHASE 1                         │
-   │  • Speed: 1.0x (Slow conveyor scroll)                   │
+   │  • Speed: 1.2x (Base +20%)                            │
    │  • Target: 10 Points                                    │
    │  • Item Composition: 70% Sweets, 20% Fruit, 10% Hazard  │
    └────────────────────────────┬────────────────────────────┘
@@ -114,7 +114,7 @@ CauaCandiesGame (FlameGame with TapCallbacks)
                                 ▼
    ┌─────────────────────────────────────────────────────────┐
    │                         PHASE 2                         │
-   │  • Speed: 1.35x (Medium scroll)                         │
+   │  • Speed: 1.44x (Medium scroll)                         │
    │  • Target: 20 Points                                    │
    │  • Item Composition: 50% Sweets, 30% Fruit, 20% Hazard  │
    └────────────────────────────┬────────────────────────────┘
@@ -122,7 +122,7 @@ CauaCandiesGame (FlameGame with TapCallbacks)
                                 ▼
    ┌─────────────────────────────────────────────────────────┐
    │                         PHASE 3                         │
-   │  • Speed: 1.65x (Fast celebration rush)                 │
+   │  • Speed: 1.728x (Fast celebration rush)                 │
    │  • Target: 30 Points                                    │
    │  • Item Composition: High volume of bonus items         │
    └────────────────────────────┬────────────────────────────┘

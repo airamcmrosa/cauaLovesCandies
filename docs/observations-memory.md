@@ -50,6 +50,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-046` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart`, `reset()` | Open | `reset()` sets `phaseChanged` to null, notifying listeners; the banner listener must ignore null and restart must clear a visible banner |
+| `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
 
 ---
 
@@ -426,3 +427,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `reset()` sets `phaseChanged` to null, which notifies listeners if the value was non-null.
 * **Risk/Impact:** A banner listener that does not ignore null could show a stale or empty banner after restart.
 * **Resolution Trigger:** TASK-004 T5/T6: ignore null in the listener and clear any visible banner on restart.
+
+### `OBS-052`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/components/item_spawner_component.dart`, `lib/game/managers/phase_config.dart`
+* **Source:** `audit / TASK-004 T3`
+* **Status:** Open
+* **Finding:** After the product owner set speeds to 1.2 / 1.44 / 1.728, phase 1 is 20% faster in absolute terms and the spawn interval comment "Seconds between spawns at Phase 1 speed" is stale (effective gap about 1.17 s).
+* **Risk/Impact:** Shorter reaction and ingest window may be too hard for 6-year-olds in phase 1.
+* **Resolution Trigger:** Phone playtest before the TASK-004 wrap-up; fix the comment or retune `baseSpeed` or the spawn interval (product decision).

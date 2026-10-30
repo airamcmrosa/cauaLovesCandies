@@ -106,17 +106,21 @@ void main() {
       game.update(0);
     }
 
+    // Wall-clock dt that covers one spawn interval at the phase 1 multiplier.
+    final phase1Interval =
+        ItemSpawnerComponent.spawnIntervalSeconds / kPhases[0].speedMultiplier;
+
     test('spawns nothing before the interval elapses', () async {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);
-      tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds - 0.01);
+      tick(spawner, phase1Interval - 0.01);
       expect(items(), isEmpty);
     });
 
     test('spawns one item at z 0 when the interval elapses', () async {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);
-      tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds);
+      tick(spawner, phase1Interval);
       expect(items(), hasLength(1));
       expect(items().single.z, 0.0);
       expect(items().single.outcome, ItemOutcome.undecided);
@@ -126,7 +130,7 @@ void main() {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);
       for (var i = 0; i < 3; i++) {
-        tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds);
+        tick(spawner, phase1Interval);
       }
       expect(items(), hasLength(3));
     });
@@ -135,7 +139,7 @@ void main() {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);
       for (var i = 0; i < 6; i++) {
-        tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds / 6);
+        tick(spawner, phase1Interval / 6);
       }
       expect(items(), hasLength(1));
     });
@@ -163,7 +167,7 @@ void main() {
       final deflected = <ItemType>[];
       final spawner = makeSpawner(ingested: ingested, deflected: deflected);
       await game.ensureAdd(spawner);
-      tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds);
+      tick(spawner, phase1Interval);
       final item = items().single;
       item.update(10);
       expect(ingested, [item.type]);
@@ -175,7 +179,7 @@ void main() {
       final deflected = <ItemType>[];
       final spawner = makeSpawner(ingested: ingested, deflected: deflected);
       await game.ensureAdd(spawner);
-      tick(spawner, ItemSpawnerComponent.spawnIntervalSeconds);
+      tick(spawner, phase1Interval);
       final item = items().single;
       item.update(0.95 / 0.25);
       item.update(10);
