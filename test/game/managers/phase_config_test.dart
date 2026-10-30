@@ -53,6 +53,30 @@ void main() {
       }
     });
 
+    test('target scores are 10, 20, 30 and strictly increasing', () {
+      expect(kPhases.map((p) => p.targetScore).toList(), [10, 20, 30]);
+      for (var i = 1; i < kPhases.length; i++) {
+        expect(kPhases[i].targetScore, greaterThan(kPhases[i - 1].targetScore));
+      }
+    });
+
+    test('banner text is null for phase 1 and set for phases 2 and 3', () {
+      expect(kPhases[0].bannerText, isNull);
+      expect(kPhases[1].bannerText, 'Fase 2 - Mais Rápido!');
+      expect(kPhases[2].bannerText, 'Fase 3 - Super Rápido!');
+      expect(kPhases[1].bannerText, isNotEmpty);
+      expect(kPhases[2].bannerText, isNotEmpty);
+    });
+
+    test('bannerText defaults to null when omitted', () {
+      const c = PhaseConfig(
+        speedMultiplier: 1.0,
+        targetScore: 1,
+        weights: CategoryWeights(sweets: 1, fruits: 1, hazards: 1),
+      );
+      expect(c.bannerText, isNull);
+    });
+
     test('CategoryWeights.of maps categories to fields', () {
       final w = kPhases[0].weights;
       expect(w.of(ItemCategory.sweet), w.sweets);

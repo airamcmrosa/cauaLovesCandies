@@ -89,3 +89,15 @@ SHA as append-only history.
 | T1 | Measure the 13 frames | committed | 3d61618 |
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
+
+## TASK-004 - Phase progression (US04)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | PhaseConfig targets and banner text | in_progress | - |
+| T2 | GameManager phase notifier and advance | todo | - |
+| T3 | Speed multiplier consumed by belt and items | todo | - |
+| T4 | Victory state at phase 3 target | todo | - |
+| T5 | PhaseBannerOverlay | todo | - |
+| T6 | Overlay registration and restart reset | todo | - |
+| T7 | Self-audit pass | todo | - |
