@@ -17,12 +17,34 @@ void main() {
   });
 
   group('initial state', () {
-    test('score 0, hp maxHp (3), level 1, playing', () {
+    test('score 0, hp maxHp (3), level 1, tutorial', () {
       expect(gm.score.value, 0);
       expect(gm.hp.value, GameManager.maxHp);
       expect(GameManager.maxHp, 3);
       expect(gm.level, 1);
+      expect(gm.state, GameState.tutorial);
+    });
+  });
+
+  group('dismissTutorial', () {
+    test('moves tutorial to playing', () {
+      gm.dismissTutorial();
       expect(gm.state, GameState.playing);
+    });
+
+    test('second call is a no-op', () {
+      gm.dismissTutorial();
+      gm.dismissTutorial();
+      expect(gm.state, GameState.playing);
+    });
+
+    test('does not touch score, hp or level', () {
+      gm.dismissTutorial();
+      expect(gm.score.value, 0);
+      expect(gm.hp.value, GameManager.maxHp);
+      expect(gm.level, 1);
+      expect(scoreNotes, 0);
+      expect(hpNotes, 0);
     });
   });
 
@@ -104,6 +126,14 @@ void main() {
       expect(gm.state, GameState.playing);
       expect(scoreNotes, 1);
       expect(hpNotes, 1);
+    });
+
+    test('returns to playing from tutorial and after dismiss', () {
+      gm.reset();
+      expect(gm.state, GameState.playing);
+      gm.dismissTutorial();
+      gm.reset();
+      expect(gm.state, GameState.playing);
     });
 
     test('does not notify unchanged notifiers', () {

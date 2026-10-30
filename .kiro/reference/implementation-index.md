@@ -89,3 +89,16 @@ SHA as append-only history.
 | T1 | Measure the 13 frames | committed | 3d61618 |
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
+
+## TASK-006 - Tutorial overlay (US06)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | GameState.tutorial and dismissTutorial | in_progress | - |
+| T2 | Conveyor and spawner time scale gate | todo | - |
+| T3 | Tutorial assets | todo | - |
+| T4 | TutorialOverlay widget | todo | - |
+| T5 | Dismiss behavior | todo | - |
+| T6 | Overlay registration | todo | - |
+| T7 | Dismissing tap behavior | todo | - |
+| T8 | Self-audit pass | todo | - |

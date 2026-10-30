@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'item_type.dart';
 import 'phase_config.dart';
 
-/// High-level game state. Only `playing` exists for now.
-enum GameState { playing }
+/// High-level game state. A new session starts in `tutorial` until dismissed.
+enum GameState { tutorial, playing }
 
 class GameManager {
   GameManager();
@@ -27,7 +27,7 @@ class GameManager {
   /// Current level (1-based). Does not advance here.
   int level = initialLevel;
 
-  GameState state = GameState.playing;
+  GameState state = GameState.tutorial;
 
   /// Config of the current level.
   PhaseConfig get phase => kPhases[level - 1];
@@ -48,6 +48,13 @@ class GameManager {
   void onIngested(ItemType item) {
     addScore(item.points);
     if (item.hpDelta < 0) loseHp();
+  }
+
+  /// Leaves the tutorial and starts playing. Idempotent: no-op unless in
+  /// `tutorial`.
+  void dismissTutorial() {
+    if (state != GameState.tutorial) return;
+    state = GameState.playing;
   }
 
   /// Restores the initial session state.

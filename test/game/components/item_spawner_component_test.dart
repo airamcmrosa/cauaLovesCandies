@@ -29,7 +29,7 @@ void main() {
   });
 
   setUp(() {
-    gm = GameManager();
+    gm = GameManager()..dismissTutorial();
     mouth = MouthController();
     game = FlameGame();
   });

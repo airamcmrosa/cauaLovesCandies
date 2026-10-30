@@ -2,7 +2,7 @@
 id: TASK-006
 story: US06
 title: Add hands-on tutorial overlay at first play
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [TASK-002, TASK-003] # needs the tap/mouth control and the running conveyor to pause, slow down and start
 supersedes: []
 ---
@@ -49,7 +49,7 @@ When the player taps JOGAR, Phase 1 opens with the belt held in a pause/slow-mot
 
 ## Atomic Sub-tasks
 Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests).
-- [ ] T1 - Add `tutorial` to `GameState` and `GameManager.dismissTutorial()` (tutorial -> running, idempotent; double call is a no-op); entering Phase 1 from JOGAR starts in `tutorial`. _Verify:_ starting a game exposes `GameState.tutorial`; first `dismissTutorial()` yields running, second call changes nothing; manager has no Flutter/Flame imports.
+- [x] T1 - Add `tutorial` to `GameState` and `GameManager.dismissTutorial()` (tutorial -> playing, idempotent; double call is a no-op); entering Phase 1 from JOGAR starts in `tutorial`. _Verify:_ starting a game exposes `GameState.tutorial`; first `dismissTutorial()` yields running, second call changes nothing; manager has no Flutter/Flame imports.
 - [ ] T2 - Gate the conveyor and spawner on `GameState.tutorial` using `dt * timeScale` (0 or slow-motion factor held in the phase config const, not a scattered literal). _Verify:_ in tutorial state items do not advance (or advance at the reduced factor) and score/HP cannot change; on dismissal the belt moves at full Phase 1 speed on the next frame.
 - [ ] T3 - Create tutorial `.webp` assets (finger, green check, red X, mouth open/closed if missing) and register in `pubspec.yaml`; include in the preload list. _Verify:_ assets load without errors in `flutter build web --release`; total added payload is reported and the 3.5 MB budget is not exceeded.
 - [ ] T4 - Build `TutorialOverlay` widget: semi-transparent scrim, one looping `AnimationController` driving finger tap and mouth open/closed swap in sync, check row (sweet + fruit) and X row (broccoli), no text, `const` constructors, controller disposed in `dispose`. _Verify:_ on a 9:16 viewport all elements are visible without scroll; finger press and mouth change happen on the same loop tick; one loop is at most 1.5 s.
