@@ -99,3 +99,13 @@ SHA as append-only history.
 | T3 | CauaPlayerComponent blink table | committed | ca97f7e |
 | T4 | blinkEnabled wiring and reset | committed | 8cd439e |
 | T5 | Self-audit pass (no code change) | committed | 8cd439e |
+
+## TASK-010 - Animated stars and confetti (US05)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | ParticleCelebrationComponent victory preset | committed | b64efe4 |
+| T2 | hitSparkle preset | committed | abb791a |
+| T3 | Ingestion event and sparkle spawn | committed | 1d76414 |
+| T4 | Lifecycle and restart | committed | 2fa0d70 |
+| T5 | Handoff pass (coverage confirmed, no change) | committed | 2fa0d70 |

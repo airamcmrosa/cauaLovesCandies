@@ -238,7 +238,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
 
-
 ### `OBS-023`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -259,7 +258,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
 
-
 ### `OBS-028`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -279,8 +277,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
-
-
 
 ### `OBS-035`
 * **Severity:** INFO
@@ -350,7 +346,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
 * **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
 * **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
-
 
 ### `OBS-039`
 * **Severity:** WARNING
