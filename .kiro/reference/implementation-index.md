@@ -98,6 +98,6 @@ SHA as append-only history.
 | T2 | GameManager phase notifier and advance | committed | 7726934 |
 | T3 | Speed multiplier consumed by belt and items | committed | eae18be |
 | T4 | Victory state at phase 3 target | committed | e4d9be1 |
-| T5 | PhaseBannerOverlay | in_progress | - |
+| T5 | PhaseBannerOverlay | committed | e1160d9 |
 | T6 | Overlay registration and restart reset | todo | - |
 | T7 | Self-audit pass | todo | - |
