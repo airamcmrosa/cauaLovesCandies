@@ -126,6 +126,14 @@ void main() {
       expect(items().single.outcome, ItemOutcome.undecided);
     });
 
+    test('does not spawn when the game state is victory', () async {
+      final spawner = makeSpawner();
+      await game.ensureAdd(spawner);
+      gm.state = GameState.victory;
+      tick(spawner, phase1Interval * 3);
+      expect(items(), isEmpty);
+    });
+
     test('spawns repeatedly on the interval', () async {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);

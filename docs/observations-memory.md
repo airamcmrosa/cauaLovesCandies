@@ -51,6 +51,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-046` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart`, `reset()` | Open | `reset()` sets `phaseChanged` to null, notifying listeners; the banner listener must ignore null and restart must clear a visible banner |
 | `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
+| `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
+| `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
 
 ---
 
@@ -437,3 +439,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** After the product owner set speeds to 1.2 / 1.44 / 1.728, phase 1 is 20% faster in absolute terms and the spawn interval comment "Seconds between spawns at Phase 1 speed" is stale (effective gap about 1.17 s).
 * **Risk/Impact:** Shorter reaction and ingest window may be too hard for 6-year-olds in phase 1.
 * **Resolution Trigger:** Phone playtest before the TASK-004 wrap-up; fix the comment or retune `baseSpeed` or the spawn interval (product decision).
+
+### `OBS-055`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/components/` (belt, items), ingestion path
+* **Source:** `audit / TASK-004 T4`
+* **Status:** Open
+* **Finding:** Only `item_spawner_component.dart` checks the state. During `GameState.victory` the belt and in-flight items keep moving and ingestion can still change score and HP.
+* **Risk/Impact:** Visible motion and score changes behind the victory screen once TASK-005 shows it.
+* **Resolution Trigger:** TASK-005: freeze with a `state == playing ? 1 : 0` style gate (never a deny-list that omits victory); related to OBS-048.
+
+### `OBS-056`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/game/managers/game_manager.dart`
+* **Source:** `audit / TASK-004 T4`
+* **Status:** Open
+* **Finding:** `addScore` and `loseHp` are not frozen in victory; an empty injected `phases` list would throw on `_phases.last`. Production config always has 3 entries.
+* **Risk/Impact:** None in production.
+* **Resolution Trigger:** TASK-005: optionally guard when wiring victory.

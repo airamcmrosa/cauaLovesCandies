@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'item_type.dart';
 import 'phase_config.dart';
 
-/// High-level game state. Only `playing` exists for now.
-enum GameState { playing }
+/// High-level game state.
+enum GameState { playing, victory }
 
 class GameManager {
   GameManager({List<PhaseConfig> phases = kPhases}) : _phases = phases;
@@ -32,6 +32,10 @@ class GameManager {
   /// New phase number, notified exactly once per advance. Null (and silent)
   /// at start and after [reset].
   final ValueNotifier<int?> phaseChanged = ValueNotifier<int?>(null);
+
+  /// Set to true exactly once when the final phase target is reached. False
+  /// (and silent for consumers) at start and after [reset].
+  final ValueNotifier<bool> finalTargetReached = ValueNotifier<bool>(false);
 
   /// Current level (1-based); compatible view of [currentPhase].
   int get level => currentPhase.value;
@@ -62,6 +66,12 @@ class GameManager {
       currentPhase.value += 1;
       phaseChanged.value = currentPhase.value;
     }
+    if (state == GameState.playing &&
+        currentPhase.value == _phases.length &&
+        score.value >= _phases.last.targetScore) {
+      state = GameState.victory;
+      finalTargetReached.value = true;
+    }
   }
 
   /// Removes 1 HP, clamped at 0 (no notification when already 0).
@@ -82,12 +92,14 @@ class GameManager {
     hp.value = maxHp;
     currentPhase.value = initialLevel;
     phaseChanged.value = null;
+    finalTargetReached.value = false;
     state = GameState.playing;
   }
 
   void dispose() {
     currentPhase.dispose();
     phaseChanged.dispose();
+    finalTargetReached.dispose();
     score.dispose();
     hp.dispose();
   }
