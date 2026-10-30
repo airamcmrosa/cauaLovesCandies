@@ -594,6 +594,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Target:** `test/audio/audio_controller_test.dart`
 * **Source:** `merge verification / TASK-004 branch`
 * **Status:** Open
-* **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
+* **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. A second test in the same file, "start during in-flight start (OBS-033) blocked play does not loop forever", failed once in a full run of the merged TASK-006 branch and also passed on rerun (3 isolated, then full). No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
 * **Risk/Impact:** Occasional red full-suite run without a code defect.
 * **Resolution Trigger:** If it recurs: make the test await the lifecycle callback deterministically; consider a longer `setUpAll` timeout for the frames test.
