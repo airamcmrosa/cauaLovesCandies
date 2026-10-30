@@ -99,6 +99,6 @@ SHA as append-only history.
 | T3 | Tutorial assets (reconciled, existing art reused) | committed | 879d483 |
 | T4 | TutorialOverlay widget | committed | 6ad336c |
 | T5 | Dismiss behavior | committed | ca4e980 |
-| T6 | Overlay registration | in_progress | - |
+| T6 | Overlay registration | committed | 7f64e32 |
 | T7 | Dismissing tap behavior | todo | - |
 | T8 | Self-audit pass | todo | - |
