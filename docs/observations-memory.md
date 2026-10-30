@@ -49,6 +49,10 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
+| `OBS-045` | INFO | MAINTAINABILITY | `lib/game/managers/blink_controller.dart` | Open | `BlinkController` imports `flutter/foundation.dart` for `ValueNotifier`, against the task's "no Flutter imports" wording; matches `MouthController` |
+| `OBS-049` | INFO | ERROR_HANDLING | `lib/game/components/caua_player_component.dart` | Open | `_tryLoad` silently swallows a missing eye-state sprite; log it via `package:logging` |
+| `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Open | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce |
+| `OBS-054` | INFO | LIFECYCLE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` resets the `BlinkController` unconditionally; calling it after the game is removed would throw (`reset` after `dispose`) |
 
 ---
 
@@ -410,3 +414,43 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
+
+### `OBS-045`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/managers/blink_controller.dart`
+* **Source:** `audit / TASK-009 T1`
+* **Status:** Open
+* **Finding:** The task says "no Flutter imports", but `ValueNotifier` needs `package:flutter/foundation.dart`; `mouth_controller` and `game_manager` do the same and there is no Flame import.
+* **Risk/Impact:** None; wording mismatch only.
+* **Resolution Trigger:** Amend the TASK-009 wording to "no Flame imports" or drop `ValueNotifier`.
+
+### `OBS-049`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/game/components/caua_player_component.dart` (`_tryLoad`, lines 88-94)
+* **Source:** `audit / TASK-009 T3`
+* **Status:** Open
+* **Finding:** `_tryLoad` swallows a missing sprite without logging; the nearest-eye-state fallback hides the gap.
+* **Risk/Impact:** A missing or misnamed frame goes unnoticed in development.
+* **Resolution Trigger:** Next touch of the component: log the miss via `package:logging`.
+
+### `OBS-053`
+* **Severity:** WARNING
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart` (`update`)
+* **Source:** `audit / TASK-009 T4`
+* **Status:** Open
+* **Finding:** `blinkEnabled = (state == GameState.playing)`. TASK-009 T4 says blinking stays on in `tutorial` and `victory`. With only `playing` in `main` this is correct, but once TASK-006 (tutorial, default state) and TASK-004 T4 (victory) merge, Caua would stop blinking in those states.
+* **Risk/Impact:** Caua frozen with open eyes during the tutorial and victory screen.
+* **Resolution Trigger:** First merge of TASK-006 or TASK-004 with TASK-009: widen the predicate to exclude only non-visible states (for example game over).
+
+### `OBS-054`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_candies_game.dart` (`restart`)
+* **Source:** `audit / TASK-009 T4`
+* **Status:** Open
+* **Finding:** `restart()` calls `_blinkController.reset()` unconditionally; after `dispose` it would throw.
+* **Risk/Impact:** Low: restart is not called after the game is removed.
+* **Resolution Trigger:** TASK-005 restart flow: keep the call order (restart only while mounted).

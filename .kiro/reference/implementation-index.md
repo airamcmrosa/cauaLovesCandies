@@ -90,6 +90,16 @@ SHA as append-only history.
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
 
+## TASK-009 - Caua blink animation (US02)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | EyeState and BlinkController | committed | ea0793f |
+| T2 | Eye-state sprites | committed | 73aaf6a |
+| T3 | CauaPlayerComponent blink table | committed | ca97f7e |
+| T4 | blinkEnabled wiring and reset | committed | 8cd439e |
+| T5 | Self-audit pass (no code change) | committed | 8cd439e |
+
 ## TASK-010 - Animated stars and confetti (US05)
 
 | Task | Summary | State | Commit SHA |
