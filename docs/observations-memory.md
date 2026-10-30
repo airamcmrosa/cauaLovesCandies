@@ -50,6 +50,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-044` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | Render allocates one Color per particle per frame (`withValues`); use a cached alpha palette |
+| `OBS-047` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | `hitSparkleMaxParticles` is unused; every sparkle allocates and iterates the full 80-particle pool |
 
 ---
 
@@ -426,3 +427,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `render` calls `Color.withValues` once per particle per frame, a small allocation against the task's "no per-frame allocations" Verify.
 * **Risk/Impact:** Low: at most 80 particles; possible GC pressure on low-end phones.
 * **Resolution Trigger:** TASK-010 T4: replace with a cached alpha palette.
+
+### `OBS-047`
+* **Severity:** WARNING
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/particle_celebration_component.dart`
+* **Source:** `audit / TASK-010 T2`
+* **Status:** Open
+* **Finding:** `hitSparkleMaxParticles` is unused, and each sparkle allocates and iterates the full 80-particle pool although it needs 8.
+* **Risk/Impact:** Low: one short-lived instance per sweet or fruit ingested; wasted allocation on low-end phones.
+* **Resolution Trigger:** TASK-010 T4: size the pool per preset (can be fixed together with OBS-044).

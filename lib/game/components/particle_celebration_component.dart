@@ -8,7 +8,7 @@ enum CelebrationPreset {
   /// Full-screen multicolor burst followed by light falling rain.
   victory,
 
-  /// Small sparkle on a successful ingest (implemented in a later task).
+  /// Small accent-lemon star pop on a successful ingest.
   hitSparkle,
 }
 
@@ -50,6 +50,15 @@ class ParticleCelebrationComponent extends PositionComponent {
 
   /// Particles in the initial burst; the rest fall as rain.
   static const int burstCount = 56;
+
+  /// Hard particle cap for [CelebrationPreset.hitSparkle].
+  static const int hitSparkleMaxParticles = 8;
+
+  /// Particles per sparkle (within 6-8).
+  static const int hitSparkleCount = 7;
+
+  /// Sparkle lifetime in seconds.
+  static const double hitSparkleLife = 0.6;
 
   static const double gravity = 900.0;
   static const double worldWidth = 720.0;
@@ -122,6 +131,43 @@ class ParticleCelebrationComponent extends PositionComponent {
   }
 
   void _fill() {
+    switch (preset) {
+      case CelebrationPreset.victory:
+        _fillVictory();
+      case CelebrationPreset.hitSparkle:
+        _fillHitSparkle();
+    }
+  }
+
+  void _fillHitSparkle() {
+    for (var i = 0; i < maxParticles; i++) {
+      final p = _pool[i];
+      if (i >= hitSparkleCount) {
+        p.alive = false;
+        continue;
+      }
+      final dir =
+          (i + _random.nextDouble() * 0.6) * math.pi * 2 / hitSparkleCount;
+      final speed = 120 + _random.nextDouble() * 100;
+      p
+        ..alive = true
+        ..age = 0
+        ..delay = 0
+        ..shape = _Shape.star
+        ..paintIndex = 0
+        ..angle = _random.nextDouble() * math.pi * 2
+        ..spin = (_random.nextDouble() - 0.5) * 8
+        ..size = 7 + _random.nextDouble() * 5
+        ..x = _origin.x
+        ..y = _origin.y
+        ..vx = math.cos(dir) * speed
+        ..vy = math.sin(dir) * speed
+        ..life = hitSparkleLife;
+    }
+    _active = hitSparkleCount;
+  }
+
+  void _fillVictory() {
     for (var i = 0; i < maxParticles; i++) {
       final p = _pool[i];
       final burst = i < burstCount;

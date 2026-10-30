@@ -25,6 +25,28 @@ class _RecordingCanvas implements Canvas {
   dynamic noSuchMethod(Invocation invocation) {}
 }
 
+/// Canvas stub that records translations and fill colors of every draw call.
+class _PosCanvas implements Canvas {
+  final List<Offset> translations = <Offset>[];
+  final List<Color> colors = <Color>[];
+
+  @override
+  void translate(double dx, double dy) => translations.add(Offset(dx, dy));
+
+  @override
+  void drawRRect(RRect rrect, Paint paint) => colors.add(paint.color);
+
+  @override
+  void drawCircle(Offset c, double radius, Paint paint) =>
+      colors.add(paint.color);
+
+  @override
+  void drawPath(Path path, Paint paint) => colors.add(paint.color);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
 const double _dt = 1 / 60;
 
 List<int> _trajectory(int seed, int steps) {
@@ -182,6 +204,139 @@ void main() {
       game.update(_dt);
       expect(game.children.contains(c), isFalse);
       expect(c.isMounted, isFalse);
+    });
+  });
+
+  group('ParticleCelebrationComponent hitSparkle preset', () {
+    ParticleCelebrationComponent sparkle({int seed = 1, Vector2? origin}) =>
+        ParticleCelebrationComponent(
+          preset: CelebrationPreset.hitSparkle,
+          random: math.Random(seed),
+          origin: origin ?? Vector2(100, 200),
+        );
+
+    test('spawns within the 6-8 particle cap', () {
+      final c = sparkle();
+      expect(ParticleCelebrationComponent.hitSparkleMaxParticles, 8);
+      expect(c.activeCount, inInclusiveRange(6, 8));
+      expect(_renderAlphas(c).length, c.activeCount);
+    });
+
+    test('every particle spawns at the given origin', () {
+      final c = sparkle(origin: Vector2(123, 456));
+      final canvas = _PosCanvas();
+      c.render(canvas);
+      expect(canvas.translations.length, c.activeCount);
+      for (final t in canvas.translations) {
+        expect(t.dx, closeTo(123, 1e-9));
+        expect(t.dy, closeTo(456, 1e-9));
+      }
+    });
+
+    test('particles move away from the origin after updating', () {
+      final c = sparkle(origin: Vector2(123, 456));
+      c.update(0.1);
+      final canvas = _PosCanvas();
+      c.render(canvas);
+      expect(
+        canvas.translations.any(
+          (t) => (t - const Offset(123, 456)).distance > 1,
+        ),
+        isTrue,
+      );
+    });
+
+    test('uses only the accent lemon color', () {
+      final c = sparkle();
+      final lemon = ParticleCelebrationComponent.colors[0];
+      for (var step = 0; step < 30; step++) {
+        final canvas = _PosCanvas();
+        c.render(canvas);
+        for (final col in canvas.colors) {
+          expect(col.r, closeTo(lemon.r, 1e-6));
+          expect(col.g, closeTo(lemon.g, 1e-6));
+          expect(col.b, closeTo(lemon.b, 1e-6));
+        }
+        c.update(_dt);
+      }
+    });
+
+    test('same seed gives identical positions, different seed differs', () {
+      List<Offset> snap(int seed) {
+        final c = sparkle(seed: seed);
+        c.update(0.2);
+        final canvas = _PosCanvas();
+        c.render(canvas);
+        return canvas.translations;
+      }
+
+      expect(snap(42), snap(42));
+      expect(snap(42), isNot(snap(43)));
+    });
+
+    test('lives about 0.6s then finishes', () {
+      final c = sparkle();
+      c.update(0.55);
+      expect(c.activeCount, greaterThan(0));
+      c.update(0.1);
+      expect(c.activeCount, 0);
+      expect(_renderAlphas(c), isEmpty);
+    });
+
+    test('fades out before finishing', () {
+      final c = sparkle();
+      c.update(0.55);
+      final alphas = _renderAlphas(c);
+      expect(alphas, isNotEmpty);
+      expect(alphas.every((a) => a < 1.0 && a >= 0.0), isTrue);
+    });
+
+    testWithFlameGame('removes itself after its lifetime', (game) async {
+      final c = sparkle();
+      await game.add(c);
+      await game.ready();
+      game.update(0.5);
+      expect(game.children.contains(c), isTrue);
+      game.update(0.2);
+      game.update(_dt);
+      expect(game.children.contains(c), isFalse);
+    });
+
+    testWithFlameGame('10 independent instances all remove, no leftovers', (
+      game,
+    ) async {
+      final sparkles = List.generate(
+        10,
+        (i) => sparkle(seed: i, origin: Vector2(10.0 * i, 20)),
+      );
+      await game.addAll(sparkles);
+      await game.ready();
+      expect(
+        game.children.whereType<ParticleCelebrationComponent>().length,
+        10,
+      );
+      for (final s in sparkles) {
+        expect(s.activeCount, inInclusiveRange(6, 8));
+      }
+      game.update(0.3);
+      expect(
+        game.children.whereType<ParticleCelebrationComponent>().length,
+        10,
+      );
+      game.update(0.4);
+      game.update(_dt);
+      expect(game.children.whereType<ParticleCelebrationComponent>(), isEmpty);
+      for (final s in sparkles) {
+        expect(s.isMounted, isFalse);
+        expect(s.activeCount, 0);
+      }
+    });
+
+    test('victory preset is unchanged by the sparkle preset', () {
+      final v = ParticleCelebrationComponent(random: math.Random(1));
+      expect(v.preset, CelebrationPreset.victory);
+      expect(v.activeCount, ParticleCelebrationComponent.maxParticles);
+      expect(_renderAlphas(v).length, ParticleCelebrationComponent.burstCount);
     });
   });
 }
