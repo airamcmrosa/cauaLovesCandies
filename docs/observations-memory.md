@@ -50,7 +50,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
-| `OBS-050` | INFO | PERFORMANCE_NFR | `lib/ui/tutorial_overlay.dart` | Open | `_buildTapDemo` rebuilds the mouth `Image` and Stack every frame, and the closed-mouth sprite is not precached by the widget |
 | `OBS-058` | INFO | ERROR_HANDLING | `lib/ui/tutorial_overlay.dart` | Open | Empty `precacheImage` onError swallows load failures and the mouth images have no `errorBuilder` |
 | `OBS-059` | INFO | LIFECYCLE | `lib/ui/tutorial_overlay.dart` | Open | If the widget is disposed mid-fade `onRemoved` never fires; the T6 wiring must not rely on it alone for cleanup |
 
@@ -238,7 +237,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
 
-
 ### `OBS-023`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -259,7 +257,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
 
-
 ### `OBS-028`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -279,8 +276,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
-
-
 
 ### `OBS-035`
 * **Severity:** INFO
@@ -350,7 +345,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `itemSpriteAssetList` duplicates the keys of `itemSpriteAssets`, and 16 item types reuse 9 sprites (donut and sprinkles use the cupcake, banana the grape, broccoli the onion). The product owner accepted the reuse; a test checks the list against the map and the files on disk.
 * **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
 * **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
-
 
 ### `OBS-039`
 * **Severity:** WARNING
@@ -429,16 +423,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `timeScale` checks only `state == tutorial`; the spawner's old `state != playing` early return is gone. Safe while `GameState` has only `tutorial` and `playing`.
 * **Risk/Impact:** A future victory or game-over state would keep spawning and moving the belt.
 * **Resolution Trigger:** TASK-005 (or TASK-004 T4, whichever adds a state first): make `timeScale` return 0 for every non-playing state.
-
-### `OBS-050`
-* **Severity:** INFO
-* **Category:** PERFORMANCE_NFR
-* **Target:** `lib/ui/tutorial_overlay.dart` (`_buildTapDemo`)
-* **Source:** `audit / TASK-006 T4`
-* **Status:** Open
-* **Finding:** The mouth `Image` and Stack are rebuilt every frame (could be cached like `_hand`), and the closed-mouth sprite is not precached by the widget, so the first swap may briefly show the previous frame.
-* **Risk/Impact:** Low: small per-frame cost; the sprites are in the preload list.
-* **Resolution Trigger:** TASK-006 T5/T8, and check visually at T6.
 
 ### `OBS-058`
 * **Severity:** INFO

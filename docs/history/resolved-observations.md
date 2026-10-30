@@ -20,6 +20,7 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 | `OBS-033` | WARNING | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_startingMusic` guard drops a start request made during an in-flight start; a mute during a start can still end up playing | 7400c93 |
 | `OBS-034` | INFO | LIFECYCLE | `lib/audio/audio_controller.dart` | Resolved | `_handleSongFinished` ignores `audioOn` and dispose state | 7400c93 |
 | `OBS-031` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart` | Resolved | Mute handling inside `AudioController.playSfx` is not covered by `sounds_test.dart` | be374ee |
+| `OBS-050` | INFO | PERFORMANCE_NFR | `lib/ui/tutorial_overlay.dart` | Resolved | `_buildTapDemo` rebuilds the mouth `Image` and Stack every frame, and the closed-mouth sprite is not precached by the widget | ca4e980 |
 
 ---
 
@@ -101,3 +102,13 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 * **Risk/Impact:** A regression could play SFX while muted.
 * **Resolution Trigger:** The TASK-001 audio toggle rework (SFX and music muted together) adds the test.
 * **Resolved By:** be374ee (TASK-001 audio tests cover muted and audible `playSfx`)
+
+### `OBS-050`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/ui/tutorial_overlay.dart` (`_buildTapDemo`)
+* **Source:** `audit / TASK-006 T4`
+* **Status:** Open
+* **Finding:** The mouth `Image` and Stack are rebuilt every frame (could be cached like `_hand`), and the closed-mouth sprite is not precached by the widget, so the first swap may briefly show the previous frame.
+* **Risk/Impact:** Low: small per-frame cost; the sprites are in the preload list.
+* **Resolution Trigger:** TASK-006 T5/T8, and check visually at T6.
