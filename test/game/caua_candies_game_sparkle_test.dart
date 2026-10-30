@@ -4,6 +4,7 @@ import 'package:caua_loves_candies/game/caua_candies_game.dart';
 import 'package:caua_loves_candies/game/components/caua_player_component.dart';
 import 'package:caua_loves_candies/game/components/particle_celebration_component.dart';
 import 'package:caua_loves_candies/game/item_sprites.dart';
+import 'package:caua_loves_candies/game/projection.dart';
 import 'package:caua_loves_candies/game/managers/game_manager.dart';
 import 'package:caua_loves_candies/game/managers/item_type.dart';
 import 'package:flame_test/flame_test.dart';
@@ -59,6 +60,8 @@ void main() {
             expect(list.single.preset, CelebrationPreset.hitSparkle);
             expect(list.single.priority, 2000);
             expect(CauaCandiesGame.sparklePriority, 2000);
+            expect(list.single.origin.x, closeTo(Projection.xMouth, 1e-3));
+            expect(list.single.origin.y, closeTo(Projection.yMouth, 1e-3));
             expect(
               list.single.activeCount,
               ParticleCelebrationComponent.hitSparkleCount,
@@ -130,6 +133,35 @@ void main() {
       await game.ready();
       game.update(0);
       expect(sparkles(game), isEmpty);
+    });
+
+    gameTest('restart removes victory and sparkles together', (game) async {
+      await game.ready();
+      game.world.add(ParticleCelebrationComponent());
+      game.spawnHitSparkle(ItemType.donut);
+      await game.ready();
+      game.update(0);
+      expect(sparkles(game), hasLength(2));
+      await game.restart();
+      await game.ready();
+      game.update(0);
+      expect(sparkles(game), isEmpty);
+    });
+
+    gameTest('10 victory add + restart cycles leave no leftovers', (
+      game,
+    ) async {
+      await game.ready();
+      for (var i = 0; i < 10; i++) {
+        game.world.add(ParticleCelebrationComponent());
+        await game.ready();
+        game.update(0);
+        expect(sparkles(game), hasLength(1));
+        await game.restart();
+        await game.ready();
+        game.update(0);
+        expect(sparkles(game), isEmpty);
+      }
     });
   });
 }

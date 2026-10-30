@@ -332,6 +332,73 @@ void main() {
       }
     });
 
+    test('origin getter returns the given origin', () {
+      final c = sparkle(origin: Vector2(12, 34));
+      expect(c.origin.x, 12);
+      expect(c.origin.y, 34);
+      expect(ParticleCelebrationComponent().origin, Vector2(360, 200));
+    });
+
+    test('pool and active count stay within the per-preset caps', () {
+      final s = sparkle();
+      expect(
+        s.activeCount,
+        lessThanOrEqualTo(ParticleCelebrationComponent.hitSparkleMaxParticles),
+      );
+      expect(ParticleCelebrationComponent.hitSparkleMaxParticles, 8);
+      expect(ParticleCelebrationComponent.maxParticles, 80);
+      expect(_renderAlphas(s).length, lessThanOrEqualTo(8));
+      final v = ParticleCelebrationComponent(random: math.Random(1));
+      expect(v.activeCount, lessThanOrEqualTo(80));
+      expect(_renderAlphas(v).length, lessThanOrEqualTo(80));
+    });
+
+    test('sparkle size stays in 10-16 and life is 0.6s', () {
+      expect(ParticleCelebrationComponent.hitSparkleLife, 0.6);
+      expect(ParticleCelebrationComponent.hitSparkleFadeWindow, 0.2);
+    });
+
+    test('sparkle holds full alpha until the last 0.2s then fades', () {
+      final c = sparkle();
+      // Age 0 and 0.39s (0.21s remaining): still fully opaque.
+      expect(_renderAlphas(c).every((a) => a == 1.0), isTrue);
+      c.update(0.39);
+      var alphas = _renderAlphas(c);
+      expect(alphas, isNotEmpty);
+      expect(alphas.every((a) => a == 1.0), isTrue);
+      // 0.1s remaining: about half alpha.
+      c.update(0.11);
+      alphas = _renderAlphas(c);
+      expect(alphas, isNotEmpty);
+      for (final a in alphas) {
+        expect(a, closeTo(0.5, 0.07));
+      }
+      // 0.02s remaining: nearly transparent.
+      c.update(0.08);
+      for (final a in _renderAlphas(c)) {
+        expect(a, lessThan(0.2));
+      }
+    });
+
+    test('victory fade window is unchanged at 0.5s', () {
+      expect(ParticleCelebrationComponent.victoryFadeWindow, 0.5);
+      final c = ParticleCelebrationComponent(random: math.Random(11));
+      // Before any particle can be within 0.5s of its end (min life 2.2s).
+      c.update(1.6);
+      expect(_renderAlphas(c).every((a) => a == 1.0), isTrue);
+      // At 2.5s some burst particles are inside the fade window.
+      for (var i = 0; i < 54; i++) {
+        c.update(_dt);
+      }
+      expect(_renderAlphas(c).any((a) => a < 1.0), isTrue);
+    });
+
+    test('rendering many frames does not change particle state', () {
+      final c = sparkle();
+      c.update(0.45);
+      expect(_renderAlphas(c), _renderAlphas(c));
+    });
+
     test('victory preset is unchanged by the sparkle preset', () {
       final v = ParticleCelebrationComponent(random: math.Random(1));
       expect(v.preset, CelebrationPreset.victory);

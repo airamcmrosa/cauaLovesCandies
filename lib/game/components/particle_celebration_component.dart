@@ -41,7 +41,18 @@ class ParticleCelebrationComponent extends PositionComponent {
     Vector2? origin,
     super.priority = 100,
   }) : _random = random ?? math.Random(),
-       _origin = origin ?? Vector2(360, 200) {
+       _origin = origin ?? Vector2(360, 200),
+       _capacity = preset == CelebrationPreset.hitSparkle
+           ? hitSparkleMaxParticles
+           : maxParticles,
+       _fadeWindow = preset == CelebrationPreset.hitSparkle
+           ? hitSparkleFadeWindow
+           : victoryFadeWindow {
+    _pool = List<_Particle>.generate(
+      _capacity,
+      (_) => _Particle(),
+      growable: false,
+    );
     _fill();
   }
 
@@ -60,6 +71,15 @@ class ParticleCelebrationComponent extends PositionComponent {
   /// Sparkle lifetime in seconds.
   static const double hitSparkleLife = 0.6;
 
+  /// Sparkle fade-out window in seconds (holds full alpha before it).
+  static const double hitSparkleFadeWindow = 0.2;
+
+  /// Victory fade-out window in seconds.
+  static const double victoryFadeWindow = 0.5;
+
+  /// Alpha quantization steps for the cached fade palette.
+  static const int _alphaSteps = 16;
+
   static const double gravity = 900.0;
   static const double worldWidth = 720.0;
   static const double worldHeight = 1280.0;
@@ -77,10 +97,19 @@ class ParticleCelebrationComponent extends PositionComponent {
   final CelebrationPreset preset;
   final math.Random _random;
   final Vector2 _origin;
+  final int _capacity;
+  final double _fadeWindow;
 
-  final List<_Particle> _pool = List<_Particle>.generate(
-    maxParticles,
-    (_) => _Particle(),
+  late final List<_Particle> _pool;
+
+  /// Precomputed colors per palette entry and alpha step (no per-frame Color).
+  static final List<List<Color>> _fadeColors = List<List<Color>>.generate(
+    colors.length,
+    (i) => List<Color>.generate(
+      _alphaSteps + 1,
+      (a) => colors[i].withValues(alpha: a / _alphaSteps),
+      growable: false,
+    ),
     growable: false,
   );
   final List<Paint> _paints = List<Paint>.generate(
@@ -102,6 +131,9 @@ class ParticleCelebrationComponent extends PositionComponent {
   static final Path _starPath = _buildStarPath();
 
   int _active = 0;
+
+  /// Read-only copy-free view of the spawn origin (do not mutate).
+  Vector2 get origin => _origin;
 
   /// Number of particles still alive or waiting to spawn.
   int get activeCount => _active;
@@ -140,7 +172,7 @@ class ParticleCelebrationComponent extends PositionComponent {
   }
 
   void _fillHitSparkle() {
-    for (var i = 0; i < maxParticles; i++) {
+    for (var i = 0; i < _capacity; i++) {
       final p = _pool[i];
       if (i >= hitSparkleCount) {
         p.alive = false;
@@ -157,7 +189,7 @@ class ParticleCelebrationComponent extends PositionComponent {
         ..paintIndex = 0
         ..angle = _random.nextDouble() * math.pi * 2
         ..spin = (_random.nextDouble() - 0.5) * 8
-        ..size = 7 + _random.nextDouble() * 5
+        ..size = 10 + _random.nextDouble() * 6
         ..x = _origin.x
         ..y = _origin.y
         ..vx = math.cos(dir) * speed
@@ -205,7 +237,7 @@ class ParticleCelebrationComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    for (var i = 0; i < maxParticles; i++) {
+    for (var i = 0; i < _capacity; i++) {
       final p = _pool[i];
       if (!p.alive) continue;
       if (p.delay > 0) {
@@ -232,13 +264,13 @@ class ParticleCelebrationComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    for (var i = 0; i < maxParticles; i++) {
+    for (var i = 0; i < _capacity; i++) {
       final p = _pool[i];
       if (!p.alive || p.delay > 0) continue;
       final remaining = p.life - p.age;
-      final alpha = remaining < 0.5 ? remaining / 0.5 : 1.0;
+      final alpha = remaining < _fadeWindow ? remaining / _fadeWindow : 1.0;
       final paint = _paints[p.paintIndex]
-        ..color = colors[p.paintIndex].withValues(alpha: alpha);
+        ..color = _fadeColors[p.paintIndex][(alpha * _alphaSteps).round()];
       canvas
         ..save()
         ..translate(p.x, p.y)
