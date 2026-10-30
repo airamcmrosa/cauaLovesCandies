@@ -101,4 +101,4 @@ SHA as append-only history.
 | T5 | Dismiss behavior | committed | ca4e980 |
 | T6 | Overlay registration | committed | 7f64e32 |
 | T7 | Dismissing tap behavior | committed | d546f44 |
-| T8 | Self-audit pass | todo | - |
+| T8 | Self-audit pass (no code change) | committed | d546f44 |

@@ -56,7 +56,7 @@ Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests)
 - [x] T5 - Add dismiss behavior: full-screen tap target calls `onDismiss` once, then the widget fades out (about 250 ms, `AnimatedOpacity`/`FadeTransition`) and signals removal. _Verify:_ first tap triggers `dismissTutorial()` immediately (belt moving while overlay still fading), overlay is gone after the fade, repeated taps during the fade do nothing.
 - [x] T6 - Register the overlay in the game screen/game class (overlay key constant), show it when `GameState.tutorial` begins and remove it on dismissal; listen via `ValueListenable`, remove listeners on dispose. _Verify:_ tapping JOGAR leads to the overlay appearing with no extra tap; no leaked listeners after leaving the screen; restarting the game from the victory screen follows the decision in Open Question 4.
 - [x] T7 - Ensure the dismissing tap behavior matches the decision for Open Question 2 (consume the tap versus also toggle the mouth) and that input is not double-handled between the overlay and the Flame tap handler. _Verify:_ one physical tap produces exactly one effect as specified; no mouth flicker on the first tap.
-- [ ] T8 - Self-audit and read-only verification. _Verify:_ `dart format --set-exit-if-changed lib` and `flutter analyze` are clean; `flutter build web --release` succeeds; no allocations added to `update`/`render` paths; English only.
+- [x] T8 - Self-audit and read-only verification. _Verify:_ `dart format --set-exit-if-changed lib` and `flutter analyze` are clean; `flutter build web --release` succeeds; no allocations added to `update`/`render` paths; English only.
 
 ## Definition of Done
 - Every story AC above is demonstrably met.
