@@ -56,6 +56,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
 | `OBS-060` | WARNING | OPERABILITY_NFR | `.kiro/skills/orchestrate-phase/scripts/check-green.sh` | Open | The green check parses only the `flutter test` log, so a `flutter analyze` failure still yields GREEN |
 | `OBS-061` | INFO | TEST_COVERAGE | `lib/game/caua_candies_game.dart` (`restart`) | Open | `restart()` has no caller until TASK-005, so the reset-clears-banner path is covered only by `GameManager.reset()` tests and code reading |
+| `OBS-064` | INFO | TEST_COVERAGE | `lib/game/managers/game_manager.dart`, `lib/ui/phase_banner_overlay.dart` | Open | A multi-threshold score jump fires `phaseChanged` once per step in one frame so the banner shows only the last text; no banner test covers a 2-then-3 jump |
+| `OBS-065` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | Comment says "Phase 1 (1.0x)" but phase 1 is now 1.2x; fix with OBS-052 |
 
 ---
 
@@ -492,3 +494,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `restart()` has no caller yet; the banner-hide test calls `GameManager.reset()`, which `restart()` invokes, instead of `game.restart()`.
 * **Risk/Impact:** Low until TASK-005 wires restart.
 * **Resolution Trigger:** TASK-005 wires restart: add a `game.restart()` banner test.
+
+### `OBS-064`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/game/managers/game_manager.dart`, `lib/ui/phase_banner_overlay.dart`
+* **Source:** `audit / TASK-004 T7`
+* **Status:** Open
+* **Finding:** A score jump across several thresholds fires `phaseChanged` once per step in the same frame; the banner shows only the last text (a jump 1 to 3 shows only "Fase 3"). Acceptable and rare (max single gain is +2).
+* **Risk/Impact:** None in practice; untested edge.
+* **Resolution Trigger:** Optional: add a banner test for a 2-then-3 jump in one frame.
+
+### `OBS-065`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/components/conveyor_belt_component.dart:29`
+* **Source:** `audit / TASK-004 T7`
+* **Status:** Open
+* **Finding:** Stale comment "Phase 1 (1.0x)"; phase 1 now runs at 1.2x.
+* **Risk/Impact:** Misleading comment only.
+* **Resolution Trigger:** Fix together with OBS-052 after the phone playtest.

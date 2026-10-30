@@ -100,4 +100,4 @@ SHA as append-only history.
 | T4 | Victory state at phase 3 target | committed | e4d9be1 |
 | T5 | PhaseBannerOverlay | committed | e1160d9 |
 | T6 | Overlay registration and restart reset | committed | 6e721ec |
-| T7 | Self-audit pass | todo | - |
+| T7 | Self-audit pass (no code change) | committed | 6e721ec |

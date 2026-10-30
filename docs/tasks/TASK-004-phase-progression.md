@@ -50,7 +50,7 @@ Each item is one unit for the orchestrate-phase loop (flutter-dev, audit, tests)
 - [x] T4 - Define behavior at the phase 3 target (30): add `GameState.victory`; `GameManager` flags the final target reached and stops advancing further (no phase 4); the victory UI is TASK-005. _Verify:_ no out-of-range index into `kPhases`; reaching 30 emits one "final target reached" signal.
 - [x] T5 - Add `phase_banner_overlay.dart` listening to the phase-change event, shows "Fase N - ..." text for ~1.5 s then fades out, `IgnorePointer`, never pauses the game. _Verify:_ on phase change the banner appears while items keep moving and taps still toggle the mouth; banner disappears on its own.
 - [x] T6 - Register the banner overlay with the game widget and ensure restart resets phase to 1 and clears any visible banner. _Verify:_ after restart the game runs at 1.0x and no stale banner or listener remains (notifiers disposed in `dispose`/`onRemove`).
-- [ ] T7 - Self-audit and handoff list for test-author. _Verify:_ `dart format --set-exit-if-changed lib`, `flutter analyze`, `flutter build web --release` pass. Suggested coverage: phase advance thresholds (9/10/19/20/29/30), event fires once, score jumping across a threshold, restart reset, config invariants (strictly increasing multiplier and target).
+- [x] T7 - Self-audit and handoff list for test-author. _Verify:_ `dart format --set-exit-if-changed lib`, `flutter analyze`, `flutter build web --release` pass. Suggested coverage: phase advance thresholds (9/10/19/20/29/30), event fires once, score jumping across a threshold, restart reset, config invariants (strictly increasing multiplier and target).
 
 ## Definition of Done
 - Every story AC above is demonstrably met.
