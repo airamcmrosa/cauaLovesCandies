@@ -184,5 +184,13 @@ void main() {
       addTearDown(m.dispose);
       expect(m.timeScale, 1.0);
     });
+
+    test('is 0 in victory so the belt and items freeze', () {
+      final m = GameManager()..dismissTutorial();
+      addTearDown(m.dispose);
+      m.addScore(kPhases.last.targetScore);
+      expect(m.state, GameState.victory);
+      expect(m.timeScale, 0.0);
+    });
   });
 }

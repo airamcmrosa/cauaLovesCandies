@@ -38,8 +38,17 @@ void main() {
   tearDown(() => controller.dispose());
 
   void preload(FlameGame game) {
-    game.images.add(CauaPlayerComponent.closedSpriteName, closedImage);
-    game.images.add(CauaPlayerComponent.openSpriteName, openImage);
+    game.images.clearCache();
+    // The eyes-open frames use the tracked images; the rest are clones.
+    final names = CauaPlayerComponent.allSpriteNames;
+    for (var i = 0; i < names.length; i++) {
+      final img = switch (i) {
+        0 => closedImage,
+        3 => openImage,
+        _ => baseClosed.clone(),
+      };
+      game.images.add(names[i], img);
+    }
   }
 
   group('CauaPlayerComponent', () {

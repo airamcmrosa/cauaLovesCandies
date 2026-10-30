@@ -102,3 +102,35 @@ SHA as append-only history.
 | T6 | Overlay registration | committed | 7f64e32 |
 | T7 | Dismissing tap behavior | committed | d546f44 |
 | T8 | Self-audit pass (no code change) | committed | d546f44 |
+
+## TASK-004 - Phase progression (US04)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | PhaseConfig targets and banner text | committed | 8ea74e9 |
+| T2 | GameManager phase notifier and advance | committed | 7726934 |
+| T3 | Speed multiplier consumed by belt and items | committed | eae18be |
+| T4 | Victory state at phase 3 target | committed | e4d9be1 |
+| T5 | PhaseBannerOverlay | committed | e1160d9 |
+| T6 | Overlay registration and restart reset | committed | 6e721ec |
+| T7 | Self-audit pass (no code change) | committed | 6e721ec |
+
+## TASK-009 - Caua blink animation (US02)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | EyeState and BlinkController | committed | ea0793f |
+| T2 | Eye-state sprites | committed | 73aaf6a |
+| T3 | CauaPlayerComponent blink table | committed | ca97f7e |
+| T4 | blinkEnabled wiring and reset | committed | 8cd439e |
+| T5 | Self-audit pass (no code change) | committed | 8cd439e |
+
+## TASK-010 - Animated stars and confetti (US05)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | ParticleCelebrationComponent victory preset | committed | b64efe4 |
+| T2 | hitSparkle preset | committed | abb791a |
+| T3 | Ingestion event and sparkle spawn | committed | 1d76414 |
+| T4 | Lifecycle and restart | committed | 2fa0d70 |
+| T5 | Handoff pass (coverage confirmed, no change) | committed | 2fa0d70 |

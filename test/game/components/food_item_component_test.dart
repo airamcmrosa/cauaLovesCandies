@@ -398,7 +398,13 @@ void main() {
       expect(item.z, 0.0);
       gm.dismissTutorial();
       item.update(0.5);
-      expect(item.z, closeTo(ConveyorBeltComponent.baseSpeed * 0.5, 1e-9));
+      expect(
+        item.z,
+        closeTo(
+          ConveyorBeltComponent.baseSpeed * gm.currentSpeedMultiplier * 0.5,
+          1e-9,
+        ),
+      );
     });
   });
 }

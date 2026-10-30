@@ -10,8 +10,10 @@ import 'components/caua_player_component.dart';
 import 'components/conveyor_belt_component.dart';
 import 'components/food_item_component.dart';
 import 'components/item_spawner_component.dart';
+import 'components/particle_celebration_component.dart';
 import 'item_sprites.dart';
 import 'projection.dart';
+import 'managers/blink_controller.dart';
 import 'managers/game_manager.dart';
 import 'managers/item_type.dart';
 import 'managers/mouth_controller.dart';
@@ -25,7 +27,7 @@ import 'screen_shake.dart';
 /// for minimal latency.
 ///
 /// Ownership: the game owns the injected [GameManager] and [MouthController]
-/// and disposes them in [onRemove]; callers must not dispose them.
+/// and the [BlinkController] it creates and disposes them in [onRemove]; callers must not dispose them.
 class CauaCandiesGame extends FlameGame with TapCallbacks {
   CauaCandiesGame({
     MouthController? mouthController,
@@ -34,6 +36,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     Random? random,
   }) : _mouthController = mouthController ?? MouthController(),
        _gameManager = gameManager ?? GameManager(),
+       _blinkController = BlinkController(random: random),
        _audio = audio,
        _random = random ?? Random(),
        super(
@@ -42,6 +45,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   /// Overlay keys registered by the host screen.
   static const String hudOverlayKey = 'hud';
+  static const String phaseBannerOverlayKey = 'phaseBanner';
   static const String tutorialOverlayKey = 'tutorial';
 
   static const double virtualWidth = 720;
@@ -75,8 +79,10 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   final MouthController _mouthController;
   final GameManager _gameManager;
+  final BlinkController _blinkController;
   final AudioController? _audio;
   final Random _random;
+  CauaPlayerComponent? _player;
   ScreenShake? _shake;
   ItemSpawnerComponent? _spawner;
 
@@ -97,20 +103,20 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     camera.viewfinder.anchor = Anchor.topLeft;
     camera.viewfinder.position = Vector2.zero();
     await images.loadAll([
-      CauaPlayerComponent.closedSpriteName,
-      CauaPlayerComponent.openSpriteName,
+      ...CauaPlayerComponent.allSpriteNames,
       ...itemSpriteAssetList,
     ]);
     await world.add(ConveyorBeltComponent(gameManager: _gameManager));
-    await world.add(
-      CauaPlayerComponent(
-        mouthController: _mouthController,
-        position: Vector2(virtualWidth / 2, playerCenterY),
-        size: Vector2.all(playerSize),
-        anchor: Anchor.center,
-        priority: playerPriority,
-      ),
+    final player = CauaPlayerComponent(
+      mouthController: _mouthController,
+      blinkController: _blinkController,
+      position: Vector2(virtualWidth / 2, playerCenterY),
+      size: Vector2.all(playerSize),
+      anchor: Anchor.center,
+      priority: playerPriority,
     );
+    _player = player;
+    await world.add(player);
     final shake = ScreenShake(camera: camera);
     _shake = shake;
     await world.add(shake);
@@ -119,20 +125,41 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
 
   Future<void> _addSpawner() async {
     final audio = _audio;
+    final FoodItemCallback baseHook = audio != null
+        ? ingestHook(audio, onHazard: _triggerShake)
+        : _hazardShakeOnly;
     final spawner = ItemSpawnerComponent(
       gameManager: _gameManager,
       mouthController: _mouthController,
       random: _random,
       spriteFor: buildItemSpriteLookup(images),
-      onIngested: audio != null
-          ? ingestHook(audio, onHazard: _triggerShake)
-          : _hazardShakeOnly,
+      onIngested: (type) {
+        baseHook(type);
+        spawnHitSparkle(type);
+      },
     );
     _spawner = spawner;
     await world.add(spawner);
   }
 
   void _triggerShake() => _shake?.trigger();
+
+  /// Draw priority of sparkles: above items (0..1000), Cauã and the belt.
+  static const int sparklePriority = 2000;
+
+  /// Spawns a [CelebrationPreset.hitSparkle] at Cauã's mouth for sweets and
+  /// fruits. Hazards spawn nothing.
+  void spawnHitSparkle(ItemType type) {
+    if (type.category == ItemCategory.hazard) return;
+    world.add(
+      ParticleCelebrationComponent(
+        preset: CelebrationPreset.hitSparkle,
+        random: _random,
+        origin: Vector2(Projection.xMouth, Projection.yMouth),
+        priority: sparklePriority,
+      ),
+    );
+  }
 
   void _hazardShakeOnly(ItemType type) {
     if (type.category == ItemCategory.hazard) _triggerShake();
@@ -143,6 +170,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   Future<void> restart() async {
     // Reset returns to playing: never leave a stale tutorial overlay behind.
     overlays.remove(tutorialOverlayKey);
+    _blinkController.reset();
     // Safe before onLoad: nothing to clear, onLoad builds the initial state.
     if (_shake == null) {
       _gameManager.reset();
@@ -152,8 +180,21 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     world.children.whereType<FoodItemComponent>().toList().forEach(
       (c) => c.removeFromParent(),
     );
+    world.children.whereType<ParticleCelebrationComponent>().toList().forEach(
+      (c) => c.removeFromParent(),
+    );
     _gameManager.reset();
     await _addSpawner();
+  }
+
+  @override
+  void update(double dt) {
+    // Blink only while playing (no allocation: plain field comparison).
+    // Caua is visible, and blinks, in every state that exists today (the
+    // tutorial overlay and the victory screen both show him). A future
+    // game-over state must switch blinking off here.
+    _player?.blinkEnabled = true;
+    super.update(dt);
   }
 
   @override
@@ -166,5 +207,8 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     _gameManager.dispose();
     _mouthController.dispose();
     super.onRemove();
+    // Children (and their listeners) are gone after super; the game owns
+    // the blink controller and disposes it last.
+    _blinkController.dispose();
   }
 }

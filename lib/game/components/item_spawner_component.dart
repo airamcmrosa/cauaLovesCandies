@@ -69,7 +69,7 @@ class ItemSpawnerComponent extends Component {
     super.update(dt);
     // Keep the gap in belt distance constant across phases.
     _elapsed +=
-        dt * _gameManager.timeScale * _gameManager.phase.speedMultiplier;
+        dt * _gameManager.timeScale * _gameManager.currentSpeedMultiplier;
     if (_elapsed < spawnIntervalSeconds) return;
     _elapsed -= spawnIntervalSeconds;
     _spawn();

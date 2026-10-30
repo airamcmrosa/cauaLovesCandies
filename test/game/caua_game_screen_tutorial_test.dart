@@ -34,19 +34,25 @@ void main() {
   const fade = TutorialOverlay.fadeDuration;
 
   group('CauaGameScreen tutorial overlay', () {
-    testWidgets('registers hud and tutorial overlays, both initially active', (
-      tester,
-    ) async {
-      await tester.pumpWidget(const MaterialApp(home: CauaGameScreen()));
-      final widget = tester.widget<GameWidget<CauaCandiesGame>>(
-        find.byType(GameWidget<CauaCandiesGame>),
-      );
-      expect(CauaCandiesGame.tutorialOverlayKey, 'tutorial');
-      expect(CauaCandiesGame.hudOverlayKey, 'hud');
-      expect(widget.overlayBuilderMap, contains('hud'));
-      expect(widget.overlayBuilderMap, contains('tutorial'));
-      expect(widget.initialActiveOverlays, ['hud', 'tutorial']);
-    });
+    testWidgets(
+      'registers hud, phase banner and tutorial overlays, all initially active',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: CauaGameScreen()));
+        final widget = tester.widget<GameWidget<CauaCandiesGame>>(
+          find.byType(GameWidget<CauaCandiesGame>),
+        );
+        expect(CauaCandiesGame.tutorialOverlayKey, 'tutorial');
+        expect(CauaCandiesGame.hudOverlayKey, 'hud');
+        expect(widget.overlayBuilderMap, contains('hud'));
+        expect(widget.overlayBuilderMap, contains('tutorial'));
+        expect(widget.overlayBuilderMap, contains('phaseBanner'));
+        expect(widget.initialActiveOverlays, [
+          'hud',
+          'phaseBanner',
+          'tutorial',
+        ]);
+      },
+    );
 
     testWidgets('shows the overlay on open with the manager in tutorial', (
       tester,

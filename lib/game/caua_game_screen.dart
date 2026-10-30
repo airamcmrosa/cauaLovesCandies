@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../audio/audio_controller.dart';
 import '../style/palette.dart';
 import '../ui/game_hud.dart';
+import '../ui/phase_banner_overlay.dart';
 import '../ui/tutorial_overlay.dart';
 
 import 'caua_candies_game.dart';
@@ -113,11 +114,17 @@ class _CauaGameScreenState extends State<CauaGameScreen> {
                                         (context, game) => GameHud(
                                           gameManager: game.gameManager,
                                         ),
+                                    CauaCandiesGame.phaseBannerOverlayKey:
+                                        (context, game) => PhaseBannerOverlay(
+                                          phaseChanged:
+                                              game.gameManager.phaseChanged,
+                                        ),
                                     CauaCandiesGame.tutorialOverlayKey:
                                         _buildTutorial,
                                   },
                                   initialActiveOverlays: const [
                                     CauaCandiesGame.hudOverlayKey,
+                                    CauaCandiesGame.phaseBannerOverlayKey,
                                     CauaCandiesGame.tutorialOverlayKey,
                                   ],
                                 ),

@@ -1,56 +1,140 @@
 import 'package:flame/components.dart';
 
+import '../managers/blink_controller.dart';
 import '../managers/mouth_controller.dart';
 import '../managers/mouth_state.dart';
+import 'caua_pose.dart';
 
-/// Renders Cauã and swaps between the closed and open mouth sprites whenever
-/// [MouthController.state] changes. It owns no game rules, only the visual.
+/// Renders Cauã and swaps sprites whenever [MouthController.state] or the
+/// optional [BlinkController.state] changes. It owns no game rules.
+///
+/// Ownership: the [BlinkController] is owned and disposed by the game, never
+/// by this component. The component only listens and ticks it, and stops both
+/// as soon as it is removed.
 class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   CauaPlayerComponent({
     required MouthController mouthController,
+    BlinkController? blinkController,
     super.position,
     super.size,
     super.anchor,
     super.priority,
-  }) : _mouthController = mouthController;
+  }) : _mouthController = mouthController,
+       _blinkController = blinkController;
 
   /// Expected file names inside the game's images cache.
   static const String closedSpriteName =
       'caua/caua_mouth_closed_eyes_open.webp';
   static const String openSpriteName = 'caua/caua_mouth_open_eyes_open.webp';
 
-  final MouthController _mouthController;
+  /// Every sprite file the component can show, indexed by
+  /// `pose.index * 3 + eye.index` (open, half, shut), for preloading.
+  static const List<String> allSpriteNames = <String>[
+    'caua/caua_mouth_closed_eyes_open.webp',
+    'caua/caua_mouth_closed_eyes_half.webp',
+    'caua/caua_mouth_closed_eyes_shut.webp',
+    'caua/caua_mouth_open_eyes_open.webp',
+    'caua/caua_mouth_open_eyes_half.webp',
+    'caua/caua_mouth_open_eyes_shut.webp',
+    'caua/caua_win_eyes_open.webp',
+    'caua/caua_win_eyes_half.webp',
+    'caua/caua_win_eyes_shut.webp',
+  ];
 
-  late final Sprite _closedSprite;
-  late final Sprite _openSprite;
+  final MouthController _mouthController;
+  final BlinkController? _blinkController;
+
+  bool _blinkEnabled = true;
+
+  /// Whether the blink controller is ticked. Disabling forces open eyes and
+  /// re-arms the gap, so re-enabling never blinks within 2.5 s.
+  bool get blinkEnabled => _blinkEnabled;
+  set blinkEnabled(bool value) {
+    if (_blinkEnabled == value) return;
+    _blinkEnabled = value;
+    if (!value && _listening) _blinkController?.reset();
+  }
+
+  // Sprite table indexed by `pose.index * 3 + eye.index`, built once.
+  late final List<Sprite> _table;
+
+  CauaPose? _poseOverride;
+  bool _listening = false;
+
+  /// Forces a pose (e.g. [CauaPose.win]); null restores mouth-driven poses.
+  set poseOverride(CauaPose? value) {
+    if (_poseOverride == value) return;
+    _poseOverride = value;
+    _refresh();
+  }
 
   @override
   Future<void> onLoad() async {
-    _closedSprite = Sprite(game.images.fromCache(closedSpriteName));
-    _openSprite = Sprite(game.images.fromCache(openSpriteName));
-    sprite = _spriteFor(_mouthController.state.value);
+    final eyeCount = EyeState.values.length;
+    final table = <Sprite>[];
+    for (final pose in CauaPose.values) {
+      final frames = List<Sprite?>.generate(
+        eyeCount,
+        (i) => _tryLoad(allSpriteNames[pose.index * eyeCount + i]),
+      );
+      final open = frames[EyeState.open.index];
+      final half = frames[EyeState.half.index];
+      // Fallback: nearest eye state of the same pose (half <-> open).
+      final base = open ?? half;
+      if (base == null) {
+        throw StateError('No Cauã sprite loaded for pose ${pose.name}');
+      }
+      table
+        ..add(open ?? base)
+        ..add(half ?? base)
+        ..add(frames[EyeState.shut.index] ?? half ?? base);
+    }
+    _table = table;
+    _refresh();
+  }
+
+  Sprite? _tryLoad(String name) {
+    try {
+      return Sprite(game.images.fromCache(name));
+    } on Object {
+      return null;
+    }
   }
 
   @override
   void onMount() {
     super.onMount();
-    _mouthController.state.addListener(_onMouthChanged);
-    // Resync in case the state changed before mounting.
-    sprite = _spriteFor(_mouthController.state.value);
+    _mouthController.state.addListener(_refresh);
+    _blinkController?.state.addListener(_refresh);
+    _listening = true;
+    // Resync in case a state changed before mounting.
+    _refresh();
   }
 
   @override
   void onRemove() {
-    _mouthController.state.removeListener(_onMouthChanged);
+    // Listeners first; after this the component never touches the blink
+    // controller again (the game may dispose it right after).
+    _listening = false;
+    _mouthController.state.removeListener(_refresh);
+    _blinkController?.state.removeListener(_refresh);
     super.onRemove();
   }
 
-  void _onMouthChanged() {
-    sprite = _spriteFor(_mouthController.state.value);
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_listening && _blinkEnabled) _blinkController?.tick(dt);
   }
 
-  Sprite _spriteFor(MouthState state) => switch (state) {
-    MouthState.closed => _closedSprite,
-    MouthState.open => _openSprite,
-  };
+  void _refresh() {
+    final pose =
+        _poseOverride ??
+        switch (_mouthController.state.value) {
+          MouthState.closed => CauaPose.mouthClosed,
+          MouthState.open => CauaPose.mouthOpen,
+        };
+    final eye = _blinkController?.state.value ?? EyeState.open;
+    sprite = _table[pose.index * EyeState.values.length + eye.index];
+  }
 }
