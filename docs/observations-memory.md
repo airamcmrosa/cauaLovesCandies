@@ -52,6 +52,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
 | `OBS-058` | INFO | ERROR_HANDLING | `lib/ui/tutorial_overlay.dart` | Open | Empty `precacheImage` onError swallows load failures and the mouth images have no `errorBuilder` |
 | `OBS-059` | INFO | LIFECYCLE | `lib/ui/tutorial_overlay.dart` | Open | If the widget is disposed mid-fade `onRemoved` never fires; the T6 wiring must not rely on it alone for cleanup |
+| `OBS-062` | INFO | UX_KIDS | `lib/game/caua_game_screen.dart` | Open | The tutorial overlay builder runs only on rebuilds, so a resize or rotation during the 250 ms fade cuts the fade short via `SizedBox.shrink` |
+| `OBS-063` | INFO | LIFECYCLE | `lib/game/caua_game_screen.dart` | Open | The screen State has no `dispose` for the lazily created game (predates TASK-006 T6) |
 
 ---
 
@@ -443,3 +445,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `onRemoved` fires only when the fade completes; disposal mid-fade skips it.
 * **Risk/Impact:** Cleanup tied only to `onRemoved` could leak the overlay entry.
 * **Resolution Trigger:** TASK-006 T6: tie cleanup to `onDismiss` and the overlay stack, not to `onRemoved` alone.
+
+### `OBS-062`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/caua_game_screen.dart` (tutorial overlay builder)
+* **Source:** `audit / TASK-006 T6`
+* **Status:** Open
+* **Finding:** The builder checks the manager state only on overlay or widget rebuilds; a resize or rotation during the 250 ms fade makes it return `SizedBox.shrink` and cuts the fade short. Nothing throws or loops.
+* **Risk/Impact:** Cosmetic: a missing fade on rotation.
+* **Resolution Trigger:** TASK-006 T8 self-audit, or never if the game is locked to portrait.
+
+### `OBS-063`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/caua_game_screen.dart`
+* **Source:** `audit / TASK-006 T6`
+* **Status:** Open
+* **Finding:** The screen State has no `dispose` for the lazily created game. This predates T6; T6 adds no new listeners.
+* **Risk/Impact:** Low: the game is removed with the widget tree and the manager disposes its notifiers in `onRemove`.
+* **Resolution Trigger:** Next touch of the screen State.
