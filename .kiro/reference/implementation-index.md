@@ -98,7 +98,7 @@ SHA as append-only history.
 | T2 | Conveyor and spawner time scale gate | committed | 879d483 |
 | T3 | Tutorial assets (reconciled, existing art reused) | committed | 879d483 |
 | T4 | TutorialOverlay widget | committed | 6ad336c |
-| T5 | Dismiss behavior | todo | - |
+| T5 | Dismiss behavior | in_progress | - |
 | T6 | Overlay registration | todo | - |
 | T7 | Dismissing tap behavior | todo | - |
 | T8 | Self-audit pass | todo | - |

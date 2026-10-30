@@ -27,12 +27,33 @@ String _shownMouth(WidgetTester tester) {
   return openShown ? 'open' : 'closed';
 }
 
-Future<void> _pumpOverlay(WidgetTester tester, Size size) async {
+Future<void> _pumpOverlay(
+  WidgetTester tester,
+  Size size, {
+  VoidCallback? onDismiss,
+  VoidCallback? onRemoved,
+  Widget? beneath,
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
+  final overlay = TutorialOverlay(
+    onDismiss: onDismiss ?? () {},
+    onRemoved: onRemoved ?? () {},
+  );
   await tester.pumpWidget(
-    const MaterialApp(home: Scaffold(body: TutorialOverlay())),
+    MaterialApp(
+      home: Scaffold(
+        body: beneath == null
+            ? overlay
+            : Stack(
+                children: [
+                  Positioned.fill(child: beneath),
+                  overlay,
+                ],
+              ),
+      ),
+    ),
   );
 }
 
@@ -128,6 +149,143 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(tester.hasRunningAnimations, isFalse);
       await tester.pumpAndSettle();
+    });
+  });
+
+  group('dismiss', () {
+    const size = Size(360, 640);
+    const fade = TutorialOverlay.fadeDuration;
+
+    testWidgets('fade duration is 250 ms', (tester) async {
+      expect(fade, const Duration(milliseconds: 250));
+    });
+
+    testWidgets('first tap calls onDismiss once before fade ends', (
+      tester,
+    ) async {
+      var dismissed = 0;
+      var removed = 0;
+      await _pumpOverlay(
+        tester,
+        size,
+        onDismiss: () => dismissed++,
+        onRemoved: () => removed++,
+      );
+      await tester.tap(find.byType(TutorialOverlay));
+      expect(dismissed, 1);
+      expect(removed, 0);
+      await tester.pump(fade ~/ 2);
+      expect(dismissed, 1);
+      expect(removed, 0);
+    });
+
+    testWidgets('onRemoved fires exactly once after the fade', (tester) async {
+      var dismissed = 0;
+      var removed = 0;
+      await _pumpOverlay(
+        tester,
+        size,
+        onDismiss: () => dismissed++,
+        onRemoved: () => removed++,
+      );
+      await tester.tap(find.byType(TutorialOverlay));
+      await tester.pump();
+      await tester.pump(fade + const Duration(milliseconds: 1));
+      expect(removed, 1);
+      await tester.pump(const Duration(seconds: 1));
+      expect(removed, 1);
+      expect(dismissed, 1);
+    });
+
+    testWidgets('repeated taps during and after the fade add no calls', (
+      tester,
+    ) async {
+      var dismissed = 0;
+      var removed = 0;
+      await _pumpOverlay(
+        tester,
+        size,
+        onDismiss: () => dismissed++,
+        onRemoved: () => removed++,
+      );
+      await tester.tap(find.byType(TutorialOverlay));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.byType(TutorialOverlay), warnIfMissed: false);
+      await tester.tap(find.byType(TutorialOverlay), warnIfMissed: false);
+      await tester.pump(fade);
+      await tester.tap(find.byType(TutorialOverlay), warnIfMissed: false);
+      await tester.pump(const Duration(seconds: 1));
+      expect(dismissed, 1);
+      expect(removed, 1);
+    });
+
+    for (final point in const [
+      Offset(2, 2),
+      Offset(357, 637),
+      Offset(2, 637),
+    ]) {
+      testWidgets('tap at far corner $point dismisses', (tester) async {
+        var dismissed = 0;
+        await _pumpOverlay(tester, size, onDismiss: () => dismissed++);
+        await tester.tapAt(point);
+        expect(dismissed, 1);
+        await tester.pump(fade + const Duration(milliseconds: 1));
+      });
+    }
+
+    testWidgets('opacity reaches 0 at the end of the fade', (tester) async {
+      await _pumpOverlay(tester, size);
+      final fadeFinder = find
+          .descendant(
+            of: find.byType(TutorialOverlay),
+            matching: find.byType(FadeTransition),
+          )
+          .first;
+      double opacity() =>
+          tester.widget<FadeTransition>(fadeFinder).opacity.value;
+      expect(opacity(), closeTo(1.0, 1e-9));
+      await tester.tap(find.byType(TutorialOverlay));
+      await tester.pump();
+      await tester.pump(fade ~/ 2);
+      expect(opacity(), allOf(greaterThan(0.0), lessThan(1.0)));
+      await tester.pump(fade);
+      expect(opacity(), closeTo(0.0, 1e-9));
+    });
+
+    testWidgets('tap is absorbed and does not reach widgets beneath', (
+      tester,
+    ) async {
+      var beneathTaps = 0;
+      var beneathDowns = 0;
+      var dismissed = 0;
+      await _pumpOverlay(
+        tester,
+        size,
+        onDismiss: () => dismissed++,
+        beneath: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => beneathDowns++,
+          onTap: () => beneathTaps++,
+        ),
+      );
+      await tester.tapAt(const Offset(180, 320));
+      await tester.pump(fade + const Duration(milliseconds: 1));
+      expect(dismissed, 1);
+      expect(beneathDowns, 0);
+      expect(beneathTaps, 0);
+    });
+
+    testWidgets('disposing mid-fade throws nothing and skips onRemoved', (
+      tester,
+    ) async {
+      var removed = 0;
+      await _pumpOverlay(tester, size, onRemoved: () => removed++);
+      await tester.tap(find.byType(TutorialOverlay));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.takeException(), isNull);
+      expect(removed, 0);
     });
   });
 }

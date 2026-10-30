@@ -11,7 +11,20 @@ import '../style/palette.dart';
 /// changes on the same tick as the press. Below it, a check row (sweet + fruit
 /// are good) and an X row (a bad item is forbidden). Holds no game logic.
 class TutorialOverlay extends StatefulWidget {
-  const TutorialOverlay({super.key});
+  const TutorialOverlay({
+    required this.onDismiss,
+    required this.onRemoved,
+    super.key,
+  });
+
+  /// Fired once, immediately on the first tap (before the fade starts).
+  final VoidCallback onDismiss;
+
+  /// Fired once when the fade-out completes; the owner removes the overlay.
+  final VoidCallback onRemoved;
+
+  /// Fade-out duration after the dismissing tap.
+  static const Duration fadeDuration = Duration(milliseconds: 250);
 
   /// One loop = two taps (open, then close). Two full open/close cycles
   /// are therefore shown within 3 s.
@@ -22,7 +35,7 @@ class TutorialOverlay extends StatefulWidget {
 }
 
 class _TutorialOverlayState extends State<TutorialOverlay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const String _handAsset = 'assets/images/ui/tap_hand.webp';
   static const String _checkAsset = 'assets/images/ui/icon_check.webp';
   static const String _crossAsset = 'assets/images/ui/icon_cross.webp';
@@ -51,6 +64,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   static const double _pressSpan = 0.35;
 
   late final AnimationController _controller;
+  late final AnimationController _fade;
+  bool _dismissed = false;
 
   // Static subtrees built once and passed as AnimatedBuilder children.
   late final Widget _ripple = DecoratedBox(
@@ -68,6 +83,19 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     errorBuilder: _handFallback,
   );
 
+  late final Widget _mouthOpen = Image.asset(
+    _mouthOpenAsset,
+    width: _mouthSize,
+    height: _mouthSize,
+    gaplessPlayback: true,
+  );
+  late final Widget _mouthClosed = Image.asset(
+    _mouthClosedAsset,
+    width: _mouthSize,
+    height: _mouthSize,
+    gaplessPlayback: true,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -75,12 +103,41 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       vsync: this,
       duration: TutorialOverlay.loopDuration,
     )..repeat();
+    _fade = AnimationController(
+      vsync: this,
+      duration: TutorialOverlay.fadeDuration,
+      value: 1,
+    )..addStatusListener(_onFadeStatus);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Warm the image cache so the first mouth swap does not flicker.
+    for (final asset in const [_mouthClosedAsset, _mouthOpenAsset]) {
+      precacheImage(AssetImage(asset), context, onError: (_, _) {});
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _fade.dispose();
     super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails _) {
+    if (_dismissed) return;
+    _dismissed = true;
+    widget.onDismiss();
+    _fade.reverse();
+  }
+
+  void _onFadeStatus(AnimationStatus status) {
+    if (status == AnimationStatus.dismissed) {
+      _controller.stop();
+      widget.onRemoved();
+    }
   }
 
   static Widget _handFallback(
@@ -91,42 +148,49 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: _scrimColor,
-      child: SafeArea(
-        child: Center(
-          // Scales the fixed-size layout down on small screens: no overflow.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SizedBox(
-              width: 340,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RepaintBoundary(
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: _buildTapDemo,
-                      child: _hand,
-                    ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: _onTapDown,
+      child: FadeTransition(
+        opacity: _fade,
+        child: ColoredBox(
+          color: _scrimColor,
+          child: SafeArea(
+            child: Center(
+              // Scales the fixed-size layout down on small screens: no overflow.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: SizedBox(
+                  width: 340,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: _buildTapDemo,
+                          child: _hand,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      _FeedbackRow(
+                        color: _rowColor,
+                        badgeAsset: _checkAsset,
+                        badgeSize: _badgeSize,
+                        itemAssets: const [_sweetAsset, _fruitAsset],
+                        itemSize: _itemSize,
+                      ),
+                      const SizedBox(height: 20),
+                      _FeedbackRow(
+                        color: _rowColor,
+                        badgeAsset: _crossAsset,
+                        badgeSize: _badgeSize,
+                        itemAssets: const [_badAsset],
+                        itemSize: _itemSize,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 28),
-                  _FeedbackRow(
-                    color: _rowColor,
-                    badgeAsset: _checkAsset,
-                    badgeSize: _badgeSize,
-                    itemAssets: const [_sweetAsset, _fruitAsset],
-                    itemSize: _itemSize,
-                  ),
-                  const SizedBox(height: 20),
-                  _FeedbackRow(
-                    color: _rowColor,
-                    badgeAsset: _crossAsset,
-                    badgeSize: _badgeSize,
-                    itemAssets: const [_badAsset],
-                    itemSize: _itemSize,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -152,15 +216,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Positioned(
-            left: 10,
-            child: Image.asset(
-              open ? _mouthOpenAsset : _mouthClosedAsset,
-              width: _mouthSize,
-              height: _mouthSize,
-              gaplessPlayback: true,
-            ),
-          ),
+          Positioned(left: 10, child: open ? _mouthOpen : _mouthClosed),
           Positioned(
             right: 30,
             child: Stack(

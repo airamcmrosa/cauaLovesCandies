@@ -51,6 +51,8 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
 | `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Open | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running |
 | `OBS-050` | INFO | PERFORMANCE_NFR | `lib/ui/tutorial_overlay.dart` | Open | `_buildTapDemo` rebuilds the mouth `Image` and Stack every frame, and the closed-mouth sprite is not precached by the widget |
+| `OBS-058` | INFO | ERROR_HANDLING | `lib/ui/tutorial_overlay.dart` | Open | Empty `precacheImage` onError swallows load failures and the mouth images have no `errorBuilder` |
+| `OBS-059` | INFO | LIFECYCLE | `lib/ui/tutorial_overlay.dart` | Open | If the widget is disposed mid-fade `onRemoved` never fires; the T6 wiring must not rely on it alone for cleanup |
 
 ---
 
@@ -437,3 +439,23 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The mouth `Image` and Stack are rebuilt every frame (could be cached like `_hand`), and the closed-mouth sprite is not precached by the widget, so the first swap may briefly show the previous frame.
 * **Risk/Impact:** Low: small per-frame cost; the sprites are in the preload list.
 * **Resolution Trigger:** TASK-006 T5/T8, and check visually at T6.
+
+### `OBS-058`
+* **Severity:** INFO
+* **Category:** ERROR_HANDLING
+* **Target:** `lib/ui/tutorial_overlay.dart` (`didChangeDependencies`, line 118)
+* **Source:** `audit / TASK-006 T5`
+* **Status:** Open
+* **Finding:** The empty `precacheImage` onError swallows load failures, and the mouth images have no `errorBuilder`.
+* **Risk/Impact:** A missing sprite shows nothing with no signal.
+* **Resolution Trigger:** TASK-006 T8 self-audit: log via `package:logging` or add an `errorBuilder`.
+
+### `OBS-059`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/ui/tutorial_overlay.dart`
+* **Source:** `audit / TASK-006 T5`
+* **Status:** Open
+* **Finding:** `onRemoved` fires only when the fade completes; disposal mid-fade skips it.
+* **Risk/Impact:** Cleanup tied only to `onRemoved` could leak the overlay entry.
+* **Resolution Trigger:** TASK-006 T6: tie cleanup to `onDismiss` and the overlay stack, not to `onRemoved` alone.
