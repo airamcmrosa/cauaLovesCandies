@@ -49,6 +49,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
+| `OBS-045` | INFO | MAINTAINABILITY | `lib/game/managers/blink_controller.dart` | Open | `BlinkController` imports `flutter/foundation.dart` for `ValueNotifier`, against the task's "no Flutter imports" wording; matches `MouthController` |
 
 ---
 
@@ -415,3 +416,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
+
+### `OBS-045`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `lib/game/managers/blink_controller.dart`
+* **Source:** `audit / TASK-009 T1`
+* **Status:** Open
+* **Finding:** The task says "no Flutter imports", but `ValueNotifier` needs `package:flutter/foundation.dart`; `mouth_controller` and `game_manager` do the same and there is no Flame import.
+* **Risk/Impact:** None; wording mismatch only.
+* **Resolution Trigger:** Amend the TASK-009 wording to "no Flame imports" or drop `ValueNotifier`.

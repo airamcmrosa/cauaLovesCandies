@@ -89,3 +89,13 @@ SHA as append-only history.
 | T1 | Measure the 13 frames | committed | 3d61618 |
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
+
+## TASK-009 - Caua blink animation (US02)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | EyeState and BlinkController | in_progress | - |
+| T2 | Eye-state sprites | todo | - |
+| T3 | CauaPlayerComponent blink table | todo | - |
+| T4 | blinkEnabled wiring and reset | todo | - |
+| T5 | Self-audit pass | todo | - |
