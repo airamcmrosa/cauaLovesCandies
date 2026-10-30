@@ -49,9 +49,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-041` | WARNING | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `buildErrorWidget` does not check `hasError`; a throwing `ErrorScreen.build` could loop; the try/catch around the const `ErrorScreen` is dead code |
 | `OBS-042` | INFO | ERROR_HANDLING | `lib/ui/error_reporter.dart` | Open | `ErrorFallback` has no reload button or `DefaultTextStyle` and is practically unreachable |
 | `OBS-038` | INFO | ASSET_BUDGET | `assets/images/caua/` | Open | The three normalized Caua frames use webp quality 78 (not 85) to stay under 30 KB each |
-| `OBS-044` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | Render allocates one Color per particle per frame (`withValues`); use a cached alpha palette |
-| `OBS-047` | WARNING | PERFORMANCE_NFR | `lib/game/components/particle_celebration_component.dart` | Open | `hitSparkleMaxParticles` is unused; every sparkle allocates and iterates the full 80-particle pool |
-| `OBS-051` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_sparkle_test.dart` | Open | Sparkle origin (xMouth, yMouth) is not asserted because `ParticleCelebrationComponent._origin` is private |
 
 ---
 
@@ -237,7 +234,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Slower preload on 4G than a parallel load; double dispose could throw.
 * **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008.
 
-
 ### `OBS-023`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -258,7 +254,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Unhandled async errors in rare player failures; misleading doc.
 * **Resolution Trigger:** Next touch of `audio_controller.dart`.
 
-
 ### `OBS-028`
 * **Severity:** INFO
 * **Category:** UX_KIDS
@@ -278,8 +273,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The JOGAR label is white on #E5609D, about 3.4:1 contrast, which passes only the 3:1 large-text criterion.
 * **Risk/Impact:** Acceptable for the large label; weaker for small text.
 * **Resolution Trigger:** Palette review if smaller text is placed on that pink.
-
-
 
 ### `OBS-035`
 * **Severity:** INFO
@@ -350,7 +343,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Risk/Impact:** Some items look like others; the list can drift if the test is removed.
 * **Resolution Trigger:** Delivery of dedicated art for the shared types, or derive the list from the map.
 
-
 ### `OBS-039`
 * **Severity:** WARNING
 * **Category:** UX_KIDS
@@ -418,33 +410,3 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The three normalized frames are encoded at webp quality 78 instead of about 85 (26.4 to 27.1 KB each); at 85 they reached 31 to 32 KB, above the 30 KB per-file budget. The invariants test uses bbox height rather than head height because the win frames raise their fists.
 * **Risk/Impact:** Slightly lower fidelity than the other ten frames; not visible in the contact sheet approved by the product owner.
 * **Resolution Trigger:** Re-encode all 13 frames at one quality if the budget allows.
-
-### `OBS-044`
-* **Severity:** WARNING
-* **Category:** PERFORMANCE_NFR
-* **Target:** `lib/game/components/particle_celebration_component.dart`
-* **Source:** `audit / TASK-010 T1`
-* **Status:** Open
-* **Finding:** `render` calls `Color.withValues` once per particle per frame, a small allocation against the task's "no per-frame allocations" Verify.
-* **Risk/Impact:** Low: at most 80 particles; possible GC pressure on low-end phones.
-* **Resolution Trigger:** TASK-010 T4: replace with a cached alpha palette.
-
-### `OBS-047`
-* **Severity:** WARNING
-* **Category:** PERFORMANCE_NFR
-* **Target:** `lib/game/components/particle_celebration_component.dart`
-* **Source:** `audit / TASK-010 T2`
-* **Status:** Open
-* **Finding:** `hitSparkleMaxParticles` is unused, and each sparkle allocates and iterates the full 80-particle pool although it needs 8.
-* **Risk/Impact:** Low: one short-lived instance per sweet or fruit ingested; wasted allocation on low-end phones.
-* **Resolution Trigger:** TASK-010 T4: size the pool per preset (can be fixed together with OBS-044).
-
-### `OBS-051`
-* **Severity:** INFO
-* **Category:** TEST_COVERAGE
-* **Target:** `test/game/caua_candies_game_sparkle_test.dart`, `lib/game/components/particle_celebration_component.dart`
-* **Source:** `audit / TASK-010 T3`
-* **Status:** Open
-* **Finding:** The hit sparkle origin (360, 440.4) is not asserted in tests because `_origin` is private with no getter.
-* **Risk/Impact:** A regression that moves the sparkle off the mouth would not be caught.
-* **Resolution Trigger:** TASK-010 T4: add a small public getter and assert the origin.
