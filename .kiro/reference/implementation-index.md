@@ -94,7 +94,7 @@ SHA as append-only history.
 
 | Task | Summary | State | Commit SHA |
 | :--- | :--- | :--- | :--- |
-| T1 | GameState.tutorial and dismissTutorial | in_progress | - |
+| T1 | GameState.tutorial and dismissTutorial | committed | 564a43e |
 | T2 | Conveyor and spawner time scale gate | todo | - |
 | T3 | Tutorial assets | todo | - |
 | T4 | TutorialOverlay widget | todo | - |
