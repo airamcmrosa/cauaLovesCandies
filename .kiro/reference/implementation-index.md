@@ -89,3 +89,13 @@ SHA as append-only history.
 | T1 | Measure the 13 frames | committed | 3d61618 |
 | T2 | Normalize the three outlier frames | committed | 3d61618 |
 | T3 | Invariants test | committed | 3d61618 |
+
+## TASK-010 - Animated stars and confetti (US05)
+
+| Task | Summary | State | Commit SHA |
+| :--- | :--- | :--- | :--- |
+| T1 | ParticleCelebrationComponent victory preset | in_progress | - |
+| T2 | hitSparkle preset | todo | - |
+| T3 | Ingestion event and sparkle spawn | todo | - |
+| T4 | Lifecycle and restart | todo | - |
+| T5 | Handoff pass | todo | - |
