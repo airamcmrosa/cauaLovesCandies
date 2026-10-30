@@ -53,6 +53,7 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-052` | INFO | UX_KIDS | `lib/game/components/item_spawner_component.dart` | Open | Phase 1 now runs at 1.2x (effective spawn gap about 1.17 s); comment "at Phase 1 speed" is inaccurate and the reaction window for 6-year-olds needs a phone playtest |
 | `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Open | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP |
 | `OBS-056` | INFO | ERROR_HANDLING | `lib/game/managers/game_manager.dart` | Open | `addScore` and `loseHp` are not frozen in victory, and an empty injected `phases` list would throw on `_phases.last` |
+| `OBS-057` | INFO | UX_KIDS | `lib/ui/phase_banner_overlay.dart` | Open | Confirm the accent in "Rápido" renders on the release web build; the default font fallback may be CDN-fetched |
 
 ---
 
@@ -459,3 +460,13 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** `addScore` and `loseHp` are not frozen in victory; an empty injected `phases` list would throw on `_phases.last`. Production config always has 3 entries.
 * **Risk/Impact:** None in production.
 * **Resolution Trigger:** TASK-005: optionally guard when wiring victory.
+
+### `OBS-057`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/ui/phase_banner_overlay.dart`
+* **Source:** `audit / TASK-004 T5`
+* **Status:** Open
+* **Finding:** The banner uses the default theme font; the accent in "Rápido" may fall back to a CDN-fetched font on web.
+* **Risk/Impact:** Missing glyph or late font load on the party phone with a weak connection.
+* **Resolution Trigger:** TASK-004 T6 HIL on the release web build; bundle a font if it fails.
