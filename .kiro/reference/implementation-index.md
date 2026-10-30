@@ -98,4 +98,4 @@ SHA as append-only history.
 | T2 | Eye-state sprites | committed | 73aaf6a |
 | T3 | CauaPlayerComponent blink table | committed | ca97f7e |
 | T4 | blinkEnabled wiring and reset | committed | 8cd439e |
-| T5 | Self-audit pass | todo | - |
+| T5 | Self-audit pass (no code change) | committed | 8cd439e |
