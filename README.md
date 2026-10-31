@@ -88,8 +88,7 @@ a new `assets/images/fx/`:
     - assets/images/fx/
 ```
 
-Licenses and sources: [`assets/music/CREDITS.TXT`](assets/music/CREDITS.TXT),
-[`assets/sfx/README.md`](assets/sfx/README.md),
+Licenses and sources: [`assets/sfx/README.md`](assets/sfx/README.md),
 [`assets/images/README.md`](assets/images/README.md).
 
 **Tasks and governance** ([`docs/tasks/README.md`](docs/tasks/README.md)):

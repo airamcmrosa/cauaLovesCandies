@@ -27,7 +27,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-014` | INFO | DESIGN | `lib/game/managers/phase_config.dart` | Open | Phase 3 composition (25/30/45) is a product-owner value, may be retuned |
 | `OBS-015` | INFO | MAINTAINABILITY | `lib/game/managers/game_manager.dart` | Open | `level` and `state` are plain fields, not `ValueNotifier`s |
 | `OBS-016` | WARNING | LICENSING | `assets/images/README.md` | Open | AI-generated art and logo have no formally documented license |
-| `OBS-017` | INFO | ASSET_BUDGET | `assets/music/tropical_fantasy.mp3` | Open | BGM is 1.65 MB of the 2.4 MB asset payload; re-encode at 64-96 kbps |
 | `OBS-018` | INFO | DESIGN | `assets/images/game/belt_tile.webp` | Open | Delivered belt sprite (body ~#C8B0E8, arrows ~#7858B8) differs slightly from the approved hex (#BFA6EC, #8F72D6) |
 | `OBS-019` | WARNING | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Default `Images()` is a private cache, so preloaded sprites are not shared with the game (AC5) |
 | `OBS-020` | INFO | PERFORMANCE_NFR | `lib/game/managers/asset_preloader.dart` | Open | Preload is sequential (slower on 4G than parallel); `dispose()` is not idempotent |
@@ -210,16 +209,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** Cauã sprites, items, UI icons, logo and backgrounds are AI-generated placeholders and the README states licensing and origin are not formally documented.
 * **Risk/Impact:** Unclear usage rights if the game is published beyond the private party link.
 * **Resolution Trigger:** Product owner confirms the generator terms and the README records origin and license before the Nov 4, 2026 release.
-
-### `OBS-017`
-* **Severity:** INFO
-* **Category:** ASSET_BUDGET
-* **Target:** `assets/music/tropical_fantasy.mp3`
-* **Source:** `audit / TASK-001 T1`
-* **Status:** Open
-* **Finding:** The only BGM track weighs 1.65 MB of the 2.4 MB asset payload.
-* **Risk/Impact:** Under the 3.5 MB ceiling but heavy for the sub-3s first load on 4G.
-* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008: re-encode at 64-96 kbps if the budget is tight.
 
 ### `OBS-018`
 * **Severity:** INFO
