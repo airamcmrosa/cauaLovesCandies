@@ -4,6 +4,7 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
   SfxType.fruit => const ['score2.mp3'],
   SfxType.hmm => const ['hmm.mp3'],
   SfxType.eurk => const ['eurk.mp3'],
+  SfxType.victory => const ['victory.mp3'],
   SfxType.buttonTap => const [
     'click1.mp3',
     'click2.mp3',
@@ -24,11 +25,12 @@ double soundTypeToVolume(SfxType type) {
     case SfxType.hmm:
     case SfxType.eurk:
     case SfxType.buttonTap:
+    case SfxType.victory:
       return 1.0;
   }
 }
 
-enum SfxType { score, fruit, damage, hmm, eurk, buttonTap }
+enum SfxType { score, fruit, damage, hmm, eurk, buttonTap, victory }
 
 /// Asset path relative to the `assets/` prefix of `AudioCache`. Voice clips
 /// (hmm, eurk) live in `assets/audio/`, every other SFX in `assets/sfx/`.
@@ -37,5 +39,6 @@ String sfxAssetPath(SfxType type, String filename) => switch (type) {
   SfxType.score ||
   SfxType.fruit ||
   SfxType.damage ||
-  SfxType.buttonTap => 'sfx/$filename',
+  SfxType.buttonTap ||
+  SfxType.victory => 'sfx/$filename',
 };
