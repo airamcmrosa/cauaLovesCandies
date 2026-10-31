@@ -28,3 +28,4 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-016 | - | Show a friendly full-screen error with a reload button on any uncaught failure | completa | - | [TASK-016](./TASK-016-global-error-screen.md) |
 | TASK-017 | - | Normalize the Cauã frames to one size, position and skin tone (post-processing only) | completa | - | [TASK-017](./TASK-017-caua-sprite-normalization.md) |
 | TASK-018 | - | Replace the BGM with the custom birthday song | completa | - | [TASK-018](./TASK-018-bgm-replacement.md) |
+| TASK-019 | - | Adopt the refreshed Cauã sprite set and normalize it to the TASK-017 invariants (post-processing only) | aceita | - | [TASK-019](./TASK-019-caua-sprite-refresh-normalization.md) |
