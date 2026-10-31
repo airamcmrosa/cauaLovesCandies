@@ -2,7 +2,7 @@
 id: TASK-011
 story: US03
 title: Add Cauã chewing and "eca" reactions and enforce arrival spacing that respects their duration
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [TASK-002, TASK-003, TASK-009] # mouth control, ingestion outcome and spawner, sprite table with the pose/eye model
 supersedes: []
 ---
@@ -41,7 +41,7 @@ Tap-down still toggles the mouth immediately (US02 unchanged). Additionally, if 
   - `lib/game/managers/caua_reaction_timings.dart`: pure Dart consts `kChewStep` (0.16 s), `kReactionRecover` (0.12 s), `kEcaHold` (0.60 s), derived `kChewTotal`, and `kMinArrivalGap = max(kChewTotal, kEcaHold) + 0.20 s` (0.80 s). Single source of truth, no magic numbers elsewhere.
   - `lib/game/managers/caua_reaction_controller.dart`: pure Dart, `enum CauaReaction { none, chew, eca }`, `ValueNotifier` for reaction and step index, dt-driven, seedless, `start(ItemCategory)`, `cancel()`, `reset()`, `dispose()`.
   - `CauaPlayerComponent` shows the reaction sprites while a reaction is active (chew and eca take precedence over idle/blink; blink resumes at idle).
-  - Spawner change in TASK-003 code so that the arrival gap at the mouth is never below `kMinArrivalGap`, across speed multipliers 1.0 / 1.35 / 1.65 and across the phase-change speed jump (items already on the belt must not bunch up closer than the gap).
+  - Spawner change in TASK-003 code so that the arrival gap at the mouth is never below `kMinArrivalGap`, across speed multipliers 1.2 / 1.44 / 1.728 and across the phase-change speed jump (items already on the belt must not bunch up closer than the gap).
 - Out:
   - The base tap-down toggle (TASK-002; this task only adds the release-after-eating rule on top), scoring and HP rules (TASK-003), blink (TASK-009).
   - Sprite delivery and conversion (TASK-012).

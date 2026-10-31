@@ -20,7 +20,7 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-008 | - | Correct art prompts so stars/confetti are never baked into sprites, and specify the Cauã blink frames | completa | - | [TASK-008](./TASK-008-art-direction-animated-effects-fix.md) |
 | TASK-009 | US02 | Animate Cauã blinking with the open, half and closed eye sprites | em progresso | TASK-002, TASK-003 | [TASK-009](./TASK-009-caua-blink-animation.md) |
 | TASK-010 | US05 | Build reusable animated stars and confetti particle effects (victory burst and hit sparkle) | em progresso | TASK-003 | [TASK-010](./TASK-010-animated-stars-confetti.md) |
-| TASK-011 | US03 | Add Cauã chewing and "eca" reactions and enforce arrival spacing that respects their duration | aceita | TASK-002, TASK-003, TASK-009 | [TASK-011](./TASK-011-caua-reactions-chewing-eca.md) |
+| TASK-011 | US03 | Add Cauã chewing and "eca" reactions and enforce arrival spacing that respects their duration | em progresso | TASK-002, TASK-003, TASK-009 | [TASK-011](./TASK-011-caua-reactions-chewing-eca.md) |
 | TASK-012 | - | Integrate the delivered Cauã sprite set (background removal, naming, missing frames, release format) | completa | - | [TASK-012](./TASK-012-caua-sprite-set-integration.md) |
 | TASK-013 | - | Apply the approved UX palette corrections (belt colors, tutorial check/cross, serrated forbidden aura) | completa | - | [TASK-013](./TASK-013-ux-palette-corrections.md) |
 | TASK-014 | - | Remove Endless Runner template residue and keep only the reusable skeleton | completa | - | [TASK-014](./TASK-014-remove-endless-runner-residue.md) |
