@@ -27,6 +27,7 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 | `OBS-048` | WARNING | LIFECYCLE | `lib/game/managers/game_manager.dart` | Resolved | `timeScale` only zeroes the `tutorial` state; a future won/lost state would keep the belt and spawner running | f0add1c |
 | `OBS-053` | WARNING | LIFECYCLE | `lib/game/caua_candies_game.dart` (`update`) | Resolved | Blink predicate is `state == playing`; the task wants blinking in `tutorial` and `victory` too, which TASK-006 and TASK-004 introduce | f0add1c |
 | `OBS-055` | WARNING | LIFECYCLE | `lib/game/` (belt, items, ingestion) | Resolved | In `GameState.victory` only the spawner stops; the belt and in-flight items keep moving and ingestion can still change score and HP | f0add1c |
+| `OBS-017` | INFO | ASSET_BUDGET | `assets/music/tropical_fantasy.mp3` | Resolved | BGM is 1.65 MB of the 2.4 MB asset payload; re-encode at 64-96 kbps | abc0f7d |
 
 ---
 
@@ -178,3 +179,14 @@ Items moved verbatim from `docs/observations-memory.md` once `Resolved` or `Won'
 * **Finding:** Only `item_spawner_component.dart` checks the state. During `GameState.victory` the belt and in-flight items keep moving and ingestion can still change score and HP.
 * **Risk/Impact:** Visible motion and score changes behind the victory screen once TASK-005 shows it.
 * **Resolution Trigger:** TASK-005: freeze with a `state == playing ? 1 : 0` style gate (never a deny-list that omits victory); related to OBS-048.
+
+### `OBS-017`
+* **Severity:** INFO
+* **Category:** ASSET_BUDGET
+* **Target:** `assets/music/tropical_fantasy.mp3`
+* **Source:** `audit / TASK-001 T1`
+* **Status:** Open
+* **Finding:** The only BGM track weighs 1.65 MB of the 2.4 MB asset payload.
+* **Risk/Impact:** Under the 3.5 MB ceiling but heavy for the sub-3s first load on 4G.
+* **Resolution Trigger:** TASK-001 T5 or the 4G measurement in OBS-008: re-encode at 64-96 kbps if the budget is tight.
+* **Resolution:** abc0f7d, TASK-018 replaced the BGM with a 643 KB track.

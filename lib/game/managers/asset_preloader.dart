@@ -89,7 +89,7 @@ class AssetPreloader {
 
   /// Product audio manifest (relative to `assets/`).
   static const List<String> defaultAudioPaths = [
-    'music/tropical_fantasy.mp3',
+    'music/caua_loves_candies_song.mp3',
     'sfx/click1.mp3',
     'sfx/click2.mp3',
     'sfx/click3.mp3',
