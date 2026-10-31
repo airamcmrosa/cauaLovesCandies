@@ -2,7 +2,7 @@
 id: TASK-005
 story: US05
 title: Build victory celebration and friendly game-over screens with instant restart
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [TASK-003, TASK-004, TASK-010] # GameManager (score/HP/GameState), phase progression emitting victory, and the animated confetti/stars component
 supersedes: []
 ---
