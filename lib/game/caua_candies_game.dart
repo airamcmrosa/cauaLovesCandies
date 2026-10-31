@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/painting.dart' show Color;
 
 import '../audio/audio_controller.dart';
+import '../audio/sounds.dart';
 import 'components/caua_player_component.dart';
 import 'components/conveyor_belt_component.dart';
 import 'components/food_item_component.dart';
@@ -47,6 +48,8 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   static const String hudOverlayKey = 'hud';
   static const String phaseBannerOverlayKey = 'phaseBanner';
   static const String tutorialOverlayKey = 'tutorial';
+  static const String victoryOverlayKey = 'victory';
+  static const String gameOverOverlayKey = 'gameOver';
 
   static const double virtualWidth = 720;
   static const double virtualHeight = 1280;
@@ -121,6 +124,35 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     _shake = shake;
     await world.add(shake);
     await _addSpawner();
+    _gameManager.stateNotifier.addListener(_onGameStateChanged);
+  }
+
+  /// Draw priority of the victory confetti: above everything in the world.
+  static const int victoryPriority = 3000;
+
+  /// Reacts to end states exactly once per transition (the notifier only
+  /// fires on a change): victory adds confetti, plays the jingle and shows
+  /// the victory card; lost shows the game-over card; playing hides both.
+  void _onGameStateChanged() {
+    switch (_gameManager.state) {
+      case GameState.victory:
+        world.add(
+          ParticleCelebrationComponent(
+            random: _random,
+            origin: Vector2(Projection.xMouth, Projection.yMouth),
+            priority: victoryPriority,
+          ),
+        );
+        _audio?.playSfx(SfxType.victory);
+        overlays.add(victoryOverlayKey);
+      case GameState.lost:
+        overlays.add(gameOverOverlayKey);
+      case GameState.playing:
+      case GameState.tutorial:
+        overlays
+          ..remove(victoryOverlayKey)
+          ..remove(gameOverOverlayKey);
+    }
   }
 
   Future<void> _addSpawner() async {
@@ -169,7 +201,12 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   /// spawner (fresh spawn timer).
   Future<void> restart() async {
     // Reset returns to playing: never leave a stale tutorial overlay behind.
-    overlays.remove(tutorialOverlayKey);
+    overlays
+      ..remove(tutorialOverlayKey)
+      ..remove(victoryOverlayKey)
+      ..remove(gameOverOverlayKey);
+    _audio?.stopSfx();
+    _mouthController.reset();
     _blinkController.reset();
     // Safe before onLoad: nothing to clear, onLoad builds the initial state.
     if (_shake == null) {
@@ -190,20 +227,23 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     // Blink only while playing (no allocation: plain field comparison).
-    // Caua is visible, and blinks, in every state that exists today (the
-    // tutorial overlay and the victory screen both show him). A future
-    // game-over state must switch blinking off here.
-    _player?.blinkEnabled = true;
+    // Caua blinks in every state except game over (no sleepy eyes on the
+    // "Tente de Novo!" card).
+    _player?.blinkEnabled = _gameManager.state != GameState.lost;
     super.update(dt);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
+    // Input is paused while an end-state card is shown.
+    final state = _gameManager.state;
+    if (state == GameState.victory || state == GameState.lost) return;
     _mouthController.toggle();
   }
 
   @override
   void onRemove() {
+    _gameManager.stateNotifier.removeListener(_onGameStateChanged);
     _gameManager.dispose();
     _mouthController.dispose();
     super.onRemove();
