@@ -2,7 +2,7 @@
 id: TASK-018
 story: -
 title: Replace the BGM with the custom birthday song
-status: em progresso # proposta | aceita | em progresso | completa
+status: completa # proposta | aceita | em progresso | completa
 depends_on: [] # none
 supersedes: []
 ---

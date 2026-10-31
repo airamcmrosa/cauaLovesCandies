@@ -27,4 +27,4 @@ link both ways (`supersedes` in the new task, a "Superseded by" note in the old 
 | TASK-015 | US02 | Point the game and its tests at the delivered Cauã sprites to fix the broken test suite | completa | - | [TASK-015](./TASK-015-caua-sprite-wiring.md) |
 | TASK-016 | - | Show a friendly full-screen error with a reload button on any uncaught failure | completa | - | [TASK-016](./TASK-016-global-error-screen.md) |
 | TASK-017 | - | Normalize the Cauã frames to one size, position and skin tone (post-processing only) | completa | - | [TASK-017](./TASK-017-caua-sprite-normalization.md) |
-| TASK-018 | - | Replace the BGM with the custom birthday song | em progresso | - | [TASK-018](./TASK-018-bgm-replacement.md) |
+| TASK-018 | - | Replace the BGM with the custom birthday song | completa | - | [TASK-018](./TASK-018-bgm-replacement.md) |
