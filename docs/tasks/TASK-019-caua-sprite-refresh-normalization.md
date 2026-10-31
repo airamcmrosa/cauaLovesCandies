@@ -2,7 +2,7 @@
 id: TASK-019
 story: -
 title: Adopt the refreshed Cauã sprite set and normalize it to the TASK-017 invariants (post-processing only)
-status: aceita # proposta | aceita | em progresso | completa
+status: em progresso # proposta | aceita | em progresso | completa
 depends_on: [] # none
 supersedes: [] # TASK-017 stays completa; this re-applies its invariants to a new delivery
 ---
