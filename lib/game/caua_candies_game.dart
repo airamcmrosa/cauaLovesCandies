@@ -15,6 +15,7 @@ import 'components/particle_celebration_component.dart';
 import 'item_sprites.dart';
 import 'projection.dart';
 import 'managers/blink_controller.dart';
+import 'managers/caua_reaction_controller.dart';
 import 'managers/game_manager.dart';
 import 'managers/item_type.dart';
 import 'managers/mouth_controller.dart';
@@ -38,6 +39,7 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   }) : _mouthController = mouthController ?? MouthController(),
        _gameManager = gameManager ?? GameManager(),
        _blinkController = BlinkController(random: random),
+       _reactionController = CauaReactionController(),
        _audio = audio,
        _random = random ?? Random(),
        super(
@@ -83,14 +85,26 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   final MouthController _mouthController;
   final GameManager _gameManager;
   final BlinkController _blinkController;
+  final CauaReactionController _reactionController;
   final AudioController? _audio;
   final Random _random;
   CauaPlayerComponent? _player;
+
+  // Pointer that owns the current touch (extra fingers are ignored).
+  int? _activePointerId;
+
+  // True when ingestion closed the mouth while the finger was still down:
+  // the release then opens it again (TASK-011 release-after-eating rule).
+  bool _releaseOpensMouth = false;
+  GameState? _lastState;
   ScreenShake? _shake;
   ItemSpawnerComponent? _spawner;
 
   /// Mouth state owner, exposed for later tasks (read [MouthController.state]).
   MouthController get mouthController => _mouthController;
+
+  /// Chew / eca reaction owner, exposed for tests.
+  CauaReactionController get reactionController => _reactionController;
 
   /// Score, HP and phase owner (read by the HUD overlay).
   GameManager get gameManager => _gameManager;
@@ -107,12 +121,14 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     camera.viewfinder.position = Vector2.zero();
     await images.loadAll([
       ...CauaPlayerComponent.allSpriteNames,
+      ...CauaPlayerComponent.reactionSpriteNames,
       ...itemSpriteAssetList,
     ]);
     await world.add(ConveyorBeltComponent(gameManager: _gameManager));
     final player = CauaPlayerComponent(
       mouthController: _mouthController,
       blinkController: _blinkController,
+      reactionController: _reactionController,
       position: Vector2(virtualWidth / 2, playerCenterY),
       size: Vector2.all(playerSize),
       anchor: Anchor.center,
@@ -168,10 +184,19 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
       onIngested: (type) {
         baseHook(type);
         spawnHitSparkle(type);
+        _reactToIngestion(type);
       },
     );
     _spawner = spawner;
     await world.add(spawner);
+  }
+
+  /// Ingestion outcome: Cauã reacts and his mouth closes (the chewing face
+  /// has a closed mouth). A finger still down opens it again on release.
+  void _reactToIngestion(ItemType type) {
+    _reactionController.start(type.category);
+    _mouthController.close();
+    _releaseOpensMouth = _activePointerId != null;
   }
 
   void _triggerShake() => _shake?.trigger();
@@ -208,6 +233,8 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     _audio?.stopSfx();
     _mouthController.reset();
     _blinkController.reset();
+    _reactionController.reset();
+    _releaseOpensMouth = false;
     // Safe before onLoad: nothing to clear, onLoad builds the initial state.
     if (_shake == null) {
       _gameManager.reset();
@@ -227,9 +254,17 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     // Blink only while playing (no allocation: plain field comparison).
+    final state = _gameManager.state;
     // Caua blinks in every state except game over (no sleepy eyes on the
     // "Tente de Novo!" card).
-    _player?.blinkEnabled = _gameManager.state != GameState.lost;
+    _player?.blinkEnabled = state != GameState.lost;
+    // Any game-state change (tutorial, victory, lost, ...) clears the reaction.
+    if (state != _lastState) {
+      _lastState = state;
+      _reactionController.cancel();
+      _releaseOpensMouth = false;
+    }
+    _reactionController.tick(dt);
     super.update(dt);
   }
 
@@ -238,7 +273,30 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     // Input is paused while an end-state card is shown.
     final state = _gameManager.state;
     if (state == GameState.victory || state == GameState.lost) return;
+    // Extra simultaneous touches (a different pointer) are ignored. A repeat
+    // down from the owner pointer (its up was lost) is a normal tap.
+    final active = _activePointerId;
+    if (active != null && active != event.pointerId) return;
+    _activePointerId = event.pointerId;
+    _releaseOpensMouth = false;
+    // Input always wins: cancel any reaction and toggle in the same frame.
+    _reactionController.cancel();
     _mouthController.toggle();
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) => _release(event.pointerId);
+
+  @override
+  void onTapCancel(TapCancelEvent event) => _release(event.pointerId);
+
+  void _release(int pointerId) {
+    if (pointerId != _activePointerId) return;
+    _activePointerId = null;
+    if (!_releaseOpensMouth) return;
+    _releaseOpensMouth = false;
+    _reactionController.cancel();
+    _mouthController.open();
   }
 
   @override
@@ -250,5 +308,6 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
     // Children (and their listeners) are gone after super; the game owns
     // the blink controller and disposes it last.
     _blinkController.dispose();
+    _reactionController.dispose();
   }
 }

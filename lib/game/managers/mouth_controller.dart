@@ -19,6 +19,16 @@ class MouthController {
     _state.value = isOpen ? MouthState.closed : MouthState.open;
   }
 
+  /// Opens the mouth. Notifies once, and only if the state changed.
+  void open() {
+    _state.value = MouthState.open;
+  }
+
+  /// Closes the mouth. Notifies once, and only if the state changed.
+  void close() {
+    _state.value = MouthState.closed;
+  }
+
   /// Returns the mouth to its default closed state.
   void reset() {
     _state.value = MouthState.closed;

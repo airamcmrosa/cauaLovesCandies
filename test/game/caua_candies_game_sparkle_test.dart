@@ -89,6 +89,8 @@ void main() {
       var lastHp = gm.hp.value;
       var lastScore = gm.score.value;
       for (var i = 0; i < 600 && gm.state == GameState.playing; i++) {
+        // Ingestion closes the mouth now: keep reopening it.
+        if (open) game.mouthController.open();
         game.update(0.05);
         await game.ready();
         seen.addAll(sparkles(game));
