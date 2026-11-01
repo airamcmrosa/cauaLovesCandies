@@ -69,7 +69,6 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-072` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart (stopSfx)` | Open | AudioController.stopSfx has no controller-level test |
 | `OBS-073` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart (loseHp, dismissTutorial)` | Open | HP can reach 0 during the tutorial without entering lost |
 | `OBS-074` | INFO | ASSET_LICENSE | `assets/sfx/victory.mp3` | Open | Victory jingle is a synthesized placeholder, not a sampled CC0 clip |
-
 | `OBS-075` | INFO | UX_KIDS | `lib/game/managers/caua_reaction_timings.dart` | Open | Mouth closes after every ingestion; child must tap or release to reopen |
 | `OBS-076` | INFO | DESIGN | `lib/game/managers/caua_reaction_controller.dart` | Open | kReactionRecover holds the last chew frame instead of returning to idle |
 | `OBS-077` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawn interval derived from phase 3 speed makes phases 1-2 about 6% sparser |
