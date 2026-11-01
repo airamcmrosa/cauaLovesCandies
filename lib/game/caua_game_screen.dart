@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,8 +8,10 @@ import 'package:provider/provider.dart';
 import '../audio/audio_controller.dart';
 import '../style/palette.dart';
 import '../ui/game_hud.dart';
+import '../ui/game_over_overlay.dart';
 import '../ui/phase_banner_overlay.dart';
 import '../ui/tutorial_overlay.dart';
+import '../ui/victory_overlay.dart';
 
 import 'caua_candies_game.dart';
 import 'managers/game_manager.dart';
@@ -121,6 +125,16 @@ class _CauaGameScreenState extends State<CauaGameScreen> {
                                         ),
                                     CauaCandiesGame.tutorialOverlayKey:
                                         _buildTutorial,
+                                    CauaCandiesGame.victoryOverlayKey:
+                                        (context, game) => VictoryOverlay(
+                                          onPlayAgain: () =>
+                                              unawaited(game.restart()),
+                                        ),
+                                    CauaCandiesGame.gameOverOverlayKey:
+                                        (context, game) => GameOverOverlay(
+                                          onPlayAgain: () =>
+                                              unawaited(game.restart()),
+                                        ),
                                   },
                                   initialActiveOverlays: const [
                                     CauaCandiesGame.hudOverlayKey,

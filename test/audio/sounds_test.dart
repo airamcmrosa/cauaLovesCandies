@@ -19,7 +19,14 @@ void main() {
           SfxType.buttonTap,
         ]),
       );
-      expect(SfxType.values.length, 6);
+      expect(SfxType.values.length, 7);
+    });
+
+    test('SfxType.victory maps to a small mp3 under assets/sfx', () {
+      expect(soundTypeToFilename(SfxType.victory), ['victory.mp3']);
+      expect(sfxAssetPath(SfxType.victory, 'victory.mp3'), 'sfx/victory.mp3');
+      expect(soundTypeToVolume(SfxType.victory), 1.0);
+      expect(File('assets/sfx/victory.mp3').lengthSync(), lessThan(100 * 1024));
     });
 
     test('SfxType.fruit has filenames that exist in assets/sfx', () {

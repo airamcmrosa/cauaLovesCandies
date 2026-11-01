@@ -155,6 +155,14 @@ class AudioController {
     _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
   }
 
+  /// Stops every sound effect currently playing (music is untouched), e.g.
+  /// the victory jingle when the player restarts.
+  void stopSfx() {
+    for (final player in _sfxPlayers) {
+      unawaited(player.stop().catchError((Object _) {}));
+    }
+  }
+
   /// Enables the [AudioController] to listen to [AppLifecycleState] events,
   /// and therefore do things like stopping playback when the game
   /// goes into the background.

@@ -65,6 +65,10 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-065` | INFO | MAINTAINABILITY | `lib/game/components/conveyor_belt_component.dart` | Open | Comment says "Phase 1 (1.0x)" but phase 1 is now 1.2x; fix with OBS-052 |
 | `OBS-066` | INFO | TEST_COVERAGE | `test/game/caua_game_screen_tutorial_tap_test.dart` | Open | "Tap handler runs once" is inferred from one mouth notification, not from a direct hook on the handler |
 | `OBS-067` | INFO | TEST_COVERAGE | `test/audio/audio_controller_test.dart` | Open | Test "lifecycle AppLifecycleState.paused pauses music" failed once under a full-suite run and passed in isolation; timing-dependent flake (also a 30 s `setUpAll` timeout seen in caua_frames_invariants_test under load) |
+| `OBS-071` | WARNING | TEST_COVERAGE | `test/game/caua_game_screen_end_overlays_test.dart` | Open | No test taps the end-overlay button through the real GameWidget |
+| `OBS-072` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart (stopSfx)` | Open | AudioController.stopSfx has no controller-level test |
+| `OBS-073` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart (loseHp, dismissTutorial)` | Open | HP can reach 0 during the tutorial without entering lost |
+| `OBS-074` | INFO | ASSET_LICENSE | `assets/sfx/victory.mp3` | Open | Victory jingle is a synthesized placeholder, not a sampled CC0 clip |
 
 ---
 
@@ -586,3 +590,43 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** "lifecycle AppLifecycleState.paused pauses music" failed once in a full run (expected >= 1, actual 0); 3 isolated reruns and the next full run passed. A second test in the same file, "start during in-flight start (OBS-033) blocked play does not loop forever", failed once in a full run of the merged TASK-006 branch and also passed on rerun (3 isolated, then full). No diff in `lib/audio` or `test/audio` against main. A 30 s `setUpAll` timeout in `test/assets/caua_frames_invariants_test.dart` was also seen once under load during TASK-006.
 * **Risk/Impact:** Occasional red full-suite run without a code defect.
 * **Resolution Trigger:** If it recurs: make the test await the lifecycle callback deterministically; consider a longer `setUpAll` timeout for the frames test.
+
+### `OBS-071`
+* **Severity:** WARNING
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_game_screen_end_overlays_test.dart`
+* **Source:** `audit / TASK-005`
+* **Status:** Open
+* **Finding:** Fake-async cannot await asset loading, so the restart path is covered at game level only, not through the overlay button in a GameWidget.
+* **Risk/Impact:** A wiring regression between the overlay callback and game.restart() would pass the suite.
+* **Resolution Trigger:** Add an integration or golden harness, or verify in the real-device playtest.
+
+### `OBS-072`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `lib/audio/audio_controller.dart (stopSfx)`
+* **Source:** `audit / TASK-005`
+* **Status:** Open
+* **Finding:** stopSfx is only exercised indirectly; audio_controller_test is the file with the flaky OBS-067 risk.
+* **Risk/Impact:** A regression leaves the victory jingle playing after restart.
+* **Resolution Trigger:** Next audio test pass.
+
+### `OBS-073`
+* **Severity:** INFO
+* **Category:** LIFECYCLE
+* **Target:** `lib/game/managers/game_manager.dart (loseHp, dismissTutorial)`
+* **Source:** `audit / TASK-005`
+* **Status:** Open
+* **Finding:** loseHp moves playing to lost, but dismissTutorial does not check HP. Unreachable today: tutorial time is slow and the first tap dismisses it.
+* **Risk/Impact:** Stuck at 0 HP if the tutorial rules change.
+* **Resolution Trigger:** If the tutorial rules change.
+
+### `OBS-074`
+* **Severity:** INFO
+* **Category:** ASSET_LICENSE
+* **Target:** `assets/sfx/victory.mp3`
+* **Source:** `audit / TASK-005`
+* **Status:** Open
+* **Finding:** The PM decision asked for a CC0 sample; none was available offline, so a 2 s fanfare was synthesized (16.5 KB, original work, CC0).
+* **Risk/Impact:** Plain sine-wave timbre may sound dull at the party.
+* **Resolution Trigger:** Product owner playtest; swap in a nicer CC0 sample if wanted.

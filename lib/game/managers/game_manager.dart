@@ -10,7 +10,7 @@ import 'item_type.dart';
 import 'phase_config.dart';
 
 /// High-level game state. A new session starts in `tutorial` until dismissed.
-enum GameState { tutorial, playing, victory }
+enum GameState { tutorial, playing, victory, lost }
 
 class GameManager {
   GameManager({List<PhaseConfig> phases = kPhases}) : _phases = phases;
@@ -43,7 +43,14 @@ class GameManager {
   /// Compatibility setter (sets the phase without firing [phaseChanged]).
   set level(int value) => currentPhase.value = value;
 
-  GameState state = GameState.tutorial;
+  /// Observable game state (end-state overlays and effects listen to it).
+  /// Notifies only on an actual change.
+  final ValueNotifier<GameState> stateNotifier = ValueNotifier<GameState>(
+    GameState.tutorial,
+  );
+
+  GameState get state => stateNotifier.value;
+  set state(GameState value) => stateNotifier.value = value;
 
   /// Time scale for belt, spawner and items: [kTutorialTimeScale] during the
   /// tutorial, 1.0 while playing, and 0 in every other state (victory
@@ -51,7 +58,7 @@ class GameManager {
   double get timeScale => switch (state) {
     GameState.tutorial => kTutorialTimeScale,
     GameState.playing => 1.0,
-    GameState.victory => 0.0,
+    GameState.victory || GameState.lost => 0.0,
   };
 
   /// Config of the current phase.
@@ -83,10 +90,14 @@ class GameManager {
     }
   }
 
-  /// Removes 1 HP, clamped at 0 (no notification when already 0).
+  /// Removes 1 HP, clamped at 0 (no notification when already 0). Reaching 0
+  /// HP while playing moves the game to [GameState.lost].
   void loseHp() {
     if (hp.value <= 0) return;
     hp.value -= 1;
+    if (hp.value == 0 && state == GameState.playing) {
+      state = GameState.lost;
+    }
   }
 
   /// Applies the effect of an ingested [item] (points and/or HP loss).
@@ -116,6 +127,7 @@ class GameManager {
     currentPhase.dispose();
     phaseChanged.dispose();
     finalTargetReached.dispose();
+    stateNotifier.dispose();
     score.dispose();
     hp.dispose();
   }
