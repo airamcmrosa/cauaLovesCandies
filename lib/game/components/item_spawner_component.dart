@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 
+import '../managers/caua_reaction_timings.dart';
 import '../managers/game_manager.dart';
 import '../managers/item_type.dart';
 import '../managers/mouth_controller.dart';
@@ -52,8 +53,16 @@ class ItemSpawnerComponent extends Component {
        _random = random,
        _spriteFor = spriteFor;
 
-  /// Seconds between spawns at Phase 1 speed (single place to tune).
-  static const double spawnIntervalSeconds = 1.4;
+  /// Belt distance between spawns, expressed in seconds at speed multiplier
+  /// 1.0 (the accumulator below is scaled by the phase speed).
+  ///
+  /// Spacing is constant in belt distance, so it survives a phase-change
+  /// speed jump: items in flight all move at the current speed and arrive
+  /// `spawnIntervalSeconds / speed` apart. Sized for the fastest phase to
+  /// keep every arrival gap >= [kMinArrivalGap] plus a one-frame-or-more
+  /// safety margin ([kArrivalGapMargin]).
+  static final double spawnIntervalSeconds =
+      (kMinArrivalGap + kArrivalGapMargin) * kPhases.last.speedMultiplier;
 
   final GameManager _gameManager;
   final MouthController _mouthController;

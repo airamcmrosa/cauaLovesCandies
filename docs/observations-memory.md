@@ -69,6 +69,11 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-072` | INFO | TEST_COVERAGE | `lib/audio/audio_controller.dart (stopSfx)` | Open | AudioController.stopSfx has no controller-level test |
 | `OBS-073` | INFO | LIFECYCLE | `lib/game/managers/game_manager.dart (loseHp, dismissTutorial)` | Open | HP can reach 0 during the tutorial without entering lost |
 | `OBS-074` | INFO | ASSET_LICENSE | `assets/sfx/victory.mp3` | Open | Victory jingle is a synthesized placeholder, not a sampled CC0 clip |
+| `OBS-075` | INFO | UX_KIDS | `lib/game/managers/caua_reaction_timings.dart` | Open | Mouth closes after every ingestion; child must tap or release to reopen |
+| `OBS-076` | INFO | DESIGN | `lib/game/managers/caua_reaction_controller.dart` | Open | kReactionRecover holds the last chew frame instead of returning to idle |
+| `OBS-077` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawn interval derived from phase 3 speed makes phases 1-2 about 6% sparser |
+| `OBS-078` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_reaction_test.dart` | Open | Ingestion is simulated via onIngested, not a real item reaching the mouth; no dedicated deflection test |
+| `OBS-079` | INFO | TEST_COVERAGE | `test/game/components/item_spawner_arrival_gap_test.dart` | Open | Arrival gap simulation needs about 3600 awaits per case |
 
 ---
 
@@ -630,3 +635,53 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** The PM decision asked for a CC0 sample; none was available offline, so a 2 s fanfare was synthesized (16.5 KB, original work, CC0).
 * **Risk/Impact:** Plain sine-wave timbre may sound dull at the party.
 * **Resolution Trigger:** Product owner playtest; swap in a nicer CC0 sample if wanted.
+
+### `OBS-075`
+* **Severity:** INFO
+* **Category:** UX_KIDS
+* **Target:** `lib/game/managers/caua_reaction_timings.dart`
+* **Source:** `audit / TASK-011`
+* **Status:** Open
+* **Finding:** Ingestion closes the mouth, so the child taps again or lifts a held finger to open for the next item.
+* **Risk/Impact:** May frustrate 6-year-olds if it feels like a missed tap.
+* **Resolution Trigger:** Playtest with children; tune timings or the release rule.
+
+### `OBS-076`
+* **Severity:** INFO
+* **Category:** DESIGN
+* **Target:** `lib/game/managers/caua_reaction_controller.dart`
+* **Source:** `audit / TASK-011`
+* **Status:** Open
+* **Finding:** The 0.12 s recovery keeps the shut-eyes chew frame rather than showing idle-closed.
+* **Risk/Impact:** Slightly longer chew look than the spec table implies.
+* **Resolution Trigger:** Playtest tuning.
+
+### `OBS-077`
+* **Severity:** INFO
+* **Category:** PERFORMANCE_NFR
+* **Target:** `lib/game/components/item_spawner_component.dart`
+* **Source:** `audit / TASK-011`
+* **Status:** Open
+* **Finding:** spawnIntervalSeconds is now (kMinArrivalGap + margin) * phase 3 multiplier, about 1.486 s; arrival gaps are about 1.24 / 1.03 / 0.86 s. Affects OBS-052's effective phase 1 gap.
+* **Risk/Impact:** Pace slightly slower than before in all phases.
+* **Resolution Trigger:** Playtest.
+
+### `OBS-078`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/caua_candies_game_reaction_test.dart`
+* **Source:** `audit / TASK-011`
+* **Status:** Open
+* **Finding:** Tests call the spawner's public onIngested callback, and no test asserts that a deflected item triggers no reaction.
+* **Risk/Impact:** Hook wiring regressions or a reaction on deflection would pass the suite.
+* **Resolution Trigger:** Add an end-to-end and a deflection test if the hook wiring changes.
+
+### `OBS-079`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/game/components/item_spawner_arrival_gap_test.dart`
+* **Source:** `audit / TASK-011`
+* **Status:** Open
+* **Finding:** FlameGame.update did not tick world children in the harness, so each frame awaits game.ready().
+* **Risk/Impact:** Slow test runs.
+* **Resolution Trigger:** If the suite gets slow.

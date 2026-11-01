@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 
 import '../managers/blink_controller.dart';
+import '../managers/caua_reaction_controller.dart';
+import '../managers/caua_reaction_timings.dart';
 import '../managers/mouth_controller.dart';
 import '../managers/mouth_state.dart';
 import 'caua_pose.dart';
@@ -15,12 +17,14 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   CauaPlayerComponent({
     required MouthController mouthController,
     BlinkController? blinkController,
+    CauaReactionController? reactionController,
     super.position,
     super.size,
     super.anchor,
     super.priority,
   }) : _mouthController = mouthController,
-       _blinkController = blinkController;
+       _blinkController = blinkController,
+       _reactionController = reactionController;
 
   /// Expected file names inside the game's images cache.
   static const String closedSpriteName =
@@ -41,8 +45,20 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
     'caua/caua_win_eyes_shut.webp',
   ];
 
+  /// Reaction sprites: chew frames in step order, then eca.
+  static const List<String> reactionSpriteNames = <String>[
+    'caua/caua_chew_eyes_open.webp',
+    'caua/caua_chew_eyes_half.webp',
+    'caua/caua_chew_eyes_shut.webp',
+    'caua/caua_eca.webp',
+  ];
+
   final MouthController _mouthController;
   final BlinkController? _blinkController;
+  final CauaReactionController? _reactionController;
+
+  // Built once in onLoad: chew frames (kChewSteps) then eca.
+  late final List<Sprite> _reactionTable;
 
   bool _blinkEnabled = true;
 
@@ -90,6 +106,11 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
         ..add(frames[EyeState.shut.index] ?? half ?? base);
     }
     _table = table;
+    // Missing reaction art falls back to the idle closed face.
+    final idle = table[CauaPose.mouthClosed.index * eyeCount];
+    _reactionTable = <Sprite>[
+      for (final name in reactionSpriteNames) _tryLoad(name) ?? idle,
+    ];
     _refresh();
   }
 
@@ -106,6 +127,8 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
     super.onMount();
     _mouthController.state.addListener(_refresh);
     _blinkController?.state.addListener(_refresh);
+    _reactionController?.reaction.addListener(_refresh);
+    _reactionController?.step.addListener(_refresh);
     _listening = true;
     // Resync in case a state changed before mounting.
     _refresh();
@@ -118,6 +141,8 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
     _listening = false;
     _mouthController.state.removeListener(_refresh);
     _blinkController?.state.removeListener(_refresh);
+    _reactionController?.reaction.removeListener(_refresh);
+    _reactionController?.step.removeListener(_refresh);
     super.onRemove();
   }
 
@@ -128,6 +153,22 @@ class CauaPlayerComponent extends SpriteComponent with HasGameReference {
   }
 
   void _refresh() {
+    // A forced pose (win) beats reactions; reactions beat idle and blink.
+    if (_poseOverride == null) {
+      final reaction = _reactionController?.reaction.value;
+      if (reaction == CauaReaction.chew) {
+        sprite =
+            _reactionTable[_reactionController!.step.value.clamp(
+              0,
+              kChewSteps - 1,
+            )];
+        return;
+      }
+      if (reaction == CauaReaction.eca) {
+        sprite = _reactionTable[kChewSteps];
+        return;
+      }
+    }
     final pose =
         _poseOverride ??
         switch (_mouthController.state.value) {

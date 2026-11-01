@@ -147,7 +147,7 @@ void main() {
       final spawner = makeSpawner();
       await game.ensureAdd(spawner);
       for (var i = 0; i < 6; i++) {
-        tick(spawner, phase1Interval / 6);
+        tick(spawner, phase1Interval / 6 + 1e-9);
       }
       expect(items(), hasLength(1));
     });
@@ -160,7 +160,7 @@ void main() {
           final spawner = makeSpawner();
           await game.ensureAdd(spawner);
           final mult = kPhases[level - 1].speedMultiplier;
-          const interval = ItemSpawnerComponent.spawnIntervalSeconds;
+          final interval = ItemSpawnerComponent.spawnIntervalSeconds;
           tick(spawner, interval / mult - 0.01);
           expect(items(), isEmpty);
           tick(spawner, 0.02);
