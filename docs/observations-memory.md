@@ -74,6 +74,9 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 | `OBS-077` | INFO | PERFORMANCE_NFR | `lib/game/components/item_spawner_component.dart` | Open | Spawn interval derived from phase 3 speed makes phases 1-2 about 6% sparser |
 | `OBS-078` | INFO | TEST_COVERAGE | `test/game/caua_candies_game_reaction_test.dart` | Open | Ingestion is simulated via onIngested, not a real item reaching the mouth; no dedicated deflection test |
 | `OBS-079` | INFO | TEST_COVERAGE | `test/game/components/item_spawner_arrival_gap_test.dart` | Open | Arrival gap simulation needs about 3600 awaits per case |
+| `OBS-068` | INFO | MAINTAINABILITY | `docs/product/design/color-palette.md` | Open | Frames do Cauã section still says PNG/.jpeg masters and lists old missing-frame status |
+| `OBS-069` | INFO | TEST_COVERAGE | `test/assets/caua_frames_invariants_test.dart` | Open | Invariants test hard-codes a white sticker border via the halo check |
+| `OBS-070` | INFO | TEST_COVERAGE | `test/assets/caua_frames_invariants_test.dart` | Open | Color reference is taken from the committed frames, so a full-set swap can drift unnoticed |
 
 ---
 
@@ -685,3 +688,32 @@ Lean, append-only registry of non-blocking observations (INFO / WARNING). Blocke
 * **Finding:** FlameGame.update did not tick world children in the harness, so each frame awaits game.ready().
 * **Risk/Impact:** Slow test runs.
 * **Resolution Trigger:** If the suite gets slow.
+### `OBS-068`
+* **Severity:** INFO
+* **Category:** MAINTAINABILITY
+* **Target:** `docs/product/design/color-palette.md`
+* **Source:** `audit / TASK-019`
+* **Status:** Open
+* **Finding:** The section describes the frames as PNG with .jpeg masters and lists three frames as missing, but the shipped files are .webp and all 13 exist.
+* **Risk/Impact:** Outdated art guidance misleads the next sprite delivery.
+* **Resolution Trigger:** Next docs refresh of the art direction file.
+
+### `OBS-069`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/assets/caua_frames_invariants_test.dart`
+* **Source:** `audit / TASK-019`
+* **Status:** Open
+* **Finding:** The halo check requires partial-alpha pixels with mean RGB >= 240. The refreshed art had no white border, so TASK-019 synthesized a 10 px white one.
+* **Risk/Impact:** Any future delivery without a white sticker edge fails the test until the border is rebuilt or the test changes.
+* **Resolution Trigger:** Next sprite delivery: decide whether the white border is a requirement and document it.
+
+### `OBS-070`
+* **Severity:** INFO
+* **Category:** TEST_COVERAGE
+* **Target:** `test/assets/caua_frames_invariants_test.dart`
+* **Source:** `audit / TASK-019`
+* **Status:** Open
+* **Finding:** Reference skin, hair and shirt means come from the committed frames themselves; after TASK-019 they come from the normalized set.
+* **Risk/Impact:** Replacing all frames at once cannot be caught by the color checks.
+* **Resolution Trigger:** Next sprite delivery: pin the reference means as constants in the test.
