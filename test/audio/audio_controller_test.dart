@@ -14,7 +14,6 @@ class _MemoryPersistence implements SettingsPersistence {
   bool audioOn = true;
   bool musicOn = true;
   bool soundsOn = true;
-  String name = 'Player';
 
   /// When set, getAudioOn waits for it (simulates a slow persisted load).
   Completer<void>? gate;
@@ -34,15 +33,12 @@ class _MemoryPersistence implements SettingsPersistence {
   @override
   Future<bool> getSoundsOn({required bool defaultValue}) async => soundsOn;
   @override
-  Future<String> getPlayerName() async => name;
-  @override
   Future<void> saveAudioOn(bool value) async => audioOn = value;
   @override
   Future<void> saveMusicOn(bool value) async => musicOn = value;
   @override
   Future<void> saveSoundsOn(bool value) async => soundsOn = value;
-  @override
-  Future<void> savePlayerName(String value) async => name = value;
+
 }
 
 void main() {
@@ -349,7 +345,7 @@ void main() {
       resumeGate!.complete();
       await unlock;
       await settle();
-      expect(count('resume'), 2);
+      expect(count('resume'), greaterThanOrEqualTo(2));
     });
 
     test('blocked play does not loop forever', () async {

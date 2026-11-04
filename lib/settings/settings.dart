@@ -25,9 +25,6 @@ class SettingsController {
   /// enum) keeps a single, simple mute switch for music and sfx.
   ValueNotifier<bool> audioOn = ValueNotifier(true);
 
-  /// The player's name. Used for things like high score lists.
-  ValueNotifier<String> playerName = ValueNotifier('Player');
-
   /// Completes once persisted values have been loaded into the notifiers.
   late final Future<void> loaded;
 
@@ -41,11 +38,6 @@ class SettingsController {
     loaded = _loadStateFromPersistence();
   }
 
-  void setPlayerName(String name) {
-    playerName.value = name;
-    _store.savePlayerName(playerName.value);
-  }
-
   void toggleAudioOn() {
     audioOn.value = !audioOn.value;
     _store.saveAudioOn(audioOn.value);
@@ -57,7 +49,6 @@ class SettingsController {
       _store
           .getAudioOn(defaultValue: true)
           .then((value) => audioOn.value = value),
-      _store.getPlayerName().then((value) => playerName.value = value),
     ]);
 
     _log.fine(() => 'Loaded settings: $loadedValues');

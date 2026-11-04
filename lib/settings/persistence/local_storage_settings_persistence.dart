@@ -21,12 +21,6 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   }
 
   @override
-  Future<String> getPlayerName() async {
-    final prefs = await instanceFuture;
-    return prefs.getString('playerName') ?? 'Player';
-  }
-
-  @override
   Future<bool> getSoundsOn({required bool defaultValue}) async {
     final prefs = await instanceFuture;
     return prefs.getBool('soundsOn') ?? defaultValue;
@@ -42,12 +36,6 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<void> saveMusicOn(bool value) async {
     final prefs = await instanceFuture;
     await prefs.setBool('musicOn', value);
-  }
-
-  @override
-  Future<void> savePlayerName(String value) async {
-    final prefs = await instanceFuture;
-    await prefs.setString('playerName', value);
   }
 
   @override

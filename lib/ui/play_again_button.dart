@@ -48,7 +48,10 @@ class PlayAgainButton extends StatelessWidget {
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(label, style: _style),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(label, style: _style),
+                ),
               ),
             ),
           ),

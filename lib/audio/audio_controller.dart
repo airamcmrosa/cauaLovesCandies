@@ -15,6 +15,9 @@ import 'sounds.dart';
 class AudioController {
   static final _log = Logger('AudioController');
 
+  /// How long a single music `play()` may take before it is considered blocked.
+  static const _playAttemptTimeout = Duration(seconds: 4);
+
   final AudioPlayer _musicPlayer;
 
   /// This is a list of [AudioPlayer] instances which are rotated to play
@@ -116,6 +119,16 @@ class AudioController {
     }
     if (_musicPlayer.state == PlayerState.playing) {
       return;
+    }
+    if (_startingMusic) {
+      // An autoplay attempt is stuck (blocked by the browser). This call runs
+      // inside a user gesture, so try to start playback right now instead of
+      // waiting for the stuck attempt to time out.
+      try {
+        await _musicPlayer.resume().timeout(_playAttemptTimeout);
+      } catch (e) {
+        _log.fine('Gesture resume during in-flight start failed: $e');
+      }
     }
     await _startOrResumeMusic();
   }
@@ -260,7 +273,11 @@ class AudioController {
     );
     try {
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-      await _musicPlayer.play(AssetSource(path));
+      // A blocked autoplay never completes on its own (the library waits 30s).
+      // Give up quickly so queued user-gesture retries are not stuck behind it.
+      await _musicPlayer
+          .play(AssetSource(path))
+          .timeout(_playAttemptTimeout);
       _log.info('Music started: $path, state=${_musicPlayer.state}');
     } catch (e, st) {
       _log.warning('Could not play song $path (autoplay blocked?)', e, st);

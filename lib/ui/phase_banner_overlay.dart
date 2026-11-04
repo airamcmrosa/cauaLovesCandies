@@ -100,21 +100,31 @@ class _PhaseBannerOverlayState extends State<PhaseBannerOverlay> {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Center(
-        child: AnimatedOpacity(
-          opacity: _visible ? 1 : 0,
-          duration: _fadeDuration,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: _palette.bgCream.color,
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: Text(
-                _text ?? '',
-                textAlign: TextAlign.center,
-                style: _textStyle,
+      child: SafeArea(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: AnimatedOpacity(
+              opacity: _visible ? 1 : 0,
+              duration: _fadeDuration,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _palette.bgCream.color,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: _palette.ink.color, width: 4),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 20,
+                  ),
+                  child: Text(
+                    _text ?? '',
+                    textAlign: TextAlign.center,
+                    style: _textStyle,
+                  ),
+                ),
               ),
             ),
           ),
