@@ -8,8 +8,8 @@ void main() {
       expect(kPhases.length, 3);
     });
 
-    test('speed multipliers are 1.2, 1.44, 1.728', () {
-      const expected = [1.2, 1.44, 1.728];
+    test('speed multipliers are 1.11, 1.22, 1.33', () {
+      const expected = [1.11, 1.22, 1.33];
       for (var i = 0; i < expected.length; i++) {
         expect(kPhases[i].speedMultiplier, closeTo(expected[i], 1e-9));
       }
@@ -24,11 +24,11 @@ void main() {
       }
     });
 
-    test('consecutive speed ratio is 1.2', () {
+    test('consecutive speed step is 0.11', () {
       for (var i = 1; i < kPhases.length; i++) {
         expect(
-          kPhases[i].speedMultiplier / kPhases[i - 1].speedMultiplier,
-          closeTo(1.2, 1e-9),
+          kPhases[i].speedMultiplier - kPhases[i - 1].speedMultiplier,
+          closeTo(0.11, 1e-9),
         );
       }
     });

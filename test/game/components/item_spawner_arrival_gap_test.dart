@@ -6,6 +6,7 @@ import 'package:caua_loves_candies/game/components/item_spawner_component.dart';
 import 'package:caua_loves_candies/game/managers/caua_reaction_timings.dart';
 import 'package:caua_loves_candies/game/managers/game_manager.dart';
 import 'package:caua_loves_candies/game/managers/mouth_controller.dart';
+import 'package:caua_loves_candies/game/managers/phase_config.dart';
 import 'package:caua_loves_candies/game/projection.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
@@ -104,7 +105,7 @@ void main() {
 
   test('spawn spacing covers the fastest phase plus margin', () {
     expect(
-      ItemSpawnerComponent.spawnIntervalSeconds / 1.728,
+      ItemSpawnerComponent.spawnIntervalSeconds / kPhases.last.speedMultiplier,
       greaterThanOrEqualTo(kMinArrivalGap + kArrivalGapMargin - 1e-9),
     );
   });

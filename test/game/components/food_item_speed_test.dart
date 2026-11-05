@@ -41,18 +41,18 @@ void main() {
     const dt = 0.1;
     item.update(dt);
     final z1 = item.z;
-    expect(z1, closeTo(ConveyorBeltComponent.baseSpeed * 1.2 * dt, 1e-9));
+    expect(z1, closeTo(ConveyorBeltComponent.baseSpeed * 1.11 * dt, 1e-9));
 
-    gm.addScore(10); // phase 2 -> 1.44
+    gm.addScore(10); // phase 2 -> 1.22
     item.update(dt);
     final z2 = item.z;
-    expect(z2 - z1, closeTo(ConveyorBeltComponent.baseSpeed * 1.44 * dt, 1e-9));
+    expect(z2 - z1, closeTo(ConveyorBeltComponent.baseSpeed * 1.22 * dt, 1e-9));
 
-    gm.addScore(10); // phase 3 -> 1.728
+    gm.addScore(10); // phase 3 -> 1.33
     item.update(dt);
     expect(
       item.z - z2,
-      closeTo(ConveyorBeltComponent.baseSpeed * 1.728 * dt, 1e-9),
+      closeTo(ConveyorBeltComponent.baseSpeed * 1.33 * dt, 1e-9),
     );
   });
 }
