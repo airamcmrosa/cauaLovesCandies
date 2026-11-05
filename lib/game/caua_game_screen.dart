@@ -97,6 +97,24 @@ class _CauaGameScreenState extends State<CauaGameScreen> {
             SizedBox.expand(
               child: Stack(
                 children: [
+                  // Full-area tap target for the letterbox bars around the
+                  // 9:16 game rect. It sits BEHIND the GameWidget: the opaque
+                  // GameWidget consumes taps on the central rect (handled by
+                  // the game's own TapCallbacks), so this Listener only
+                  // receives taps on the bars, where there is no GameWidget.
+                  // This avoids a double toggle on the central area.
+                  Positioned.fill(
+                    child: Listener(
+                      key: const Key('letterbox tap target'),
+                      behavior: HitTestBehavior.translucent,
+                      onPointerDown: (event) =>
+                          _game.handlePointerDown(event.pointer),
+                      onPointerUp: (event) =>
+                          _game.handlePointerRelease(event.pointer),
+                      onPointerCancel: (event) =>
+                          _game.handlePointerRelease(event.pointer),
+                    ),
+                  ),
                   Positioned.fill(
                     child: LayoutBuilder(
                       builder: (context, constraints) {

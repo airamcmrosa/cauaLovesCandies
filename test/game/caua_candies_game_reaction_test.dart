@@ -183,4 +183,36 @@ void main() {
     g.update(0.016);
     expect(g.reactionController.reaction.value, CauaReaction.none);
   });
+
+  // The host screen's full-area Listener (letterbox bars) drives the game
+  // through these public methods, sharing the tap-channel logic.
+  gameTest('handlePointerDown toggles the mouth like an in-widget tap', (
+    g,
+  ) async {
+    await g.ready();
+    g.handlePointerDown(7);
+    expect(g.mouthController.state.value, MouthState.open);
+    g.handlePointerDown(7);
+    expect(g.mouthController.state.value, MouthState.closed);
+  });
+
+  gameTest('handlePointerRelease opens the mouth after eating', (g) async {
+    await g.ready();
+    g.handlePointerDown(7);
+    ingest(g, sweet);
+    expect(g.mouthController.state.value, MouthState.closed);
+    g.handlePointerRelease(7);
+    expect(g.mouthController.state.value, MouthState.open);
+  });
+
+  gameTest('handlePointerDown and in-widget tap share pointer ownership', (
+    g,
+  ) async {
+    await g.ready();
+    // Bar tap (Listener channel) owns the pointer; an in-widget tap from a
+    // different pointer is ignored while it is held.
+    g.handlePointerDown(7);
+    down(g, 9);
+    expect(g.mouthController.state.value, MouthState.open);
+  });
 }

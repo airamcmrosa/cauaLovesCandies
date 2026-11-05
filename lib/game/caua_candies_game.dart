@@ -269,26 +269,37 @@ class CauaCandiesGame extends FlameGame with TapCallbacks {
   }
 
   @override
-  void onTapDown(TapDownEvent event) {
+  void onTapDown(TapDownEvent event) => handlePointerDown(event.pointerId);
+
+  @override
+  void onTapUp(TapUpEvent event) => handlePointerRelease(event.pointerId);
+
+  @override
+  void onTapCancel(TapCancelEvent event) =>
+      handlePointerRelease(event.pointerId);
+
+  /// Toggles the mouth for a pointer-down from either input channel: the
+  /// in-widget [TapCallbacks] (taps on the 9:16 game rect) and the host
+  /// screen's full-area [Listener] (taps on the letterbox bars around it).
+  /// Both must share this logic so pointer ownership and the
+  /// release-after-eating rule behave identically wherever the user taps.
+  void handlePointerDown(int pointerId) {
     // Input is paused while an end-state card is shown.
     final state = _gameManager.state;
     if (state == GameState.victory || state == GameState.lost) return;
     // Extra simultaneous touches (a different pointer) are ignored. A repeat
     // down from the owner pointer (its up was lost) is a normal tap.
     final active = _activePointerId;
-    if (active != null && active != event.pointerId) return;
-    _activePointerId = event.pointerId;
+    if (active != null && active != pointerId) return;
+    _activePointerId = pointerId;
     _releaseOpensMouth = false;
     // Input always wins: cancel any reaction and toggle in the same frame.
     _reactionController.cancel();
     _mouthController.toggle();
   }
 
-  @override
-  void onTapUp(TapUpEvent event) => _release(event.pointerId);
-
-  @override
-  void onTapCancel(TapCancelEvent event) => _release(event.pointerId);
+  /// Releases a pointer (tap up or cancel) from either input channel.
+  void handlePointerRelease(int pointerId) => _release(pointerId);
 
   void _release(int pointerId) {
     if (pointerId != _activePointerId) return;

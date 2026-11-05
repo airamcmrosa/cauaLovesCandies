@@ -97,4 +97,24 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
   });
+
+  group('CauaGameScreen letterbox taps', () {
+    testWidgets('a translucent full-area Listener wraps the GameWidget', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+
+      // Our Listener is an ancestor of the GameWidget in the same Stack and is
+      // translucent, so it only catches taps on the letterbox bars (where
+      // there is no opaque GameWidget to consume them) and forwards all three
+      // pointer phases to the game's tap channel.
+      final listener = tester.widget<Listener>(
+        find.byKey(const Key('letterbox tap target')),
+      );
+      expect(listener.behavior, HitTestBehavior.translucent);
+      expect(listener.onPointerDown, isNotNull);
+      expect(listener.onPointerUp, isNotNull);
+      expect(listener.onPointerCancel, isNotNull);
+    });
+  });
 }
