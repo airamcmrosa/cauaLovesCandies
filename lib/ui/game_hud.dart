@@ -19,9 +19,14 @@ class GameHud extends StatelessWidget {
 
   static final Palette _palette = Palette();
 
-  // Cached style: large, high contrast (ink on a light pill).
+  // Adaptive score sizing: renders at [_scoreMaxFontSize] and scales down to
+  // [_scoreMinFontSize] to fit the pill box (large digit counts stay readable).
+  static const double _scoreMaxFontSize = 46;
+  static const double _scoreMinFontSize = 32;
+
+  // Cached style: large, high contrast (ink on a light pill), max size.
   static final TextStyle _scoreStyle = TextStyle(
-    fontSize: 48,
+    fontSize: _scoreMaxFontSize,
     fontWeight: FontWeight.w900,
     height: 1,
     color: _palette.ink.color,
@@ -63,9 +68,21 @@ class _ScorePill extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: ValueListenableBuilder<int>(
-          valueListenable: score,
-          builder: (context, value, _) => Text('$value', style: style),
+        // Box that bounds the glyph height between the min and max font size.
+        // FittedBox renders the Text at the max size and scales it down to fit,
+        // so the effective font size never exceeds the max nor drops below min.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: GameHud._scoreMinFontSize,
+            maxHeight: GameHud._scoreMaxFontSize,
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: ValueListenableBuilder<int>(
+              valueListenable: score,
+              builder: (context, value, _) => Text('$value', style: style),
+            ),
+          ),
         ),
       ),
     );
